@@ -163,38 +163,6 @@ limits: {
 }
 ```
 
-## 🔌 Integración con Sistemas Existentes
-
-### 📊 **Base de Datos**
-
-Para conectar con una base de datos real:
-
-```javascript
-// Reemplazar en js/script.js
-async function submitRequest(formData) {
-    const response = await fetch('/api/solicitudes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-    });
-    // Manejar respuesta
-}
-```
-
-### 📧 **Notificaciones por Email**
-
-```javascript
-// Agregar después del envío exitoso
-await fetch('/api/send-notification', {
-    method: 'POST',
-    body: JSON.stringify({
-        to: formData.solicitante,
-        type: 'request_confirmation',
-        data: formData
-    })
-});
-```
-
 ### 🔐 **Autenticación**
 
 ```javascript
@@ -260,15 +228,6 @@ npx eslint js/script.js
 - [ ] Código QR para seguimiento
 - [ ] Integración con Microsoft Teams
 
-## 🤝 Contribuir
-
-¡Las contribuciones son bienvenidas! Por favor:
-
-1. **Fork** el proyecto
-2. **Crea una rama** para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. **Commit** tus cambios (`git commit -m 'Agregar nueva funcionalidad'`)
-4. **Push** a la rama (`git push origin feature/nueva-funcionalidad`)
-5. **Abre un Pull Request**
 
 ### 📋 **Guías de Contribución**
 
@@ -291,20 +250,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 - Comunidad de desarrolladores
 - Contribuidores del proyecto
 
-## 📞 Soporte
 
-- **Email**: soporte@empresa.com
-- **Issues**: [GitHub Issues](https://github.com/tu-usuario/sistema-insumos/issues)
-- **Wiki**: [Documentación completa](https://github.com/tu-usuario/sistema-insumos/wiki)
-
-## 🔗 Enlaces Útiles
-
-- [Demo en vivo](https://sistema-insumos.netlify.app)
-- [Documentación completa](./docs/)
-- [Guía de instalación](./docs/INSTALLATION.md)
-- [Configuración avanzada](./docs/CONFIGURATION.md)
-
----
 
 <div align="center">
 
