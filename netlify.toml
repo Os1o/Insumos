@@ -1,4 +1,4 @@
-# netlify.toml - Configuración avanzada
+# netlify.toml - Configuración corregida
 
 # Headers de seguridad
 [[headers]]
@@ -10,7 +10,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co"
 
-# Proteger archivos
+# Proteger archivos sensibles
 [[redirects]]
   from = "/.env"
   to = "/404"
@@ -26,14 +26,33 @@
   to = "/404"
   status = 404
 
-# Personalizar página 404
+# REDIRECCIONES DE PÁGINAS ESPECÍFICAS (sin login)
 [[redirects]]
-  from = "/*"
+  from = "/index.html"
   to = "/login.html"
-  status = 200
+  status = 302
+  force = true
 
-# Página principal = login
+[[redirects]]
+  from = "/historial.html"
+  to = "/login.html"  
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/login.html"
+  status = 302
+  force = true
+
+# PÁGINA PRINCIPAL = LOGIN
 [[redirects]]
   from = "/"
   to = "/login.html"
   status = 200
+
+# 404 personalizado (DEBE IR AL FINAL)
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404
