@@ -1,0 +1,39 @@
+# netlify.toml - Configuración avanzada
+
+# Headers de seguridad
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co"
+
+# Proteger archivos
+[[redirects]]
+  from = "/.env"
+  to = "/404"
+  status = 404
+
+[[redirects]]
+  from = "/.git/*"
+  to = "/404"
+  status = 404
+
+[[redirects]]
+  from = "/config/*"
+  to = "/404"
+  status = 404
+
+# Personalizar página 404
+[[redirects]]
+  from = "/*"
+  to = "/login.html"
+  status = 200
+
+# Página principal = login
+[[redirects]]
+  from = "/"
+  to = "/login.html"
+  status = 200

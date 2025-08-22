@@ -34,43 +34,224 @@ let currentSolicitudType = '';
 // Función para cargar componentes dinámicamente
 async function loadComponent(containerId, filePath) {
     try {
-        const response = await fetch(filePath);
+        console.log(`🔄 Intentando cargar: ${filePath}`);
+        
+        // Intentar fetch con manejo de errores mejorado
+        const response = await fetch(filePath, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'text/html',
+            },
+            cache: 'no-cache'
+        });
+        
+        console.log(`📡 Respuesta de ${filePath}:`, response.status, response.statusText);
         
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
         
         const html = await response.text();
+        console.log(`📄 HTML obtenido de ${filePath}:`, html.substring(0, 100) + '...');
+        
         const container = document.getElementById(containerId);
         
-        if (container) {
-            container.innerHTML = html;
-            console.log(`✅ Componente cargado: ${filePath}`);
-            
-            // Ejecutar scripts específicos después de cargar
-            if (filePath.includes('header')) {
-                setupHeaderEvents();
-            } else if (filePath.includes('footer')) {
+        if (!container) {
+            console.error(`❌ Container no encontrado: ${containerId}`);
+            return;
+        }
+        
+        container.innerHTML = html;
+        console.log(`✅ Componente cargado exitosamente: ${filePath}`);
+        
+        // Ejecutar scripts específicos después de cargar
+        if (filePath.includes('header')) {
+            setTimeout(setupHeaderEvents, 100);
+        } else if (filePath.includes('footer')) {
+            setTimeout(() => {
                 setupFooterEvents();
                 updateFooterStats();
-            }
-        } else {
-            console.error(`❌ Container no encontrado: ${containerId}`);
+            }, 100);
         }
-    } catch (error) {
-        console.error(`❌ Error cargando ${filePath}:`, error);
         
-        // Mostrar error en el container
+    } catch (error) {
+        console.error(`❌ Error detallado cargando ${filePath}:`, error);
+        
+        // Fallback: cargar contenido básico
         const container = document.getElementById(containerId);
         if (container) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 1rem; background: #fee; border: 1px solid #fcc; border-radius: 8px; color: #c33;">
-                    ⚠️ Error cargando ${filePath}<br>
-                    <small>Verifique que el archivo existe en la ubicación correcta</small>
-                </div>
-            `;
+            if (filePath.includes('footer')) {
+                loadFallbackFooter(container);
+            } else if (filePath.includes('header')) {
+                loadFallbackHeader(container);
+            } else {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 1rem; background: #fee; border: 1px solid #fcc; border-radius: 8px; color: #c33;">
+                        ⚠️ Error cargando ${filePath}<br>
+                        <small>Error: ${error.message}</small><br>
+                        <small>Verificando rutas y permisos...</small>
+                    </div>
+                `;
+            }
         }
     }
+}
+
+// Fallback para footer si no se puede cargar dinámicamente
+function loadFallbackFooter(container) {
+    console.log('🔄 Cargando footer fallback...');
+    container.innerHTML = `
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h3>Contacto</h3>
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                                <span>soporte@empresa.com</span>
+                            </div>
+                            <div class="contact-item">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                                <span>+52 55 1234 5678</span>
+                            </div>
+                            <div class="contact-item">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                <span>Oficina Central - Piso 3</span>
+                            </div>
+                            <div class="contact-item">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                <span>Lun - Vie: 9:00 - 18:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-section">
+                        <h3>Enlaces Rápidos</h3>
+                        <div class="footer-links">
+                            <a href="index.html">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                    <polyline points="9,22 9,12 15,12 15,22"/>
+                                </svg>
+                                Inicio
+                            </a>
+                            <a href="historial.html">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 3h18v18H3zM8 7h8M8 11h8M8 15h8"/>
+                                </svg>
+                                Historial
+                            </a>
+                        </div>
+                    </div>
+                    <div class="footer-section">
+                        <h3>Sistema de Insumos</h3>
+                        <p class="footer-description">Plataforma digital para gestión de solicitudes</p>
+                        <div class="system-stats">
+                            <div class="stat-item">
+                                <span class="stat-number" id="totalSolicitudes">0</span>
+                                <span class="stat-label">Solicitudes</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="solicitudesActivas">0</span>
+                                <span class="stat-label">Activas</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer-section">
+                        <h3>Estado del Sistema</h3>
+                        <div class="system-status">
+                            <div class="status-item">
+                                <div class="status-indicator online"></div>
+                                <span>Sistema Operativo</span>
+                            </div>
+                        </div>
+                        <div class="system-info">
+                            <small>Última actualización: <span id="lastUpdate">${new Date().toLocaleTimeString()}</span></small>
+                            <small>Versión: 1.0.0</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <div class="footer-bottom-content">
+                        <div class="copyright">
+                            <p>&copy; <span id="currentYear">${new Date().getFullYear()}</span> Sistema de Solicitudes de Insumos.</p>
+                        </div>
+                        <div class="footer-actions">
+                            <button class="footer-btn" onclick="scrollToTop()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="19" x2="12" y2="5"/>
+                                    <polyline points="5,12 12,5 19,12"/>
+                                </svg>
+                                Subir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    `;
+    
+    setTimeout(() => {
+        setupFooterEvents();
+        updateFooterStats();
+    }, 100);
+}
+
+// Fallback para header si no se puede cargar dinámicamente
+function loadFallbackHeader(container) {
+    console.log('🔄 Cargando header fallback...');
+    container.innerHTML = `
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo-section">
+                        <div class="logo-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"/>
+                                <circle cx="12" cy="12" r="10"/>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <h1>Solicitudes de Insumos</h1>
+                        </div>
+                    </div>
+                    <nav class="main-nav">
+                        <ul class="nav-links">
+                            <li><a href="index.html" class="nav-link active">Inicio</a></li>
+                            <li><a href="historial.html" class="nav-link">Historial</a></li>
+                            <li><a href="contacto.html" class="nav-link">Contacto</a></li>
+                        </ul>
+                    </nav>
+                    <div class="user-section">
+                        <div class="user-menu">
+                            <button class="user-button" onclick="toggleUserMenu()">
+                                <div class="user-avatar">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                                <span class="user-name">Usuario</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    `;
+    
+    setTimeout(setupHeaderEvents, 100);
 }
 
 // Función para actualizar información dinámica
@@ -96,18 +277,42 @@ function updateDynamicInfo() {
 // ===================================
 
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log(APP_CONFIG.name + ' v' + APP_CONFIG.version + ' iniciando...');
+    console.log('🚀 ' + APP_CONFIG.name + ' v' + APP_CONFIG.version + ' iniciando...');
+    console.log('📍 URL actual:', window.location.href);
+    console.log('🔍 Verificando contenedores DOM...');
+    
+    // Verificar que los contenedores existan
+    const headerContainer = document.getElementById('header-container');
+    const footerContainer = document.getElementById('footer-container');
+    
+    console.log('Header container:', headerContainer ? '✅ Encontrado' : '❌ No encontrado');
+    console.log('Footer container:', footerContainer ? '✅ Encontrado' : '❌ No encontrado');
+    
+    if (!headerContainer || !footerContainer) {
+        console.error('❌ Contenedores faltantes. Verificar HTML.');
+        return;
+    }
     
     try {
-        // Cargar componentes del sistema
-        await loadComponent('header-container', 'includes/header.html');
-        await loadComponent('footer-container', 'includes/footer.html');
+        console.log('🔄 Iniciando carga de componentes...');
+        
+        // Cargar componentes del sistema con timeout
+        const headerPromise = loadComponent('header-container', 'includes/header.html');
+        const footerPromise = loadComponent('footer-container', 'includes/footer.html');
+        
+        // Esperar máximo 5 segundos por componente
+        await Promise.race([
+            Promise.all([headerPromise, footerPromise]),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+        ]);
+        
+        console.log('✅ Componentes cargados exitosamente');
         
         // Actualizar información dinámica
         updateDynamicInfo();
         
         // Configurar eventos principales
-        setTimeout(setupAllEventListeners, 200);
+        setTimeout(setupAllEventListeners, 300);
         
         // Cargar datos iniciales
         setTimeout(loadInitialData, 500);
@@ -116,7 +321,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         
     } catch (error) {
         console.error('❌ Error durante la inicialización:', error);
-        showNotification('Error al inicializar la aplicación', 'error');
+        
+        // Mostrar notificación de error solo si existe la función
+        if (typeof showNotification === 'function') {
+            showNotification('Error al inicializar componentes: ' + error.message, 'warning');
+        }
+        
+        // Continuar con la inicialización básica
+        setTimeout(() => {
+            updateDynamicInfo();
+            setupAllEventListeners();
+            loadInitialData();
+        }, 1000);
     }
 });
 
@@ -680,25 +896,66 @@ document.head.appendChild(animationStyles);
 // DEBUG Y DESARROLLO
 // ===================================
 
+// ===================================
+// DEBUG Y DESARROLLO
+// ===================================
+
 function debugInfo() {
-    console.log('=== DEBUG INFO ===');
-    console.log('Solicitudes:', solicitudes.length);
-    console.log('Usuario actual:', currentUser);
-    console.log('Tipo de solicitud actual:', currentSolicitudType);
-    console.log('Configuración:', APP_CONFIG);
-    console.log('=================');
+    console.log('=== 🔍 DEBUG INFO ===');
+    console.log('📍 URL actual:', window.location.href);
+    console.log('📁 Ubicación base:', window.location.origin);
+    console.log('🔍 Contenedores DOM:');
+    console.log('  - Header container:', document.getElementById('header-container') ? '✅' : '❌');
+    console.log('  - Footer container:', document.getElementById('footer-container') ? '✅' : '❌');
+    console.log('📊 Datos:');
+    console.log('  - Solicitudes:', solicitudes.length);
+    console.log('  - Usuario actual:', currentUser);
+    console.log('  - Tipo de solicitud actual:', currentSolicitudType);
+    console.log('⚙️ Configuración:', APP_CONFIG);
+    console.log('🌐 Live Server activo:', window.location.protocol === 'http:' && window.location.hostname === '127.0.0.1');
+    console.log('===================');
+}
+
+// Función para forzar recarga de componentes
+function forceReloadComponents() {
+    console.log('🔄 Forzando recarga de componentes...');
+    loadComponent('header-container', 'includes/header.html');
+    loadComponent('footer-container', 'includes/footer.html');
+}
+
+// Función para probar rutas
+async function testRoutes() {
+    console.log('🧪 Probando rutas de archivos...');
+    
+    const routes = [
+        'includes/header.html',
+        'includes/footer.html',
+        'css/styles.css',
+        'js/script.js'
+    ];
+    
+    for (const route of routes) {
+        try {
+            const response = await fetch(route, { method: 'HEAD' });
+            console.log(`${route}: ${response.ok ? '✅' : '❌'} (${response.status})`);
+        } catch (error) {
+            console.log(`${route}: ❌ Error - ${error.message}`);
+        }
+    }
 }
 
 // Exponer funciones para debug en desarrollo
 if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
     window.debugSolicitudes = {
         debugInfo,
+        testRoutes,
+        forceReloadComponents,
         solicitudes: () => solicitudes,
         clearSolicitudes: () => {
             localStorage.removeItem('solicitudes');
             solicitudes = [];
             updateFooterStats();
-            console.log('Solicitudes limpiadas');
+            console.log('🗑️ Solicitudes limpiadas');
         },
         addTestData: () => {
             const testSolicitud = {
@@ -715,9 +972,12 @@ if (window.location.hostname === 'localhost' || window.location.hostname.include
             };
             saveSolicitud(testSolicitud);
             updateFooterStats();
-            console.log('Datos de prueba agregados');
+            console.log('📝 Datos de prueba agregados');
         }
     };
+    
+    // Auto-ejecutar debug info al cargar en desarrollo
+    setTimeout(debugInfo, 2000);
 }
 
 // ===================================

@@ -1,0 +1,14 @@
+# Variables de entorno - ¡NUNCA subir a GitHub!
+.env
+.env.local
+.env.*
+js/config.local.js
+Paja
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Logs y temporales
+*.log
+*.tmp
