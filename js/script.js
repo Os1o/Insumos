@@ -60,7 +60,7 @@ async function loadComponent(containerId, filePath) {
             return;
         }
         
-        container.innerHTML = html;
+        container.textContent = html;
         console.log(`✅ Componente cargado exitosamente: ${filePath}`);
         
         // Ejecutar scripts específicos después de cargar
