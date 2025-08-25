@@ -107,65 +107,56 @@
     <!-- Footer se carga aquí -->
     <div id="footer-container"></div>
 
-    <!-- Modal para formularios de solicitud -->
+    <!-- NUEVO MODAL DE CARRITO -->
     <div id="solicitud-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content carrito-modal">
             <div class="modal-header">
-                <h3 id="modal-title">Nueva Solicitud</h3>
+                <h3 id="modal-title">Carrito de Insumos</h3>
                 <button class="modal-close" onclick="cerrarModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="solicitud-form">
-                    <div class="form-group">
-                        <label for="solicitante">Nombre del Solicitante *</label>
-                        <input type="text" id="solicitante" name="solicitante" required>
+
+                <!-- Info del usuario y token -->
+                <div class="usuario-info-card">
+                    <div class="usuario-datos">
+                        <span class="usuario-nombre">Usuario Actual</span>
+                        <span class="usuario-depto">Departamento</span>
+                    </div>
+                    <div class="token-status">
+                        <span class="token-label">Token disponible:</span>
+                        <span class="token-indicator" id="tokenStatus">1</span>
+                    </div>
+                </div>
+
+                <!-- Categorías de insumos -->
+                <div class="categorias-container">
+                    <div class="categorias-tabs" id="categoriasTabsContainer">
+                        <!-- Se cargan dinámicamente -->
                     </div>
 
-                    <div class="form-group">
-                        <label for="departamento">Departamento *</label>
-                        <select id="departamento" name="departamento" required>
-                            <option value="">Seleccionar departamento</option>
-                            <option value="administracion">Administración</option>
-                            <option value="recursos_humanos">Recursos Humanos</option>
-                            <option value="contabilidad">Contabilidad</option>
-                            <option value="sistemas">Sistemas</option>
-                            <option value="juridico">Jurídico</option>
-                            <option value="operaciones">Operaciones</option>
-                        </select>
+                    <!-- Lista de insumos por categoría -->
+                    <div class="insumos-lista" id="insumosListaContainer">
+                        <!-- Se cargan dinámicamente -->
                     </div>
+                </div>
 
-                    <div class="form-group" id="fecha-evento-group" style="display: none;">
-                        <label for="fecha-evento">Fecha del Evento *</label>
-                        <input type="datetime-local" id="fecha-evento" name="fecha_evento">
+                <!-- Carrito actual -->
+                <div class="carrito-resumen">
+                    <h4>Carrito Actual</h4>
+                    <div class="carrito-items" id="carritoItems">
+                        <p class="carrito-vacio">Agrega insumos a tu carrito</p>
                     </div>
+                    <div class="carrito-total">
+                        <span>Total de items: <strong id="carritoCount">0</strong></span>
+                    </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="descripcion">Descripción de Insumos Solicitados *</label>
-                        <textarea id="descripcion" name="descripcion" rows="4"
-                            placeholder="Detalla los insumos que necesitas..." required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="justificacion">Justificación</label>
-                        <textarea id="justificacion" name="justificacion" rows="3"
-                            placeholder="Explica brevemente por qué necesitas estos insumos..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="prioridad">Prioridad</label>
-                        <select id="prioridad" name="prioridad">
-                            <option value="baja">Baja</option>
-                            <option value="media" selected>Media</option>
-                            <option value="alta">Alta</option>
-                            <option value="urgente">Urgente</option>
-                        </select>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                        <button type="submit" class="btn-primary">Enviar Solicitud</button>
-                    </div>
-                </form>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
+                        Enviar Solicitud
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -26,6 +26,19 @@ let currentUser = {
 let solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
 let currentSolicitudType = '';
 
+
+// Variables globales para carrito
+let categorias = [];
+let insumos = [];
+let carritoItems = [];
+let supabase = null;
+
+// Configuración Supabase
+const SUPABASE_CONFIG = {
+    url: 'https://nxuvisaibpmdvraybzbm.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXZpc2FpYnBtZHZyYXliemJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTMxNjQsImV4cCI6MjA3MTQ2OTE2NH0.OybYM_E3mWsZym7mEf-NiRtrG0svkylXx_q8Tivonfg'
+};
+
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================
@@ -533,47 +546,22 @@ function updateFooterStats() {
 // ===================================
 
 // Abrir modal de solicitud
-function abrirSolicitud(tipo) {
+async function abrirSolicitud(tipo) {
     currentSolicitudType = tipo;
-    const modal = document.getElementById('solicitud-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const fechaEventoGroup = document.getElementById('fecha-evento-group');
     
-    if (modal && modalTitle) {
-        // Configurar título según el tipo
-        const titles = {
-            'ordinaria': 'Nueva Solicitud Mensual/Ordinaria',
-            'juntas': 'Nueva Solicitud para Juntas'
-        };
-        
-        modalTitle.textContent = titles[tipo] || 'Nueva Solicitud';
-        
-        // Mostrar/ocultar campo de fecha según el tipo
-        if (fechaEventoGroup) {
-            fechaEventoGroup.style.display = tipo === 'juntas' ? 'block' : 'none';
-            
-            const fechaInput = document.getElementById('fecha-evento');
-            if (fechaInput && tipo === 'juntas') {
-                fechaInput.required = true;
-                // Establecer fecha mínima como hoy
-                const today = new Date();
-                today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-                fechaInput.min = today.toISOString().slice(0, 16);
-            } else if (fechaInput) {
-                fechaInput.required = false;
-            }
-        }
-        
-        // Mostrar modal
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        // Focus en el primer campo
-        const firstInput = modal.querySelector('input, select, textarea');
-        if (firstInput) {
-            setTimeout(() => firstInput.focus(), 100);
-        }
+    // Verificar token para solicitudes ordinarias
+    if (tipo === 'ordinaria' && !verificarTokenDisponible()) {
+        showNotification('No tienes token disponible para solicitudes ordinarias', 'warning');
+        return;
     }
+    
+    // Cargar datos del carrito
+    await cargarDatosCarrito();
+    
+    // Mostrar modal
+    const modal = document.getElementById('solicitud-modal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
 }
 
 // Cerrar modal
