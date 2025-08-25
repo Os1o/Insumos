@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase Connection</title>
+</head>
+<body>
+    <h1>Test de Conexión Supabase</h1>
+    <div id="status">Probando conexión...</div>
+    <div id="results"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://nxuvisaibpmdvraybzbm.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXZpc2FpYnBtZHZyYXliemJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTMxNjQsImV4cCI6MjA3MTQ2OTE2NH0.OybYM_E3mWsZym7mEf-NiRtrG0svkylXx_q8Tivonfg'
+        );
+
+        async function testConnection() {
+            try {
+                document.getElementById('status').textContent = 'Probando conexión...';
+                
+                // Test 1: Verificar conexión básica
+                const { data, error } = await supabase
+                    .from('usuarios')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                document.getElementById('status').innerHTML = '<span style="color: green;">✅ Conexión exitosa</span>';
+                document.getElementById('results').innerHTML = `
+                    <h3>Resultados:</h3>
+                    <p>✅ Supabase conectado correctamente</p>
+                    <p>✅ Tabla usuarios accesible</p>
+                    <p>✅ API Key funcionando</p>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('status').innerHTML = '<span style="color: red;">❌ Error de conexión</span>';
+                document.getElementById('results').innerHTML = `
+                    <h3>Error:</h3>
+                    <p style="color: red;">Código: ${error.code || 'Unknown'}</p>
+                    <p style="color: red;">Mensaje: ${error.message}</p>
+                    <p style="color: red;">Detalles: ${error.details || 'No details'}</p>
+                `;
+            }
+        }
+        
+        // Ejecutar test al cargar
+        testConnection();
+    </script>
+</body>
+</html>

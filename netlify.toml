@@ -1,6 +1,6 @@
 # netlify.toml - Configuración corregida
 
-# Headers de seguridad
+# Headers de seguridad - CORREGIDOS PARA SUPABASE
 [[headers]]
   for = "/*"
   [headers.values]
@@ -8,7 +8,7 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.supabase.co; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co https://gtogelwnsbgodwfghhku.supabase.co; img-src 'self' data: https:;"
 
 # Proteger archivos sensibles
 [[redirects]]
