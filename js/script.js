@@ -54,9 +54,53 @@ function verificarTokenDisponible() {
 
 // Función para cargar datos del carrito
 async function cargarDatosCarrito() {
-    console.log('Cargando datos del carrito...');
-    // Por ahora solo un placeholder
-    // Después implementaremos la conexión real con Supabase
+    try {
+        console.log('Cargando categorías e insumos...');
+        
+        // Cargar categorías
+        const { data: categorias, error: catError } = await supabase
+            .from('categorias_insumos')
+            .select('*')
+            .eq('activo', true)
+            .order('orden');
+            
+        if (catError) throw catError;
+        
+        // Determinar qué insumos puede ver el usuario
+        const session = sessionStorage.getItem('currentUser');
+        const user = JSON.parse(session);
+        
+        const departamentosConAccesoCompleto = [
+            'Dirección Jurídica',
+            'Coordinación Administrativa'
+        ];
+        
+        let insumosQuery = supabase
+            .from('insumos')
+            .select('*')
+            .eq('activo', true);
+            
+        // Filtrar por acceso si no es coordinación privilegiada
+        if (!departamentosConAccesoCompleto.includes(user.departamento)) {
+            insumosQuery = insumosQuery.eq('acceso_tipo', 'todos');
+        }
+        
+        const { data: insumos, error: insError } = await insumosQuery.order('nombre');
+        
+        if (insError) throw insError;
+        
+        // Guardar datos globalmente
+        categoriasData = categorias;
+        insumosData = insumos;
+        
+        // Renderizar interfaz
+        renderizarCategorias();
+        renderizarInsumos(categorias[0]?.id || 1);
+        
+    } catch (error) {
+        console.error('Error cargando datos del carrito:', error);
+        showNotification('Error cargando datos. Intenta nuevamente.', 'error');
+    }
 }
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
