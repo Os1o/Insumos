@@ -267,6 +267,23 @@ function updateDynamicInfo() {
         if (el) el.textContent = new Date().toLocaleTimeString();
     });
     
+    // ACTUALIZAR USUARIO DESDE SESIÓN
+    const session = sessionStorage.getItem('currentUser');
+    if (session) {
+        try {
+            const user = JSON.parse(session);
+            currentUser = {
+                name: user.nombre,
+                email: user.username + '@empresa.com',
+                department: user.departamento,
+                role: user.rol
+            };
+            console.log('Usuario actualizado:', currentUser.name);
+        } catch (error) {
+            console.error('Error actualizando usuario:', error);
+        }
+    }
+    
     // Actualizar información del usuario
     updateUserInfo();
 }
@@ -977,6 +994,16 @@ if (window.location.hostname === 'localhost' || window.location.hostname.include
     
     // Auto-ejecutar debug info al cargar en desarrollo
     setTimeout(debugInfo, 2000);
+}
+
+
+
+// Función de logout
+function logout() {
+    sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('userSession');
+    localStorage.removeItem('rememberLogin');
+    window.location.href = '/login.html';
 }
 
 // ===================================

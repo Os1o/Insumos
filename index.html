@@ -1,16 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitudes de Insumos - Sistema de Gestión</title>
     <link rel="stylesheet" href="css/styles.css">
-    <meta name="description" content="Sistema de solicitudes de insumos para necesidades ordinarias y eventos especiales">
+    <meta name="description"
+        content="Sistema de solicitudes de insumos para necesidades ordinarias y eventos especiales">
+    <script>
+        (function () {
+            const session = sessionStorage.getItem('currentUser');
+            if (!session) {
+                window.location.replace('/login.html');
+                return;
+            }
+        })();
+    </script>
 </head>
+
 <body>
     <!-- Header se carga aquí -->
     <div id="header-container"></div>
-    
+
     <main class="main-content">
         <!-- Hero Section -->
         <section class="hero">
@@ -24,21 +36,22 @@
         <section class="solicitudes-section">
             <div class="container">
                 <div class="solicitudes-grid">
-                    
+
                     <!-- Solicitud Mensual/Ordinaria -->
                     <div class="solicitud-card" data-type="ordinaria">
                         <div class="card-icon">
-                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                <line x1="16" y1="2" x2="16" y2="6"/>
-                                <line x1="8" y1="2" x2="8" y2="6"/>
-                                <line x1="3" y1="10" x2="21" y2="10"/>
-                                <path d="M8 14h.01"/>
-                                <path d="M12 14h.01"/>
-                                <path d="M16 14h.01"/>
-                                <path d="M8 18h.01"/>
-                                <path d="M12 18h.01"/>
-                                <path d="M16 18h.01"/>
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                                <path d="M8 14h.01" />
+                                <path d="M12 14h.01" />
+                                <path d="M16 14h.01" />
+                                <path d="M8 18h.01" />
+                                <path d="M12 18h.01" />
+                                <path d="M16 18h.01" />
                             </svg>
                         </div>
                         <div class="card-content">
@@ -51,11 +64,12 @@
                     <!-- Solicitud para Juntas -->
                     <div class="solicitud-card" data-type="juntas">
                         <div class="card-icon">
-                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                             </svg>
                         </div>
                         <div class="card-content">
@@ -106,7 +120,7 @@
                         <label for="solicitante">Nombre del Solicitante *</label>
                         <input type="text" id="solicitante" name="solicitante" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="departamento">Departamento *</label>
                         <select id="departamento" name="departamento" required>
@@ -127,12 +141,14 @@
 
                     <div class="form-group">
                         <label for="descripcion">Descripción de Insumos Solicitados *</label>
-                        <textarea id="descripcion" name="descripcion" rows="4" placeholder="Detalla los insumos que necesitas..." required></textarea>
+                        <textarea id="descripcion" name="descripcion" rows="4"
+                            placeholder="Detalla los insumos que necesitas..." required></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="justificacion">Justificación</label>
-                        <textarea id="justificacion" name="justificacion" rows="3" placeholder="Explica brevemente por qué necesitas estos insumos..."></textarea>
+                        <textarea id="justificacion" name="justificacion" rows="3"
+                            placeholder="Explica brevemente por qué necesitas estos insumos..."></textarea>
                     </div>
 
                     <div class="form-group">
@@ -156,4 +172,5 @@
 
     <script src="js/script.js"></script>
 </body>
+
 </html>
