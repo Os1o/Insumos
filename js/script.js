@@ -6,16 +6,6 @@
 // ===================================
 // CONFIGURACIÓN GLOBAL
 // ===================================
-// Verificar autenticación al cargar cualquier página protegida
-document.addEventListener('DOMContentLoaded', function() {
-    const user = checkAuthentication();
-    if (user) {
-        // Usuario autenticado - cargar página normalmente
-        console.log('Usuario autenticado:', user.nombre);
-        // Resto de tu código actual...
-    }
-});
-
 const APP_CONFIG = {
     name: 'Sistema de Solicitudes de Insumos',
     version: '1.0.0',

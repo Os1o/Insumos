@@ -1,5 +1,4 @@
-/* ===================================
-   SISTEMA DE LOGIN - LÓGICA DE AUTENTICACIÓN
+/* ===================================   SISTEMA DE LOGIN - LÓGICA DE AUTENTICACIÓN
    Conectado con Supabase y sistema de roles
    =================================== */
 
