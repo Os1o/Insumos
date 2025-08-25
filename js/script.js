@@ -60,7 +60,7 @@ async function loadComponent(containerId, filePath) {
             return;
         }
         
-        container.textContent = html;
+        container.innerHTML = html;
         console.log(`✅ Componente cargado exitosamente: ${filePath}`);
         
         // Ejecutar scripts específicos después de cargar
@@ -84,7 +84,7 @@ async function loadComponent(containerId, filePath) {
             } else if (filePath.includes('header')) {
                 loadFallbackHeader(container);
             } else {
-                container.textContent = `
+                container.innerHTML = `
                     <div style="text-align: center; padding: 1rem; background: #fee; border: 1px solid #fcc; border-radius: 8px; color: #c33;">
                         ⚠️ Error cargando ${filePath}<br>
                         <small>Error: ${error.message}</small><br>
@@ -762,7 +762,7 @@ function showNotification(message, type = 'info', duration = 3000) {
         info: 'ℹ️'
     };
     
-    notification.textContent = `
+    notification.innerHTML = `
         <span style="font-size: 1.2rem;">${icons[type] || icons.info}</span>
         <span style="flex: 1;">${message}</span>
         <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; padding: 0;">×</button>
