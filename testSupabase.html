@@ -1,12 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test Supabase Connection</title>
+    <title>Verificar Usuarios en Base de Datos</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .loading { color: #666; font-style: italic; }
+        .error { color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; }
+        .success { color: green; background: #e6ffe6; padding: 10px; border-radius: 4px; }
+        .actions { margin: 20px 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; border: none; border-radius: 4px; }
+        .btn-create { background: #27ae60; color: white; }
+        .btn-reset { background: #e74c3c; color: white; }
+    </style>
 </head>
 <body>
-    <h1>Test de Conexión Supabase</h1>
-    <div id="status">Probando conexión...</div>
-    <div id="results"></div>
+    <h1>Verificar Usuarios en Base de Datos</h1>
+    
+    <div class="actions">
+        <button class="btn-create" onclick="createTestUsers()">Crear Usuarios de Prueba</button>
+        <button class="btn-reset" onclick="resetDatabase()">Resetear BD (¡Cuidado!)</button>
+        <button onclick="verifyUsers()">Verificar Usuarios</button>
+    </div>
+    
+    <div id="status" class="loading">Cargando...</div>
+    
+    <div id="users-container">
+        <table id="users-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Rol ID</th>
+                    <th>Token</th>
+                    <th>Activo</th>
+                </tr>
+            </thead>
+            <tbody id="users-body">
+            </tbody>
+        </table>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -15,42 +52,155 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXZpc2FpYnBtZHZyYXliemJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTMxNjQsImV4cCI6MjA3MTQ2OTE2NH0.OybYM_E3mWsZym7mEf-NiRtrG0svkylXx_q8Tivonfg'
         );
 
-        async function testConnection() {
+        async function verifyUsers() {
             try {
-                document.getElementById('status').textContent = 'Probando conexión...';
+                document.getElementById('status').textContent = 'Verificando usuarios...';
                 
-                // Test 1: Verificar conexión básica
-                const { data, error } = await supabase
+                // Buscar todos los usuarios
+                const { data: usuarios, error } = await supabase
                     .from('usuarios')
-                    .select('count')
-                    .limit(1);
+                    .select('*')
+                    .order('username');
                 
                 if (error) {
                     throw error;
                 }
                 
-                document.getElementById('status').innerHTML = '<span style="color: green;">✅ Conexión exitosa</span>';
-                document.getElementById('results').innerHTML = `
-                    <h3>Resultados:</h3>
-                    <p>✅ Supabase conectado correctamente</p>
-                    <p>✅ Tabla usuarios accesible</p>
-                    <p>✅ API Key funcionando</p>
-                `;
+                mostrarUsuarios(usuarios);
                 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('status').innerHTML = '<span style="color: red;">❌ Error de conexión</span>';
-                document.getElementById('results').innerHTML = `
-                    <h3>Error:</h3>
-                    <p style="color: red;">Código: ${error.code || 'Unknown'}</p>
-                    <p style="color: red;">Mensaje: ${error.message}</p>
-                    <p style="color: red;">Detalles: ${error.details || 'No details'}</p>
-                `;
+                document.getElementById('status').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
             }
         }
-        
-        // Ejecutar test al cargar
-        testConnection();
+
+        async function createTestUsers() {
+            try {
+                document.getElementById('status').textContent = 'Creando usuarios de prueba...';
+                
+                // Primero crear roles si no existen
+                const { data: roles, error: rolesError } = await supabase
+                    .from('roles')
+                    .select('*');
+                
+                if (!roles || roles.length === 0) {
+                    await createRoles();
+                }
+                
+                // Crear usuarios de prueba
+                const testUsers = [
+                    {
+                        username: 'JURD01',
+                        password_hash: 'temp123',
+                        nombre: 'Coordinación Jurídica',
+                        departamento: 'Dirección Jurídica',
+                        rol_id: 1,
+                        token_disponible: 1,
+                        activo: true
+                    },
+                    {
+                        username: 'INSM01', 
+                        password_hash: 'temp123',
+                        nombre: 'Admin de Insumos',
+                        departamento: 'Coordinación Administrativa',
+                        rol_id: 2,
+                        token_disponible: 1,
+                        activo: true
+                    },
+                    {
+                        username: 'SUPR01',
+                        password_hash: 'temp123', 
+                        nombre: 'Super Administrador',
+                        departamento: 'Administración General',
+                        rol_id: 3,
+                        token_disponible: 1,
+                        activo: true
+                    }
+                ];
+                
+                const { data, error } = await supabase
+                    .from('usuarios')
+                    .upsert(testUsers, { onConflict: 'username' });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                document.getElementById('status').innerHTML = 
+                    '<div class="success">✅ Usuarios de prueba creados exitosamente</div>';
+                
+                setTimeout(verifyUsers, 1000);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('status').innerHTML = 
+                    `<div class="error">Error creando usuarios: ${error.message}</div>`;
+            }
+        }
+
+        async function createRoles() {
+            const roles = [
+                {
+                    id: 1,
+                    nombre: 'usuario',
+                    descripcion: 'Personal de coordinaciones',
+                    permisos: {"crear_solicitudes": true, "ver_historial_propio": true}
+                },
+                {
+                    id: 2, 
+                    nombre: 'admin',
+                    descripcion: 'Encargados de insumos',
+                    permisos: {"gestionar_tickets": true, "ver_inventario": true, "actualizar_stock": true}
+                },
+                {
+                    id: 3,
+                    nombre: 'super_admin', 
+                    descripcion: 'Administradores del sistema',
+                    permisos: {"acceso_total": true}
+                }
+            ];
+            
+            const { data, error } = await supabase
+                .from('roles')
+                .upsert(roles, { onConflict: 'id' });
+                
+            if (error) {
+                throw error;
+            }
+        }
+
+        function mostrarUsuarios(usuarios) {
+            const tbody = document.getElementById('users-body');
+            const table = document.getElementById('users-table');
+            const status = document.getElementById('status');
+            
+            if (usuarios && usuarios.length > 0) {
+                tbody.innerHTML = '';
+                
+                usuarios.forEach(usuario => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${usuario.id}</td>
+                        <td><strong>${usuario.username}</strong></td>
+                        <td>${usuario.nombre}</td>
+                        <td>${usuario.departamento}</td>
+                        <td>${usuario.rol_id}</td>
+                        <td>${usuario.token_disponible}</td>
+                        <td>${usuario.activo ? '✅' : '❌'}</td>
+                    `;
+                });
+                
+                table.style.display = 'table';
+                status.innerHTML = `<div class="success">✅ ${usuarios.length} usuarios encontrados</div>`;
+                
+            } else {
+                status.innerHTML = '<div class="error">❌ No hay usuarios en la base de datos</div>';
+            }
+        }
+
+        // Verificar al cargar
+        window.addEventListener('DOMContentLoaded', verifyUsers);
     </script>
 </body>
 </html>
