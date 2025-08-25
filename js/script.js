@@ -102,6 +102,37 @@ async function cargarDatosCarrito() {
         showNotification('Error cargando datos. Intenta nuevamente.', 'error');
     }
 }
+
+// Actualizar información del usuario en el modal
+function actualizarInfoUsuarioModal() {
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) return;
+    
+    try {
+        const user = JSON.parse(session);
+        
+        // Actualizar nombre del usuario
+        const usuarioNombre = document.querySelector('.usuario-nombre');
+        if (usuarioNombre) {
+            usuarioNombre.textContent = user.nombre;
+        }
+        
+        // Actualizar departamento
+        const usuarioDepto = document.querySelector('.usuario-depto');
+        if (usuarioDepto) {
+            usuarioDepto.textContent = user.departamento;
+        }
+        
+        // Actualizar token status
+        const tokenStatus = document.getElementById('tokenStatus');
+        if (tokenStatus) {
+            tokenStatus.textContent = user.token_disponible;
+        }
+        
+    } catch (error) {
+        console.error('Error actualizando info del usuario:', error);
+    }
+}
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================
@@ -620,7 +651,6 @@ function abrirSolicitud(tipo) {
     
     const modal = document.getElementById('solicitud-modal');
     const modalTitle = document.getElementById('modal-title');
-    const fechaEventoGroup = document.getElementById('fecha-evento-group');
     
     if (modal && modalTitle) {
         // Configurar título según el tipo
@@ -631,17 +661,14 @@ function abrirSolicitud(tipo) {
         
         modalTitle.textContent = titles[tipo] || 'Nueva Solicitud';
         
-        // Mostrar/ocultar campo de fecha según el tipo
-        if (fechaEventoGroup) {
-            fechaEventoGroup.style.display = tipo === 'juntas' ? 'block' : 'none';
-        }
+        // ACTUALIZAR INFO DEL USUARIO EN EL MODAL
+        actualizarInfoUsuarioModal();
         
         // Mostrar modal
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 }
-
 // Cerrar modal
 function cerrarModal() {
     const modal = document.getElementById('solicitud-modal');
