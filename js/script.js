@@ -26,7 +26,6 @@ let currentUser = {
 let solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
 let currentSolicitudType = '';
 
-
 // Variables globales para carrito
 let categorias = [];
 let insumos = [];
@@ -39,6 +38,26 @@ const SUPABASE_CONFIG = {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXZpc2FpYnBtZHZyYXliemJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTMxNjQsImV4cCI6MjA3MTQ2OTE2NH0.OybYM_E3mWsZym7mEf-NiRtrG0svkylXx_q8Tivonfg'
 };
 
+// Función para verificar token disponible
+function verificarTokenDisponible() {
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) return false;
+    
+    try {
+        const user = JSON.parse(session);
+        return user.token_disponible === 1;
+    } catch (error) {
+        console.error('Error verificando token:', error);
+        return false;
+    }
+}
+
+// Función para cargar datos del carrito
+async function cargarDatosCarrito() {
+    console.log('Cargando datos del carrito...');
+    // Por ahora solo un placeholder
+    // Después implementaremos la conexión real con Supabase
+}
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================
@@ -546,7 +565,7 @@ function updateFooterStats() {
 // ===================================
 
 // Abrir modal de solicitud
-async function abrirSolicitud(tipo) {
+function abrirSolicitud(tipo) {
     currentSolicitudType = tipo;
     
     // Verificar token para solicitudes ordinarias
@@ -555,13 +574,28 @@ async function abrirSolicitud(tipo) {
         return;
     }
     
-    // Cargar datos del carrito
-    await cargarDatosCarrito();
-    
-    // Mostrar modal
     const modal = document.getElementById('solicitud-modal');
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    const modalTitle = document.getElementById('modal-title');
+    const fechaEventoGroup = document.getElementById('fecha-evento-group');
+    
+    if (modal && modalTitle) {
+        // Configurar título según el tipo
+        const titles = {
+            'ordinaria': 'Nueva Solicitud Mensual/Ordinaria',
+            'juntas': 'Nueva Solicitud para Juntas'
+        };
+        
+        modalTitle.textContent = titles[tipo] || 'Nueva Solicitud';
+        
+        // Mostrar/ocultar campo de fecha según el tipo
+        if (fechaEventoGroup) {
+            fechaEventoGroup.style.display = tipo === 'juntas' ? 'block' : 'none';
+        }
+        
+        // Mostrar modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 // Cerrar modal
