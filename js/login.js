@@ -201,8 +201,12 @@ async function handleLogin(e) {
             }, 2000);
             
         } else {
-            // Credenciales inválidas
-            showErrorMessage('Usuario o contraseña incorrectos');
+            // Credenciales inválidas - mensaje más específico
+            if (error && error.code === 'PGRST116') {
+                showErrorMessage('Usuario no encontrado en el sistema');
+            } else {
+                showErrorMessage('Usuario o contraseña incorrectos');
+            }
             shakeCard();
         }
         
@@ -329,7 +333,21 @@ function redirectToApp(user) {
     }
     
     console.log(`🚀 Redirigiendo a: ${targetPage} (rol: ${user.rol})`);
-    window.location.href = targetPage;
+    
+    // Verificar que la página existe antes de redirigir
+    fetch(targetPage, { method: 'HEAD' })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = targetPage;
+            } else {
+                console.error(`Página ${targetPage} no encontrada, usando index.html`);
+                window.location.href = 'index.html';
+            }
+        })
+        .catch(error => {
+            console.error('Error verificando página:', error);
+            window.location.href = 'index.html';
+        });
 }
 
 // ===================================
@@ -608,8 +626,39 @@ additionalStyles.textContent = `
 `;
 document.head.appendChild(additionalStyles);
 
-// ===================================
-// INICIALIZACIÓN FINAL
-// ===================================
+// También agregar función para verificar autenticación en otras páginas
+function checkAuthentication() {
+    const currentPage = window.location.pathname;
+    
+    // Solo verificar en páginas que requieren autenticación
+    const protectedPages = ['/index.html', '/historial.html', '/admin/'];
+    const needsAuth = protectedPages.some(page => currentPage.includes(page)) || currentPage === '/';
+    
+    if (!needsAuth) return true;
+    
+    try {
+        const session = sessionStorage.getItem('currentUser');
+        if (!session) {
+            console.log('No hay sesión activa, redirigiendo al login');
+            window.location.href = '/login.html';
+            return false;
+        }
+        
+        const user = JSON.parse(session);
+        console.log('Usuario autenticado:', user.nombre);
+        return user;
+        
+    } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        window.location.href = '/login.html';
+        return false;
+    }
+}
 
-console.log('🔐 Sistema de autenticación cargado completamente');
+// Función de logout
+function logout() {
+    sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('userSession');
+    localStorage.removeItem('rememberLogin');
+    window.location.href = '/login.html';
+}

@@ -26,26 +26,7 @@
   to = "/404"
   status = 404
 
-# REDIRECCIONES DE PÁGINAS ESPECÍFICAS (sin login)
-[[redirects]]
-  from = "/index.html"
-  to = "/login.html"
-  status = 302
-  force = true
-
-[[redirects]]
-  from = "/historial.html"
-  to = "/login.html"  
-  status = 302
-  force = true
-
-[[redirects]]
-  from = "/admin/*"
-  to = "/login.html"
-  status = 302
-  force = true
-
-# PÁGINA PRINCIPAL = LOGIN
+# PÁGINA PRINCIPAL = LOGIN (solo la raíz)
 [[redirects]]
   from = "/"
   to = "/login.html"
