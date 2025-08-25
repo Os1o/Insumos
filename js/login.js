@@ -224,20 +224,10 @@ async function authenticateUser(username, password) {
     try {
         console.log('🔍 Intentando autenticar usuario:', username);
         
-        // Buscar usuario por username
-        const { data: usuarios, error: userError } = await supabase
+        // QUERY SIMPLIFICADA - Solo tabla usuarios
+        const { data: usuario, error: userError } = await supabase
             .from('usuarios')
-            .select(`
-                id,
-                username,
-                password_hash,
-                nombre,
-                departamento,
-                rol_id,
-                token_disponible,
-                activo,
-                roles!inner(nombre, descripcion, permisos)
-            `)
+            .select('*')
             .eq('username', username)
             .eq('activo', true)
             .single();
@@ -247,35 +237,46 @@ async function authenticateUser(username, password) {
             return null;
         }
         
-        if (!usuarios) {
+        if (!usuario) {
             console.log('❌ Usuario no encontrado');
             return null;
         }
         
-        // TODO: En producción, implementar hash de contraseñas
-        // Por ahora, comparación directa para desarrollo
-        if (usuarios.password_hash !== password) {
+        // Verificar contraseña (comparación directa para desarrollo)
+        if (usuario.password_hash !== password) {
             console.log('❌ Contraseña incorrecta');
             return null;
+        }
+        
+        // QUERY SEPARADA - Buscar rol
+        const { data: rol, error: rolError } = await supabase
+            .from('roles')
+            .select('nombre, descripcion, permisos')
+            .eq('id', usuario.rol_id)
+            .single();
+        
+        if (rolError) {
+            console.warn('Error cargando rol:', rolError);
+            // Continuar sin rol si hay error
         }
         
         // Actualizar última fecha de login
         await supabase
             .from('usuarios')
             .update({ fecha_ultimo_login: new Date().toISOString() })
-            .eq('id', usuarios.id);
+            .eq('id', usuario.id);
         
         console.log('✅ Usuario autenticado exitosamente');
         
         return {
-            id: usuarios.id,
-            username: usuarios.username,
-            nombre: usuarios.nombre,
-            departamento: usuarios.departamento,
-            rol_id: usuarios.rol_id,
-            rol: usuarios.roles.nombre,
-            permisos: usuarios.roles.permisos,
-            token_disponible: usuarios.token_disponible
+            id: usuario.id,
+            username: usuario.username,
+            nombre: usuario.nombre,
+            departamento: usuario.departamento,
+            rol_id: usuario.rol_id,
+            rol: rol?.nombre || 'usuario',
+            permisos: rol?.permisos || {},
+            token_disponible: usuario.token_disponible
         };
         
     } catch (error) {
