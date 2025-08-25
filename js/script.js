@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Cargar componentes del sistema con timeout
         const headerPromise = loadComponent('header-container', 'includes/header.html');
-        const footerPromise = loadComponent('footer-container', 'includes/footer.html');
+        const footerPromise = loadComponent('footer-container', 'includes/foot.html');
         
         // Esperar máximo 5 segundos por componente
         await Promise.race([
