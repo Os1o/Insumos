@@ -346,20 +346,41 @@ async function enviarSolicitud() {
 
         // Actualizar sesión local después de consumir token
         if (currentSolicitudType === 'ordinaria') {
-            await supabase.from('usuarios').update({ token_disponible: 0 }).eq('id', user.id);
-            
-            // AGREGAR ESTAS LÍNEAS:
+            // Actualizar sesión local
             user.token_disponible = 0;
             sessionStorage.setItem('currentUser', JSON.stringify(user));
             
-            // Actualizar vista del modal inmediatamente
+            // Actualizar vista del token en modal
             const tokenStatus = document.getElementById('tokenStatus');
             if (tokenStatus) {
                 tokenStatus.textContent = '0';
                 tokenStatus.style.color = '#e74c3c';
             }
+            
+            // Deshabilitar botón de solicitud ordinaria en dashboard
+            setTimeout(() => {
+                const btnOrdinaria = document.querySelector('[data-type="ordinaria"] .btn-solicitar');
+                if (btnOrdinaria) {
+                    btnOrdinaria.textContent = 'Token Agotado';
+                    btnOrdinaria.disabled = true;
+                    btnOrdinaria.style.background = '#ccc';
+                    btnOrdinaria.style.cursor = 'not-allowed';
+                }
+                
+                // Agregar mensaje visual en la card
+                const cardOrdinaria = document.querySelector('[data-type="ordinaria"]');
+                if (cardOrdinaria) {
+                    cardOrdinaria.style.opacity = '0.6';
+                    const cardContent = cardOrdinaria.querySelector('.card-content p');
+                    if (cardContent) {
+                        cardContent.textContent = 'Token usado este mes';
+                        cardContent.style.color = '#e74c3c';
+                    }
+                }
+            }, 100);
         }
-        
+
+        // Mostrar notificación de éxito
         showNotification('Solicitud enviada exitosamente', 'success');
         
         // Limpiar carrito
@@ -374,6 +395,42 @@ async function enviarSolicitud() {
         showNotification('Error enviando solicitud. Intenta nuevamente.', 'error');
     }
 }
+
+
+
+// Función para actualizar estado de dashboard
+function actualizarEstadoDashboard() {
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) return;
+    
+    const user = JSON.parse(session);
+    const btnOrdinaria = document.querySelector('[data-type="ordinaria"] .btn-solicitar');
+    const cardOrdinaria = document.querySelector('[data-type="ordinaria"]');
+    
+    if (user.token_disponible === 0) {
+        // Token agotado
+        if (btnOrdinaria) {
+            btnOrdinaria.textContent = 'Token Agotado';
+            btnOrdinaria.disabled = true;
+            btnOrdinaria.style.background = '#ccc';
+        }
+        if (cardOrdinaria) {
+            cardOrdinaria.style.opacity = '0.6';
+        }
+    } else {
+        // Token disponible
+        if (btnOrdinaria) {
+            btnOrdinaria.textContent = 'Solicitar';
+            btnOrdinaria.disabled = false;
+            btnOrdinaria.style.background = '';
+        }
+        if (cardOrdinaria) {
+            cardOrdinaria.style.opacity = '1';
+        }
+    }
+}
+
+
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================
@@ -699,6 +756,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
 });
+
+
+setTimeout(actualizarEstadoDashboard, 1000);
 
 // ===================================
 // GESTIÓN DE EVENTOS
