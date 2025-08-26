@@ -30,7 +30,7 @@ let currentSolicitudType = '';
 let categorias = [];
 let insumos = [];
 let carritoItems = [];
-let supabase = null;
+
 
 // Configuración Supabase
 const SUPABASE_CONFIG = {
