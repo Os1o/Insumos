@@ -343,6 +343,22 @@ async function enviarSolicitud() {
                 .update({ token_disponible: 0 })
                 .eq('id', user.id);
         }
+
+        // Actualizar sesión local después de consumir token
+        if (currentSolicitudType === 'ordinaria') {
+            await supabase.from('usuarios').update({ token_disponible: 0 }).eq('id', user.id);
+            
+            // AGREGAR ESTAS LÍNEAS:
+            user.token_disponible = 0;
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            
+            // Actualizar vista del modal inmediatamente
+            const tokenStatus = document.getElementById('tokenStatus');
+            if (tokenStatus) {
+                tokenStatus.textContent = '0';
+                tokenStatus.style.color = '#e74c3c';
+            }
+        }
         
         showNotification('Solicitud enviada exitosamente', 'success');
         
