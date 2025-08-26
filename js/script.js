@@ -133,6 +133,161 @@ function actualizarInfoUsuarioModal() {
         console.error('Error actualizando info del usuario:', error);
     }
 }
+
+// Renderizar pestañas de categorías
+function renderizarCategorias() {
+    const container = document.getElementById('categoriasTabsContainer');
+    if (!container) return;
+    
+    let html = '';
+    categoriasData.forEach((categoria, index) => {
+        const isActive = index === 0 ? 'active' : '';
+        html += `
+            <button class="categoria-tab ${isActive}" 
+                    data-categoria="${categoria.id}" 
+                    onclick="cambiarCategoria(${categoria.id})"
+                    style="border-color: ${categoria.color}">
+                <span class="categoria-icon">${categoria.icono}</span>
+                <span class="categoria-nombre">${categoria.nombre}</span>
+            </button>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Renderizar insumos de una categoría
+function renderizarInsumos(categoriaId) {
+    const container = document.getElementById('insumosListaContainer');
+    if (!container) return;
+    
+    const insumosFiltrados = insumosData.filter(insumo => insumo.categoria_id === categoriaId);
+    
+    let html = '';
+    insumosFiltrados.forEach(insumo => {
+        html += `
+            <div class="insumo-item" data-insumo="${insumo.id}">
+                <div class="insumo-info">
+                    <span class="insumo-nombre">${insumo.nombre}</span>
+                    <span class="insumo-unidad">${insumo.unidad_medida}</span>
+                </div>
+                <div class="insumo-controls">
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${insumo.id}, -1)">-</button>
+                    <span class="cantidad-display" id="cantidad-${insumo.id}">0</span>
+                    <button class="btn-cantidad" onclick="cambiarCantidad(${insumo.id}, 1)">+</button>
+                    <button class="btn-agregar" onclick="agregarAlCarrito(${insumo.id})">Agregar</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html || '<p class="no-insumos">No hay insumos en esta categoría</p>';
+}
+
+// Cambiar de categoría
+function cambiarCategoria(categoriaId) {
+    // Actualizar tabs activos
+    document.querySelectorAll('.categoria-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelector(`[data-categoria="${categoriaId}"]`).classList.add('active');
+    
+    // Renderizar insumos de la nueva categoría
+    renderizarInsumos(categoriaId);
+}
+
+
+// Variables para cantidades temporales
+let cantidadesTemp = {};
+
+// Cambiar cantidad de un insumo
+function cambiarCantidad(insumoId, cambio) {
+    const actual = cantidadesTemp[insumoId] || 0;
+    const nueva = Math.max(0, Math.min(100, actual + cambio));
+    
+    cantidadesTemp[insumoId] = nueva;
+    
+    const display = document.getElementById(`cantidad-${insumoId}`);
+    if (display) {
+        display.textContent = nueva;
+    }
+    
+    // Warning para cantidades altas
+    if (nueva > 50) {
+        display.style.color = '#e74c3c';
+        display.title = 'Cantidad alta - puede que no se entregue completa';
+    } else {
+        display.style.color = '';
+        display.title = '';
+    }
+}
+
+// Agregar insumo al carrito
+function agregarAlCarrito(insumoId) {
+    const cantidad = cantidadesTemp[insumoId] || 0;
+    
+    if (cantidad === 0) {
+        showNotification('Selecciona una cantidad mayor a 0', 'warning');
+        return;
+    }
+    
+    const insumo = insumosData.find(i => i.id === insumoId);
+    if (!insumo) return;
+    
+    // Verificar si ya está en el carrito
+    const existingIndex = carritoItems.findIndex(item => item.insumo_id === insumoId);
+    
+    if (existingIndex >= 0) {
+        // Actualizar cantidad
+        carritoItems[existingIndex].cantidad = cantidad;
+    } else {
+        // Agregar nuevo item
+        carritoItems.push({
+            insumo_id: insumoId,
+            nombre: insumo.nombre,
+            cantidad: cantidad,
+            unidad_medida: insumo.unidad_medida
+        });
+    }
+    
+    // Limpiar cantidad temporal
+    cantidadesTemp[insumoId] = 0;
+    const display = document.getElementById(`cantidad-${insumoId}`);
+    if (display) display.textContent = '0';
+    
+    // Actualizar vista del carrito
+    actualizarVistaCarrito();
+    
+    showNotification(`${insumo.nombre} agregado al carrito`, 'success');
+}
+
+// Actualizar vista del carrito
+function actualizarVistaCarrito() {
+    const container = document.getElementById('carritoItems');
+    const count = document.getElementById('carritoCount');
+    
+    if (carritoItems.length === 0) {
+        container.innerHTML = '<p class="carrito-vacio">Agrega insumos a tu carrito</p>';
+        count.textContent = '0';
+        document.getElementById('btnEnviar').disabled = true;
+        return;
+    }
+    
+    let html = '';
+    carritoItems.forEach((item, index) => {
+        html += `
+            <div class="carrito-item">
+                <span class="item-nombre">${item.nombre}</span>
+                <span class="item-cantidad">${item.cantidad} ${item.unidad_medida}</span>
+                <button class="btn-remove" onclick="removerDelCarrito(${index})">×</button>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    count.textContent = carritoItems.length;
+    document.getElementById('btnEnviar').disabled = false;
+}
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================
