@@ -58,7 +58,7 @@ async function cargarDatosCarrito() {
         console.log('Cargando categorías e insumos...');
         
         // Cargar categorías
-        const { data: categorias, error: catError } = await supabase
+        const { data: categoriasFromDB, error: catError } = await supabase
             .from('categorias_insumos')
             .select('*')
             .eq('activo', true)
@@ -85,13 +85,13 @@ async function cargarDatosCarrito() {
             insumosQuery = insumosQuery.eq('acceso_tipo', 'todos');
         }
         
-        const { data: insumos, error: insError } = await insumosQuery.order('nombre');
+        const { data: insumosFromDB, error: insError } = await insumosQuery.order('nombre');
         
         if (insError) throw insError;
         
         // Guardar datos globalmente
-        categorias = categorias;
-        insumos = insumos;
+        categorias = categoriasFromDB;
+        insumos = insumosFromDB;
         
         // Renderizar interfaz
         renderizarCategorias();
