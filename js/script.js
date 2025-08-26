@@ -231,7 +231,7 @@ function agregarAlCarrito(insumoId) {
         return;
     }
     
-    const insumo = insumosData.find(i => i.id === insumoId);
+    const insumo = insumos.find(i => i.id === insumoId);
     if (!insumo) return;
     
     // Verificar si ya está en el carrito
