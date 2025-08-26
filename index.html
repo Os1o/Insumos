@@ -108,59 +108,49 @@
     <div id="footer-container"></div>
 
     <!-- NUEVO MODAL DE CARRITO -->
-    <div id="solicitud-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content carrito-modal">
-            <div class="modal-header">
-                <h3 id="modal-title">Carrito de Insumos</h3>
-                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+    <div class="modal-body">
+        <!-- Info del usuario y token -->
+        <div class="usuario-info-card">
+            <div class="usuario-datos">
+                <span class="usuario-nombre">Usuario Actual</span>
+                <span class="usuario-depto">Departamento</span>
             </div>
-            <div class="modal-body">
-
-                <!-- Info del usuario y token -->
-                <div class="usuario-info-card">
-                    <div class="usuario-datos">
-                        <span class="usuario-nombre">Usuario Actual</span>
-                        <span class="usuario-depto">Departamento</span>
-                    </div>
-                    <div class="token-status">
-                        <span class="token-label">Token disponible:</span>
-                        <span class="token-indicator" id="tokenStatus">1</span>
-                    </div>
-                </div>
-
-                <!-- Categorías de insumos -->
-                <div class="categorias-container">
-                    <div class="categorias-tabs" id="categoriasTabsContainer">
-                        <!-- Se cargan dinámicamente -->
-                    </div>
-
-                    <!-- Lista de insumos por categoría -->
-                    <div class="insumos-lista" id="insumosListaContainer">
-                        <!-- Se cargan dinámicamente -->
-                    </div>
-                </div>
-
-                <!-- Carrito actual -->
-                <div class="carrito-resumen">
-                    <h4>Carrito Actual</h4>
-                    <div class="carrito-items" id="carritoItems">
-                        <p class="carrito-vacio">Agrega insumos a tu carrito</p>
-                    </div>
-                    <div class="carrito-total">
-                        <span>Total de items: <strong id="carritoCount">0</strong></span>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                    <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
-                        Enviar Solicitud
-                    </button>
-                </div>
+            <div class="token-status">
+                <span class="token-label">Token disponible:</span>
+                <span class="token-indicator" id="tokenStatus">1</span>
             </div>
         </div>
+
+        <!-- Categorías de insumos -->
+        <div class="categorias-container">
+            <div class="categorias-tabs" id="categoriasTabsContainer">
+                <!-- Se cargan dinámicamente -->
+            </div>
+
+            <!-- Lista de insumos por categoría -->
+            <div class="insumos-lista" id="insumosListaContainer">
+                <!-- Se cargan dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Carrito actual -->
+        <div class="carrito-resumen">
+            <h4>Carrito Actual</h4>
+            <div class="carrito-items" id="carritoItems">
+                <p class="carrito-vacio">Agrega insumos a tu carrito</p>
+            </div>
+            <div class="carrito-total">
+                <span>Total de items: <strong id="carritoCount">0</strong></span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
+                Enviar Solicitud
+            </button>
+        </div>
     </div>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
 </body>
