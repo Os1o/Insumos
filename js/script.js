@@ -288,6 +288,14 @@ function actualizarVistaCarrito() {
     count.textContent = carritoItems.length;
     document.getElementById('btnEnviar').disabled = false;
 }
+
+
+// Remover del carrito
+function removerDelCarrito(index) {
+    carritoItems.splice(index, 1);
+    actualizarVistaCarrito();
+    showNotification('Item removido del carrito', 'info');
+}
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================
