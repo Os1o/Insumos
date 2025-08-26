@@ -90,8 +90,8 @@ async function cargarDatosCarrito() {
         if (insError) throw insError;
         
         // Guardar datos globalmente
-        categoriasData = categorias;
-        insumosData = insumos;
+        categorias = categorias;
+        insumos = insumos;
         
         // Renderizar interfaz
         renderizarCategorias();
@@ -140,7 +140,7 @@ function renderizarCategorias() {
     if (!container) return;
     
     let html = '';
-    categoriasData.forEach((categoria, index) => {
+    categorias.forEach((categoria, index) => {
         const isActive = index === 0 ? 'active' : '';
         html += `
             <button class="categoria-tab ${isActive}" 
@@ -161,7 +161,7 @@ function renderizarInsumos(categoriaId) {
     const container = document.getElementById('insumosListaContainer');
     if (!container) return;
     
-    const insumosFiltrados = insumosData.filter(insumo => insumo.categoria_id === categoriaId);
+    const insumosFiltrados = insumos.filter(insumo => insumo.categoria_id === categoriaId);
     
     let html = '';
     insumosFiltrados.forEach(insumo => {
@@ -818,12 +818,15 @@ function abrirSolicitud(tipo) {
         
         // ACTUALIZAR INFO DEL USUARIO EN EL MODAL
         actualizarInfoUsuarioModal();
+        cargarDatosCarrito();
         
         // Mostrar modal
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 }
+
+
 // Cerrar modal
 function cerrarModal() {
     const modal = document.getElementById('solicitud-modal');
