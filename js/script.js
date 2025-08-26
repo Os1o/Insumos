@@ -296,6 +296,68 @@ function removerDelCarrito(index) {
     actualizarVistaCarrito();
     showNotification('Item removido del carrito', 'info');
 }
+
+
+async function enviarSolicitud() {
+    if (carritoItems.length === 0) {
+        showNotification('Agrega al menos un insumo al carrito', 'warning');
+        return;
+    }
+    
+    try {
+        const session = sessionStorage.getItem('currentUser');
+        const user = JSON.parse(session);
+        
+        // Crear solicitud principal
+        const { data: solicitud, error: solError } = await supabase
+            .from('solicitudes')
+            .insert({
+                usuario_id: user.id,
+                tipo: currentSolicitudType,
+                estado: 'pendiente',
+                total_items: carritoItems.length,
+                token_usado: currentSolicitudType === 'ordinaria'
+            })
+            .select()
+            .single();
+            
+        if (solError) throw solError;
+        
+        // Crear detalles de la solicitud
+        const detalles = carritoItems.map(item => ({
+            solicitud_id: solicitud.id,
+            insumo_id: item.insumo_id,
+            cantidad_solicitada: item.cantidad
+        }));
+        
+        const { error: detError } = await supabase
+            .from('solicitud_detalles')
+            .insert(detalles);
+            
+        if (detError) throw detError;
+        
+        // Actualizar token si es solicitud ordinaria
+        if (currentSolicitudType === 'ordinaria') {
+            await supabase
+                .from('usuarios')
+                .update({ token_disponible: 0 })
+                .eq('id', user.id);
+        }
+        
+        showNotification('Solicitud enviada exitosamente', 'success');
+        
+        // Limpiar carrito
+        carritoItems = [];
+        cantidadesTemp = {};
+        actualizarVistaCarrito();
+        
+        setTimeout(() => cerrarModal(), 2000);
+        
+    } catch (error) {
+        console.error('Error enviando solicitud:', error);
+        showNotification('Error enviando solicitud. Intenta nuevamente.', 'error');
+    }
+}
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================
