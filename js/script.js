@@ -431,6 +431,165 @@ function actualizarEstadoDashboard() {
 }
 
 
+
+// Función para procesar renovación mensual de tokens
+async function procesarRenovacionMensual() {
+    try {
+        console.log('Iniciando proceso de renovación mensual...');
+        
+        // Obtener fecha del mes anterior
+        const fechaActual = new Date();
+        const mesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth() - 1, 1);
+        const finMesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 0);
+        
+        // 1. Obtener todos los usuarios activos
+        const { data: usuarios, error: usuariosError } = await supabase
+            .from('usuarios')
+            .select('id, username, token_disponible')
+            .eq('activo', true);
+            
+        if (usuariosError) throw usuariosError;
+        
+        for (const usuario of usuarios) {
+            await procesarTokenUsuario(usuario.id, mesAnterior, finMesAnterior);
+        }
+        
+        console.log('Proceso de renovación mensual completado');
+        return true;
+        
+    } catch (error) {
+        console.error('Error en proceso mensual:', error);
+        return false;
+    }
+}
+
+async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
+    try {
+        // 1. Buscar solicitudes del mes anterior que usaron token
+        const { data: solicitudesToken, error: solicitudesError } = await supabase
+            .from('solicitudes')
+            .select('id, fecha_solicitud')
+            .eq('usuario_id', usuarioId)
+            .eq('token_usado', true)
+            .gte('fecha_solicitud', inicioMes.toISOString())
+            .lte('fecha_solicitud', finMes.toISOString());
+            
+        if (solicitudesError) throw solicitudesError;
+        
+        let tokenRenovado = true;
+        let motivoBloqueo = null;
+        
+        if (solicitudesToken.length > 0) {
+            // 2. Verificar si todas están marcadas como recibidas
+            for (const solicitud of solicitudesToken) {
+                const { data: recibido, error: recibidoError } = await supabase
+                    .from('solicitudes_recibidos')
+                    .select('id')
+                    .eq('solicitud_id', solicitud.id)
+                    .eq('usuario_id', usuarioId)
+                    .single();
+                    
+                if (recibidoError && recibidoError.code !== 'PGRST116') {
+                    throw recibidoError;
+                }
+                
+                if (!recibido) {
+                    tokenRenovado = false;
+                    motivoBloqueo = `Solicitud ${solicitud.id.substring(0, 8)} sin marcar como recibida`;
+                    break;
+                }
+            }
+        }
+        
+        // 3. Registrar en tokens_renovacion
+        const { error: tokenError } = await supabase
+            .from('tokens_renovacion')
+            .insert({
+                usuario_id: usuarioId,
+                mes_revision: finMes.toISOString().substring(0, 7), // YYYY-MM
+                tenia_solicitud: solicitudesToken.length > 0,
+                marco_recibido: tokenRenovado,
+                token_renovado: tokenRenovado,
+                motivo_bloqueo: motivoBloqueo,
+                fecha_procesado: new Date().toISOString()
+            });
+            
+        if (tokenError) throw tokenError;
+        
+        // 4. Actualizar token_disponible del usuario
+        const nuevoToken = tokenRenovado ? 1 : 0;
+        const { error: updateError } = await supabase
+            .from('usuarios')
+            .update({ token_disponible: nuevoToken })
+            .eq('id', usuarioId);
+            
+        if (updateError) throw updateError;
+        
+        console.log(`Usuario ${usuarioId}: Token ${tokenRenovado ? 'renovado' : 'bloqueado'}`);
+        
+    } catch (error) {
+        console.error(`Error procesando usuario ${usuarioId}:`, error);
+    }
+}
+
+
+// Verificar si usuario puede recibir token (para mostrar en UI)
+async function verificarElegibilidadToken(usuarioId) {
+    try {
+        // Buscar solicitudes del mes actual con token usado
+        const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        
+        const { data: solicitudesToken, error } = await supabase
+            .from('solicitudes')
+            .select('id')
+            .eq('usuario_id', usuarioId)
+            .eq('token_usado', true)
+            .gte('fecha_solicitud', inicioMes.toISOString());
+            
+        if (error) throw error;
+        
+        if (solicitudesToken.length === 0) {
+            return { elegible: true, mensaje: 'Sin solicitudes pendientes' };
+        }
+        
+        // Verificar si todas están marcadas
+        for (const solicitud of solicitudesToken) {
+            const { data: recibido } = await supabase
+                .from('solicitudes_recibidos')
+                .select('id')
+                .eq('solicitud_id', solicitud.id)
+                .eq('usuario_id', usuarioId)
+                .single();
+                
+            if (!recibido) {
+                return { 
+                    elegible: false, 
+                    mensaje: `Tienes solicitudes sin marcar como recibidas` 
+                };
+            }
+        }
+        
+        return { elegible: true, mensaje: 'Todas las solicitudes marcadas' };
+        
+    } catch (error) {
+        console.error('Error verificando elegibilidad:', error);
+        return { elegible: false, mensaje: 'Error verificando estado' };
+    }
+}
+
+
+// Para ejecutar manualmente o programar
+window.ejecutarProcesoMensual = async function() {
+    const resultado = await procesarRenovacionMensual();
+    if (resultado) {
+        showNotification('Proceso de renovación mensual completado exitosamente', 'success');
+        // Recargar página para actualizar estado
+        setTimeout(() => window.location.reload(), 2000);
+    } else {
+        showNotification('Error en el proceso de renovación mensual', 'error');
+    }
+};
+
 // ===================================
 // SISTEMA DE INCLUDES/COMPONENTES
 // ===================================

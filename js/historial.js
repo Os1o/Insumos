@@ -368,67 +368,37 @@ function cerrarModalRecibido() {
     solicitudSeleccionada = null;
 }
 
-async function confirmarRecibido() { 
+async function confirmarRecibido() {
     if (!solicitudSeleccionada) return;
     
     try {
         const session = sessionStorage.getItem('currentUser');
         const user = JSON.parse(session);
         
-        // Marcar como recibido en BD
+        // SOLO registrar como recibido - SIN reactivar token
         const { error: recibidoError } = await supabaseHistorial
             .from('solicitudes_recibidos')
             .insert({
                 solicitud_id: solicitudSeleccionada.id,
                 usuario_id: user.id,
-                fecha_marcado_recibido: new Date().toISOString(),
-                token_reactivado: solicitudSeleccionada.token_usado || false
+                fecha_marcado_recibido: new Date().toISOString()
             });
             
         if (recibidoError) throw recibidoError;
         
-        // Si la solicitud usó token, reactivarlo inmediatamente
-        if (solicitudSeleccionada.token_usado) {
-            const { error: tokenError } = await supabaseHistorial
-                .from('usuarios')
-                .update({ token_disponible: 1 })
-                .eq('id', user.id);
-                
-            if (tokenError) throw tokenError;
-
-            
-            showNotificationHistorial('¡Token reactivado! Ya puedes hacer nuevas solicitudes ordinarias', 'success');
-            // AGREGAR ESTAS LÍNEAS:
-            // Marcar como recibido localmente
-            solicitudesRecibidas.push(solicitudSeleccionada.id);
-
-            // Ocultar el botón inmediatamente
-            const botonRecibido = document.querySelector(`[data-solicitud="${solicitudSeleccionada.id}"] .btn-recibido`);
-            if (botonRecibido) {
-                botonRecibido.style.display = 'none';
-}
-
-            
-            // Actualizar sesión local
-            user.token_disponible = 1;
-            sessionStorage.setItem('currentUser', JSON.stringify(user));
-            
-            // Mostrar mensaje especial de reactivación
-            showNotificationHistorial('¡Token reactivado! Ya puedes hacer nuevas solicitudes ordinarias', 'success');
-        } else {
-            showNotificationHistorial('Solicitud marcada como recibida exitosamente', 'success');
+        // Marcar como recibido localmente
+        solicitudesRecibidas.push(solicitudSeleccionada.id);
+        
+        // Ocultar el botón inmediatamente
+        const botonRecibido = document.querySelector(`[data-solicitud="${solicitudSeleccionada.id}"] .btn-recibido`);
+        if (botonRecibido) {
+            botonRecibido.style.display = 'none';
         }
+        
+        showNotificationHistorial('Solicitud marcada como recibida. Tu token se renovará el próximo mes si has marcado todas tus solicitudes.', 'success');
         
         // Cerrar modal
         cerrarModalRecibido();
-        
-        // Actualizar estado del token
-        actualizarEstadoToken();
-        
-        // Recargar historial
-        setTimeout(() => {
-            cargarHistorialSolicitudes();
-        }, 1000);
         
     } catch (error) {
         console.error('Error marcando como recibido:', error);
