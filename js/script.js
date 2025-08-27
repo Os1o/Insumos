@@ -479,7 +479,6 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
         let tokenRenovado = true;
         
         if (solicitudesToken.length > 0) {
-            // 2. Verificar si todas están marcadas como recibidas
             for (const solicitud of solicitudesToken) {
                 const { data: recibido, error: recibidoError } = await supabase
                     .from('solicitudes_recibidos')
@@ -499,17 +498,17 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
             }
         }
         
-        // 3. Registrar usando NOMBRES CORRECTOS de tu tabla
+        // 3. Registrar SIN tipo_renovacion
         const { error: tokenError } = await supabase
             .from('tokens_renovacion')
             .insert({
                 usuario_id: usuarioId,
-                mes_ano: finMes.toISOString().substring(0, 7), // Usar mes_ano
+                mes_ano: finMes.toISOString().substring(0, 7),
                 tenia_solicitud: solicitudesToken.length > 0,
                 marco_recibido: tokenRenovado,
                 token_renovado: tokenRenovado,
-                fecha_verificacion: new Date().toISOString(), // Usar fecha_verificacion
-                tipo_renovacion: 'automatico' // Agregar tipo
+                fecha_verificacion: new Date().toISOString()
+                // Quitar tipo_renovacion
             });
             
         if (tokenError) throw tokenError;
