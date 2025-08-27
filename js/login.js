@@ -333,20 +333,8 @@ function redirectToApp(user) {
     
     console.log(`🚀 Redirigiendo a: ${targetPage} (rol: ${user.rol})`);
     
-    // Verificar que la página existe antes de redirigir
-    fetch(targetPage, { method: 'HEAD' })
-        .then(response => {
-            if (response.ok) {
-                window.location.href = targetPage;
-            } else {
-                console.error(`Página ${targetPage} no encontrada, usando index.html`);
-                window.location.href = 'index.html';
-            }
-        })
-        .catch(error => {
-            console.error('Error verificando página:', error);
-            window.location.href = 'index.html';
-        });
+    // SOLUCIÓN: Redirigir directamente sin verificar con fetch
+    window.location.href = targetPage;
 }
 
 // ===================================
