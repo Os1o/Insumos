@@ -305,10 +305,43 @@ async function enviarSolicitud() {
     }
 
     try {
-        const session = sessionStorage.getItem('currentUser');
-        const user = JSON.parse(session);
+        // Preparar datos de la solicitud
+        let datosJunta = null;
 
-        // Crear solicitud principal
+        // Si es solicitud de juntas, capturar campos específicos
+        if (currentSolicitudType === 'juntas') {
+            const fechaEvento = document.getElementById('fechaEvento').value;
+            const horaEvento = document.getElementById('horaEvento').value;
+            const numParticipantes = document.getElementById('numParticipantes').value;
+            const salaEvento = document.getElementById('salaEvento').value;
+            const descripcionEvento = document.getElementById('descripcionEvento').value;
+
+            // Validar campos requeridos para juntas
+            if (!fechaEvento || !horaEvento || !numParticipantes || !salaEvento) {
+                showNotification('Complete todos los campos obligatorios del evento', 'warning');
+                return;
+            }
+
+            // Validar que la fecha sea futura
+            const fechaEventsDateTime = new Date(`${fechaEvento}T${horaEvento}`);
+            const ahora = new Date();
+            if (fechaEventsDateTime <= ahora) {
+                showNotification('La fecha y hora del evento debe ser futura', 'warning');
+                return;
+            }
+
+            // Preparar objeto JSON para datos_junta
+            datosJunta = {
+                fecha_evento: fechaEvento,
+                hora_evento: horaEvento,
+                num_participantes: parseInt(numParticipantes),
+                sala_ubicacion: salaEvento.trim(),
+                descripcion: descripcionEvento.trim() || null,
+                fecha_captura: new Date().toISOString()
+            };
+        }
+
+        // Crear solicitud principal CON datos_junta
         const { data: solicitud, error: solError } = await supabase
             .from('solicitudes')
             .insert({
@@ -316,7 +349,8 @@ async function enviarSolicitud() {
                 tipo: currentSolicitudType,
                 estado: 'pendiente',
                 total_items: carritoItems.length,
-                token_usado: currentSolicitudType === 'ordinaria'
+                token_usado: currentSolicitudType === 'ordinaria',
+                datos_junta: datosJunta  // LÍNEA NUEVA
             })
             .select()
             .single();
@@ -1168,18 +1202,29 @@ function abrirSolicitud(tipo) {
 // Cerrar modal
 function cerrarModal() {
     const modal = document.getElementById('solicitud-modal');
-    const form = document.getElementById('solicitud-form');
 
     if (modal) {
         modal.style.display = 'none';
         document.body.style.overflow = '';
     }
 
-    if (form) {
-        form.reset();
-    }
+    // Limpiar campos de junta
+    const fechaEvento = document.getElementById('fechaEvento');
+    const horaEvento = document.getElementById('horaEvento');
+    const numParticipantes = document.getElementById('numParticipantes');
+    const salaEvento = document.getElementById('salaEvento');
+    const descripcionEvento = document.getElementById('descripcionEvento');
+
+    if (fechaEvento) fechaEvento.value = '';
+    if (horaEvento) horaEvento.value = '';
+    if (numParticipantes) numParticipantes.value = '';
+    if (salaEvento) salaEvento.value = '';
+    if (descripcionEvento) descripcionEvento.value = '';
 
     currentSolicitudType = '';
+    carritoItems = [];
+    cantidadesTemp = {};
+    actualizarVistaCarrito();
 }
 
 // Manejar envío del formulario
