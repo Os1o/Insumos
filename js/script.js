@@ -305,6 +305,9 @@ async function enviarSolicitud() {
     }
 
     try {
+        const session = sessionStorage.getItem('currentUser');
+        const user = JSON.parse(session);
+
         // Preparar datos de la solicitud
         let datosJunta = null;
 
