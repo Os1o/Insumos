@@ -49,52 +49,9 @@ document.addEventListener('DOMContentLoaded', function () {
 // ===================================
 
 async function checkExistingSession() {
-    try {
-        // AGREGAR ESTA VERIFICACIÓN:
-        const explicitLogout = localStorage.getItem('explicitLogout');
-        if (explicitLogout === 'true') {
-            localStorage.removeItem('explicitLogout');
-            return; // No restaurar sesión si fue logout explícito
-        }
-
-        const savedSession = localStorage.getItem('userSession');
-        const rememberMe = localStorage.getItem('rememberLogin');
-
-        if (savedSession && rememberMe === 'true') {
-            const session = JSON.parse(savedSession);
-
-            // Verificar si la sesión no ha expirado (24 horas)
-            const sessionTime = new Date(session.loginTime);
-            const now = new Date();
-            const hoursDiff = (now - sessionTime) / (1000 * 60 * 60);
-
-            if (hoursDiff < 24) {
-                console.log('📝 Sesión existente encontrada, redirigiendo...');
-
-                // AGREGAR ESTA LÍNEA:
-                sessionStorage.setItem('currentUser', JSON.stringify(session.user));
-
-                showSuccessMessage('Sesión restaurada exitosamente');
-
-                setTimeout(() => {
-                    redirectToApp(session.user);
-                }, 1500);
-
-                return;
-            } else {
-                // Limpiar sesión expirada
-                localStorage.removeItem('userSession');
-                localStorage.removeItem('rememberLogin');
-            }
-        }
-    } catch (error) {
-        console.error('Error verificando sesión:', error);
-        // Limpiar datos corruptos
-        localStorage.removeItem('userSession');
-        localStorage.removeItem('rememberLogin');
-    }
+    // Ya no verificamos sesiones guardadas automáticamente
+    return;
 }
-
 // ===================================
 // CONFIGURACIÓN DE EVENTOS
 // ===================================
@@ -178,7 +135,6 @@ async function handleLogin(e) {
     const formData = new FormData(e.target);
     const username = formData.get('username').trim();
     const password = formData.get('password');
-    const rememberMe = formData.get('rememberMe') === 'on';
 
     // Validaciones básicas
     if (!validateForm(username, password)) {
@@ -197,7 +153,7 @@ async function handleLogin(e) {
             console.log('✅ Login exitoso:', user.nombre);
 
             // Guardar sesión
-            await saveUserSession(user, rememberMe);
+            await saveUserSession(user);
 
             // Mostrar mensaje de éxito
             showSuccessMessage(`¡Bienvenido, ${user.nombre}!`);
@@ -303,27 +259,11 @@ async function authenticateUser(username, password) {
 // GESTIÓN DE SESIONES
 // ===================================
 
-async function saveUserSession(user, rememberMe) {
-    const sessionData = {
-        user: user,
-        loginTime: new Date().toISOString(),
-        rememberMe: rememberMe
-    };
-
-    // Guardar en localStorage
-    localStorage.setItem('userSession', JSON.stringify(sessionData));
-
-    if (rememberMe) {
-        localStorage.setItem('rememberLogin', 'true');
-    } else {
-        localStorage.removeItem('rememberLogin');
-    }
-
-    // También guardar en sessionStorage para persistencia de sesión
+async function saveUserSession(user) {
+    // Solo guardar en sessionStorage para la sesión actual
     sessionStorage.setItem('currentUser', JSON.stringify(user));
-
-    console.log('💾 Sesión guardada:', { username: user.username, remember: rememberMe });
-
+    
+    console.log('💾 Sesión guardada:', { username: user.username });
 }
 
 function redirectToApp(user) {
@@ -657,11 +597,6 @@ function checkAuthentication() {
 // Función de logout
 function logout() {
     sessionStorage.removeItem('currentUser');
-    localStorage.removeItem('userSession');
-    localStorage.removeItem('rememberLogin');
-    
-    // AGREGAR ESTA LÍNEA para marcar logout explícito:
-    localStorage.setItem('explicitLogout', 'true');
-    
+    // Ya no necesitamos limpiar localStorage
     window.location.href = '/login.html';
 }
