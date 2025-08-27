@@ -477,7 +477,6 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
         if (solicitudesError) throw solicitudesError;
         
         let tokenRenovado = true;
-        let motivoBloqueo = null;
         
         if (solicitudesToken.length > 0) {
             // 2. Verificar si todas están marcadas como recibidas
@@ -495,23 +494,22 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
                 
                 if (!recibido) {
                     tokenRenovado = false;
-                    motivoBloqueo = `Solicitud ${solicitud.id.substring(0, 8)} sin marcar como recibida`;
                     break;
                 }
             }
         }
         
-        // 3. Registrar en tokens_renovacion
+        // 3. Registrar usando NOMBRES CORRECTOS de tu tabla
         const { error: tokenError } = await supabase
             .from('tokens_renovacion')
             .insert({
                 usuario_id: usuarioId,
-                mes_revision: finMes.toISOString().substring(0, 7), // YYYY-MM
+                mes_ano: finMes.toISOString().substring(0, 7), // Usar mes_ano
                 tenia_solicitud: solicitudesToken.length > 0,
                 marco_recibido: tokenRenovado,
                 token_renovado: tokenRenovado,
-                motivo_bloqueo: motivoBloqueo,
-                fecha_procesado: new Date().toISOString()
+                fecha_verificacion: new Date().toISOString(), // Usar fecha_verificacion
+                tipo_renovacion: 'automatico' // Agregar tipo
             });
             
         if (tokenError) throw tokenError;
@@ -531,7 +529,6 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
         console.error(`Error procesando usuario ${usuarioId}:`, error);
     }
 }
-
 
 // Verificar si usuario puede recibir token (para mostrar en UI)
 async function verificarElegibilidadToken(usuarioId) {
