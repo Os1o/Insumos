@@ -50,6 +50,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function checkExistingSession() {
     try {
+        // AGREGAR ESTA VERIFICACIÓN:
+        const explicitLogout = localStorage.getItem('explicitLogout');
+        if (explicitLogout === 'true') {
+            localStorage.removeItem('explicitLogout');
+            return; // No restaurar sesión si fue logout explícito
+        }
+
         const savedSession = localStorage.getItem('userSession');
         const rememberMe = localStorage.getItem('rememberLogin');
 
@@ -652,5 +659,9 @@ function logout() {
     sessionStorage.removeItem('currentUser');
     localStorage.removeItem('userSession');
     localStorage.removeItem('rememberLogin');
+    
+    // AGREGAR ESTA LÍNEA para marcar logout explícito:
+    localStorage.setItem('explicitLogout', 'true');
+    
     window.location.href = '/login.html';
 }
