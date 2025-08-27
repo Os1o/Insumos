@@ -22,21 +22,21 @@ let validationTimeout = null;
 // INICIALIZACIÓN
 // ===================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('🔐 Sistema de login inicializado');
-    
+
     // Verificar si ya hay una sesión activa
     checkExistingSession();
-    
+
     // Configurar eventos del formulario
     setupFormEvents();
-    
+
     // Configurar validaciones en tiempo real
     setupRealtimeValidation();
-    
+
     // Configurar efectos visuales
     setupVisualEffects();
-    
+
     // Focus automático en el campo username
     const usernameInput = document.getElementById('username');
     if (usernameInput) {
@@ -52,23 +52,27 @@ async function checkExistingSession() {
     try {
         const savedSession = localStorage.getItem('userSession');
         const rememberMe = localStorage.getItem('rememberLogin');
-        
+
         if (savedSession && rememberMe === 'true') {
             const session = JSON.parse(savedSession);
-            
+
             // Verificar si la sesión no ha expirado (24 horas)
             const sessionTime = new Date(session.loginTime);
             const now = new Date();
             const hoursDiff = (now - sessionTime) / (1000 * 60 * 60);
-            
+
             if (hoursDiff < 24) {
                 console.log('📝 Sesión existente encontrada, redirigiendo...');
+
+                // AGREGAR ESTA LÍNEA:
+                sessionStorage.setItem('currentUser', JSON.stringify(session.user));
+
                 showSuccessMessage('Sesión restaurada exitosamente');
-                
+
                 setTimeout(() => {
                     redirectToApp(session.user);
                 }, 1500);
-                
+
                 return;
             } else {
                 // Limpiar sesión expirada
@@ -92,28 +96,28 @@ function setupFormEvents() {
     const form = document.getElementById('loginForm');
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
-    
+
     // Evento de submit del formulario
     form.addEventListener('submit', handleLogin);
-    
+
     // Eventos de teclado para mejorar UX
-    usernameInput.addEventListener('keydown', function(e) {
+    usernameInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             passwordInput.focus();
         }
     });
-    
-    passwordInput.addEventListener('keydown', function(e) {
+
+    passwordInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
             form.dispatchEvent(new Event('submit'));
         }
     });
-    
+
     // Limpiar mensajes al empezar a escribir
     [usernameInput, passwordInput].forEach(input => {
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
             clearMessage();
             clearFieldValidation(this);
         });
@@ -123,33 +127,33 @@ function setupFormEvents() {
 function setupRealtimeValidation() {
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
-    
+
     // Validación de username
-    usernameInput.addEventListener('input', function() {
+    usernameInput.addEventListener('input', function () {
         clearTimeout(validationTimeout);
         validationTimeout = setTimeout(() => {
             validateUsername(this.value);
         }, 500);
     });
-    
+
     // Validación de password
-    passwordInput.addEventListener('input', function() {
+    passwordInput.addEventListener('input', function () {
         validatePassword(this.value);
     });
 }
 
 function setupVisualEffects() {
     // Efecto de parallax suave en elementos decorativos
-    document.addEventListener('mousemove', function(e) {
+    document.addEventListener('mousemove', function (e) {
         const decorations = document.querySelectorAll('.bg-decoration');
         const mouseX = e.clientX / window.innerWidth;
         const mouseY = e.clientY / window.innerHeight;
-        
+
         decorations.forEach((decoration, index) => {
             const speed = (index + 1) * 0.5;
             const x = (mouseX - 0.5) * speed * 20;
             const y = (mouseY - 0.5) * speed * 20;
-            
+
             decoration.style.transform = `translate(${x}px, ${y}px)`;
         });
     });
@@ -161,44 +165,44 @@ function setupVisualEffects() {
 
 async function handleLogin(e) {
     e.preventDefault();
-    
+
     if (isLoading) return;
-    
+
     const formData = new FormData(e.target);
     const username = formData.get('username').trim();
     const password = formData.get('password');
     const rememberMe = formData.get('rememberMe') === 'on';
-    
+
     // Validaciones básicas
     if (!validateForm(username, password)) {
         return;
     }
-    
+
     // Mostrar estado de carga
     setLoadingState(true);
-    
+
     try {
         // Intentar autenticación
         const user = await authenticateUser(username, password);
-        
+
         if (user) {
             // Login exitoso
             console.log('✅ Login exitoso:', user.nombre);
-            
+
             // Guardar sesión
             await saveUserSession(user, rememberMe);
-            
+
             // Mostrar mensaje de éxito
             showSuccessMessage(`¡Bienvenido, ${user.nombre}!`);
-            
+
             // Animación de éxito
             document.querySelector('.login-card').classList.add('success');
-            
+
             // Redirigir después de un breve delay
             setTimeout(() => {
                 redirectToApp(user);
             }, 2000);
-            
+
         } else {
             // Credenciales inválidas - mensaje más específico
             if (error && error.code === 'PGRST116') {
@@ -208,12 +212,12 @@ async function handleLogin(e) {
             }
             shakeCard();
         }
-        
+
     } catch (error) {
         console.error('❌ Error durante el login:', error);
         showErrorMessage('Error de conexión. Intenta nuevamente.');
         shakeCard();
-        
+
     } finally {
         setLoadingState(false);
     }
@@ -226,7 +230,7 @@ async function handleLogin(e) {
 async function authenticateUser(username, password) {
     try {
         console.log('🔍 Intentando autenticar usuario:', username);
-        
+
         // QUERY SIMPLIFICADA - Solo tabla usuarios
         const { data: usuario, error: userError } = await supabase
             .from('usuarios')
@@ -234,43 +238,43 @@ async function authenticateUser(username, password) {
             .eq('username', username)
             .eq('activo', true)
             .single();
-        
+
         if (userError) {
             console.error('Error buscando usuario:', userError);
             return null;
         }
-        
+
         if (!usuario) {
             console.log('❌ Usuario no encontrado');
             return null;
         }
-        
+
         // Verificar contraseña (comparación directa para desarrollo)
         if (usuario.password_hash !== password) {
             console.log('❌ Contraseña incorrecta');
             return null;
         }
-        
+
         // QUERY SEPARADA - Buscar rol
         const { data: rol, error: rolError } = await supabase
             .from('roles')
             .select('nombre, descripcion, permisos')
             .eq('id', usuario.rol_id)
             .single();
-        
+
         if (rolError) {
             console.warn('Error cargando rol:', rolError);
             // Continuar sin rol si hay error
         }
-        
+
         // Actualizar última fecha de login
         await supabase
             .from('usuarios')
             .update({ fecha_ultimo_login: new Date().toISOString() })
             .eq('id', usuario.id);
-        
+
         console.log('✅ Usuario autenticado exitosamente');
-        
+
         return {
             id: usuario.id,
             username: usuario.username,
@@ -281,7 +285,7 @@ async function authenticateUser(username, password) {
             permisos: rol?.permisos || {},
             token_disponible: usuario.token_disponible
         };
-        
+
     } catch (error) {
         console.error('Error en authenticateUser:', error);
         throw error;
@@ -298,27 +302,28 @@ async function saveUserSession(user, rememberMe) {
         loginTime: new Date().toISOString(),
         rememberMe: rememberMe
     };
-    
+
     // Guardar en localStorage
     localStorage.setItem('userSession', JSON.stringify(sessionData));
-    
+
     if (rememberMe) {
         localStorage.setItem('rememberLogin', 'true');
     } else {
         localStorage.removeItem('rememberLogin');
     }
-    
+
     // También guardar en sessionStorage para persistencia de sesión
     sessionStorage.setItem('currentUser', JSON.stringify(user));
-    
+
     console.log('💾 Sesión guardada:', { username: user.username, remember: rememberMe });
+
 }
 
 function redirectToApp(user) {
     // Determinar página de destino según el rol
     let targetPage = 'index.html'; // Default para usuarios normales
-    
-    switch(user.rol) {
+
+    switch (user.rol) {
         case 'super_admin':
             targetPage = 'admin/dashboard.html';
             break;
@@ -330,9 +335,9 @@ function redirectToApp(user) {
             targetPage = 'index.html';
             break;
     }
-    
+
     console.log(`🚀 Redirigiendo a: ${targetPage} (rol: ${user.rol})`);
-    
+
     // SOLUCIÓN: Redirigir directamente sin verificar con fetch
     window.location.href = targetPage;
 }
@@ -343,30 +348,30 @@ function redirectToApp(user) {
 
 function validateForm(username, password) {
     let isValid = true;
-    
+
     // Validar username
     if (!username || username.length < 3) {
         showFieldError('username', 'El usuario debe tener al menos 3 caracteres');
         isValid = false;
     }
-    
+
     // Validar password
     if (!password || password.length < 3) {
         showFieldError('password', 'La contraseña es requerida');
         isValid = false;
     }
-    
+
     return isValid;
 }
 
 async function validateUsername(username) {
     const container = document.getElementById('username').closest('.input-container');
-    
+
     if (!username || username.length < 3) {
         container.classList.remove('valid', 'invalid');
         return;
     }
-    
+
     try {
         // Verificar si el username existe
         const { data, error } = await supabase
@@ -375,7 +380,7 @@ async function validateUsername(username) {
             .eq('username', username)
             .eq('activo', true)
             .single();
-        
+
         if (data) {
             container.classList.add('valid');
             container.classList.remove('invalid');
@@ -390,12 +395,12 @@ async function validateUsername(username) {
 
 function validatePassword(password) {
     const container = document.getElementById('password').closest('.input-container');
-    
+
     if (!password) {
         container.classList.remove('valid', 'invalid');
         return;
     }
-    
+
     if (password.length >= 3) {
         container.classList.add('valid');
         container.classList.remove('invalid');
@@ -416,7 +421,7 @@ function setLoadingState(loading) {
     const buttonLoader = loginButton.querySelector('.button-loader');
     const form = document.getElementById('loginForm');
     const card = document.querySelector('.login-card');
-    
+
     if (loading) {
         loginButton.disabled = true;
         buttonText.style.display = 'none';
@@ -435,11 +440,11 @@ function setLoadingState(loading) {
 function showMessage(message, type) {
     const container = document.getElementById('messageContainer');
     const text = container.querySelector('.message-text');
-    
+
     container.className = `message-container ${type}`;
     text.textContent = message;
     container.style.display = 'block';
-    
+
     // Auto-hide después de 5 segundos para mensajes de error
     if (type === 'error' || type === 'warning') {
         setTimeout(() => {
@@ -468,10 +473,10 @@ function clearMessage() {
 function showFieldError(fieldId, message) {
     const field = document.getElementById(fieldId);
     const container = field.closest('.input-container');
-    
+
     container.classList.add('invalid');
     container.classList.remove('valid');
-    
+
     // Crear tooltip de error
     let errorTooltip = container.querySelector('.error-tooltip');
     if (!errorTooltip) {
@@ -479,10 +484,10 @@ function showFieldError(fieldId, message) {
         errorTooltip.className = 'error-tooltip';
         container.appendChild(errorTooltip);
     }
-    
+
     errorTooltip.textContent = message;
     errorTooltip.style.display = 'block';
-    
+
     // Auto-hide después de 3 segundos
     setTimeout(() => {
         if (errorTooltip) {
@@ -494,9 +499,9 @@ function showFieldError(fieldId, message) {
 function clearFieldValidation(field) {
     const container = field.closest('.input-container');
     const errorTooltip = container.querySelector('.error-tooltip');
-    
+
     container.classList.remove('valid', 'invalid');
-    
+
     if (errorTooltip) {
         errorTooltip.style.display = 'none';
     }
@@ -505,7 +510,7 @@ function clearFieldValidation(field) {
 function shakeCard() {
     const card = document.querySelector('.login-card');
     card.style.animation = 'shake 0.5s ease-in-out';
-    
+
     setTimeout(() => {
         card.style.animation = '';
     }, 500);
@@ -518,7 +523,7 @@ function shakeCard() {
 function togglePassword() {
     const passwordInput = document.getElementById('password');
     const eyeIcon = document.querySelector('.password-toggle .eye-icon');
-    
+
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
         eyeIcon.innerHTML = `
@@ -544,7 +549,7 @@ function showForgotPassword() {
 // MANEJO DE ERRORES GLOBAL
 // ===================================
 
-window.addEventListener('error', function(e) {
+window.addEventListener('error', function (e) {
     console.error('Error global en login:', e.error);
     if (isLoading) {
         setLoadingState(false);
@@ -552,7 +557,7 @@ window.addEventListener('error', function(e) {
     }
 });
 
-window.addEventListener('unhandledrejection', function(e) {
+window.addEventListener('unhandledrejection', function (e) {
     console.error('Promise rechazada en login:', e.reason);
     if (isLoading) {
         setLoadingState(false);
@@ -616,13 +621,13 @@ document.head.appendChild(additionalStyles);
 // También agregar función para verificar autenticación en otras páginas
 function checkAuthentication() {
     const currentPage = window.location.pathname;
-    
+
     // Solo verificar en páginas que requieren autenticación
     const protectedPages = ['/index.html', '/historial.html', '/admin/'];
     const needsAuth = protectedPages.some(page => currentPage.includes(page)) || currentPage === '/';
-    
+
     if (!needsAuth) return true;
-    
+
     try {
         const session = sessionStorage.getItem('currentUser');
         if (!session) {
@@ -630,11 +635,11 @@ function checkAuthentication() {
             window.location.href = '/login.html';
             return false;
         }
-        
+
         const user = JSON.parse(session);
         console.log('Usuario autenticado:', user.nombre);
         return user;
-        
+
     } catch (error) {
         console.error('Error verificando autenticación:', error);
         window.location.href = '/login.html';
