@@ -5,6 +5,7 @@
 // Variables globales del historial
 let solicitudesUsuario = [];
 let solicitudSeleccionada = null;
+let solicitudesRecibidas = []; // ← AGREGAR ESTA LÍNEA
 
 // Configuración Supabase (usar misma que script.js)
 const SUPABASE_CONFIG = {
@@ -279,11 +280,29 @@ function getEstadoLabel(estado) {
     return labels[estado] || 'Desconocido';
 }
 
-function yaEstaRecibido(solicitudId) {
-    // TODO: Verificar en tabla solicitudes_recibidos
-    return false;
-}
+/*async function yaEstaRecibido(solicitudId) {
+    try {
+        const { data, error } = await supabaseHistorial
+            .from('solicitudes_recibidos')
+            .select('id')
+            .eq('solicitud_id', solicitudId)
+            .single();
+            
+        if (error && error.code !== 'PGRST116') {
+            console.error('Error verificando recibido:', error);
+            return false;
+        }
+        
+        return !!data; // True si existe, false si no existe
+    } catch (error) {
+        console.error('Error en yaEstaRecibido:', error);
+        return false;
+    }
+}*/
 
+function yaEstaRecibido(solicitudId) {
+    return solicitudesRecibidas.includes(solicitudId);
+}
 // ===================================
 // GESTIÓN DE FILTROS
 // ===================================
@@ -349,7 +368,7 @@ function cerrarModalRecibido() {
     solicitudSeleccionada = null;
 }
 
-async function confirmarRecibido() {
+async function confirmarRecibido() { 
     if (!solicitudSeleccionada) return;
     
     try {
@@ -376,6 +395,19 @@ async function confirmarRecibido() {
                 .eq('id', user.id);
                 
             if (tokenError) throw tokenError;
+
+            
+            showNotificationHistorial('¡Token reactivado! Ya puedes hacer nuevas solicitudes ordinarias', 'success');
+            // AGREGAR ESTAS LÍNEAS:
+            // Marcar como recibido localmente
+            solicitudesRecibidas.push(solicitudSeleccionada.id);
+
+            // Ocultar el botón inmediatamente
+            const botonRecibido = document.querySelector(`[data-solicitud="${solicitudSeleccionada.id}"] .btn-recibido`);
+            if (botonRecibido) {
+                botonRecibido.style.display = 'none';
+}
+
             
             // Actualizar sesión local
             user.token_disponible = 1;
