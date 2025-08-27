@@ -42,7 +42,7 @@ const supabase = window.supabase.createClient(
 function verificarTokenDisponible() {
     const session = sessionStorage.getItem('currentUser');
     if (!session) return false;
-    
+
     try {
         const user = JSON.parse(session);
         return user.token_disponible === 1;
@@ -56,47 +56,47 @@ function verificarTokenDisponible() {
 async function cargarDatosCarrito() {
     try {
         console.log('Cargando categorías e insumos...');
-        
+
         // Cargar categorías
         const { data: categoriasFromDB, error: catError } = await supabase
             .from('categorias_insumos')
             .select('*')
             .eq('activo', true)
             .order('orden');
-            
+
         if (catError) throw catError;
-        
+
         // Determinar qué insumos puede ver el usuario
         const session = sessionStorage.getItem('currentUser');
         const user = JSON.parse(session);
-        
+
         const departamentosConAccesoCompleto = [
             'Dirección Jurídica',
             'Coordinación Administrativa'
         ];
-        
+
         let insumosQuery = supabase
             .from('insumos')
             .select('*')
             .eq('activo', true);
-            
+
         // Filtrar por acceso si no es coordinación privilegiada
         if (!departamentosConAccesoCompleto.includes(user.departamento)) {
             insumosQuery = insumosQuery.eq('acceso_tipo', 'todos');
         }
-        
+
         const { data: insumosFromDB, error: insError } = await insumosQuery.order('nombre');
-        
+
         if (insError) throw insError;
-        
+
         // Guardar datos globalmente
         categorias = categoriasFromDB;
         insumos = insumosFromDB;
-        
+
         // Renderizar interfaz
         renderizarCategorias();
         renderizarInsumos(categorias[0]?.id || 1);
-        
+
     } catch (error) {
         console.error('Error cargando datos del carrito:', error);
         showNotification('Error cargando datos. Intenta nuevamente.', 'error');
@@ -107,28 +107,28 @@ async function cargarDatosCarrito() {
 function actualizarInfoUsuarioModal() {
     const session = sessionStorage.getItem('currentUser');
     if (!session) return;
-    
+
     try {
         const user = JSON.parse(session);
-        
+
         // Actualizar nombre del usuario
         const usuarioNombre = document.querySelector('.usuario-nombre');
         if (usuarioNombre) {
             usuarioNombre.textContent = user.nombre;
         }
-        
+
         // Actualizar departamento
         const usuarioDepto = document.querySelector('.usuario-depto');
         if (usuarioDepto) {
             usuarioDepto.textContent = user.departamento;
         }
-        
+
         // Actualizar token status
         const tokenStatus = document.getElementById('tokenStatus');
         if (tokenStatus) {
             tokenStatus.textContent = user.token_disponible;
         }
-        
+
     } catch (error) {
         console.error('Error actualizando info del usuario:', error);
     }
@@ -138,7 +138,7 @@ function actualizarInfoUsuarioModal() {
 function renderizarCategorias() {
     const container = document.getElementById('categoriasTabsContainer');
     if (!container) return;
-    
+
     let html = '';
     categorias.forEach((categoria, index) => {
         const isActive = index === 0 ? 'active' : '';
@@ -152,7 +152,7 @@ function renderizarCategorias() {
             </button>
         `;
     });
-    
+
     container.innerHTML = html;
 }
 
@@ -160,9 +160,9 @@ function renderizarCategorias() {
 function renderizarInsumos(categoriaId) {
     const container = document.getElementById('insumosListaContainer');
     if (!container) return;
-    
+
     const insumosFiltrados = insumos.filter(insumo => insumo.categoria_id === categoriaId);
-    
+
     let html = '';
     insumosFiltrados.forEach(insumo => {
         html += `
@@ -180,7 +180,7 @@ function renderizarInsumos(categoriaId) {
             </div>
         `;
     });
-    
+
     container.innerHTML = html || '<p class="no-insumos">No hay insumos en esta categoría</p>';
 }
 
@@ -191,7 +191,7 @@ function cambiarCategoria(categoriaId) {
         tab.classList.remove('active');
     });
     document.querySelector(`[data-categoria="${categoriaId}"]`).classList.add('active');
-    
+
     // Renderizar insumos de la nueva categoría
     renderizarInsumos(categoriaId);
 }
@@ -204,14 +204,14 @@ let cantidadesTemp = {};
 function cambiarCantidad(insumoId, cambio) {
     const actual = cantidadesTemp[insumoId] || 0;
     const nueva = Math.max(0, Math.min(100, actual + cambio));
-    
+
     cantidadesTemp[insumoId] = nueva;
-    
+
     const display = document.getElementById(`cantidad-${insumoId}`);
     if (display) {
         display.textContent = nueva;
     }
-    
+
     // Warning para cantidades altas
     if (nueva > 50) {
         display.style.color = '#e74c3c';
@@ -225,18 +225,18 @@ function cambiarCantidad(insumoId, cambio) {
 // Agregar insumo al carrito
 function agregarAlCarrito(insumoId) {
     const cantidad = cantidadesTemp[insumoId] || 0;
-    
+
     if (cantidad === 0) {
         showNotification('Selecciona una cantidad mayor a 0', 'warning');
         return;
     }
-    
+
     const insumo = insumos.find(i => i.id === insumoId);
     if (!insumo) return;
-    
+
     // Verificar si ya está en el carrito
     const existingIndex = carritoItems.findIndex(item => item.insumo_id === insumoId);
-    
+
     if (existingIndex >= 0) {
         // Actualizar cantidad
         carritoItems[existingIndex].cantidad = cantidad;
@@ -249,15 +249,15 @@ function agregarAlCarrito(insumoId) {
             unidad_medida: insumo.unidad_medida
         });
     }
-    
+
     // Limpiar cantidad temporal
     cantidadesTemp[insumoId] = 0;
     const display = document.getElementById(`cantidad-${insumoId}`);
     if (display) display.textContent = '0';
-    
+
     // Actualizar vista del carrito
     actualizarVistaCarrito();
-    
+
     showNotification(`${insumo.nombre} agregado al carrito`, 'success');
 }
 
@@ -265,14 +265,14 @@ function agregarAlCarrito(insumoId) {
 function actualizarVistaCarrito() {
     const container = document.getElementById('carritoItems');
     const count = document.getElementById('carritoCount');
-    
+
     if (carritoItems.length === 0) {
         container.innerHTML = '<p class="carrito-vacio">Agrega insumos a tu carrito</p>';
         count.textContent = '0';
         document.getElementById('btnEnviar').disabled = true;
         return;
     }
-    
+
     let html = '';
     carritoItems.forEach((item, index) => {
         html += `
@@ -283,7 +283,7 @@ function actualizarVistaCarrito() {
             </div>
         `;
     });
-    
+
     container.innerHTML = html;
     count.textContent = carritoItems.length;
     document.getElementById('btnEnviar').disabled = false;
@@ -303,11 +303,11 @@ async function enviarSolicitud() {
         showNotification('Agrega al menos un insumo al carrito', 'warning');
         return;
     }
-    
+
     try {
         const session = sessionStorage.getItem('currentUser');
         const user = JSON.parse(session);
-        
+
         // Crear solicitud principal
         const { data: solicitud, error: solError } = await supabase
             .from('solicitudes')
@@ -320,22 +320,22 @@ async function enviarSolicitud() {
             })
             .select()
             .single();
-            
+
         if (solError) throw solError;
-        
+
         // Crear detalles de la solicitud
         const detalles = carritoItems.map(item => ({
             solicitud_id: solicitud.id,
             insumo_id: item.insumo_id,
             cantidad_solicitada: item.cantidad
         }));
-        
+
         const { error: detError } = await supabase
             .from('solicitud_detalles')
             .insert(detalles);
-            
+
         if (detError) throw detError;
-        
+
         // Actualizar token si es solicitud ordinaria
         if (currentSolicitudType === 'ordinaria') {
             await supabase
@@ -349,14 +349,14 @@ async function enviarSolicitud() {
             // Actualizar sesión local
             user.token_disponible = 0;
             sessionStorage.setItem('currentUser', JSON.stringify(user));
-            
+
             // Actualizar vista del token en modal
             const tokenStatus = document.getElementById('tokenStatus');
             if (tokenStatus) {
                 tokenStatus.textContent = '0';
                 tokenStatus.style.color = '#e74c3c';
             }
-            
+
             // Deshabilitar botón de solicitud ordinaria en dashboard
             setTimeout(() => {
                 const btnOrdinaria = document.querySelector('[data-type="ordinaria"] .btn-solicitar');
@@ -366,7 +366,7 @@ async function enviarSolicitud() {
                     btnOrdinaria.style.background = '#ccc';
                     btnOrdinaria.style.cursor = 'not-allowed';
                 }
-                
+
                 // Agregar mensaje visual en la card
                 const cardOrdinaria = document.querySelector('[data-type="ordinaria"]');
                 if (cardOrdinaria) {
@@ -382,14 +382,14 @@ async function enviarSolicitud() {
 
         // Mostrar notificación de éxito
         showNotification('Solicitud enviada exitosamente', 'success');
-        
+
         // Limpiar carrito
         carritoItems = [];
         cantidadesTemp = {};
         actualizarVistaCarrito();
-        
+
         setTimeout(() => cerrarModal(), 2000);
-        
+
     } catch (error) {
         console.error('Error enviando solicitud:', error);
         showNotification('Error enviando solicitud. Intenta nuevamente.', 'error');
@@ -402,11 +402,11 @@ async function enviarSolicitud() {
 function actualizarEstadoDashboard() {
     const session = sessionStorage.getItem('currentUser');
     if (!session) return;
-    
+
     const user = JSON.parse(session);
     const btnOrdinaria = document.querySelector('[data-type="ordinaria"] .btn-solicitar');
     const cardOrdinaria = document.querySelector('[data-type="ordinaria"]');
-    
+
     if (user.token_disponible === 0) {
         // Token agotado
         if (btnOrdinaria) {
@@ -436,27 +436,27 @@ function actualizarEstadoDashboard() {
 async function procesarRenovacionMensual() {
     try {
         console.log('Iniciando proceso de renovación mensual...');
-        
+
         // Obtener fecha del mes anterior
         const fechaActual = new Date();
         const mesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth() - 1, 1);
         const finMesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 0);
-        
+
         // 1. Obtener todos los usuarios activos
         const { data: usuarios, error: usuariosError } = await supabase
             .from('usuarios')
             .select('id, username, token_disponible')
             .eq('activo', true);
-            
+
         if (usuariosError) throw usuariosError;
-        
+
         for (const usuario of usuarios) {
             await procesarTokenUsuario(usuario.id, mesAnterior, finMesAnterior);
         }
-        
+
         console.log('Proceso de renovación mensual completado');
         return true;
-        
+
     } catch (error) {
         console.error('Error en proceso mensual:', error);
         return false;
@@ -467,7 +467,7 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
     try {
         console.log(`--- Procesando usuario ${usuarioId} ---`);
         console.log(`Rango fechas: ${inicioMes.toISOString()} a ${finMes.toISOString()}`);
-        
+
         // 1. Buscar solicitudes del mes anterior que usaron token
         const { data: solicitudesToken, error: solicitudesError } = await supabase
             .from('solicitudes')
@@ -476,33 +476,33 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
             .eq('token_usado', true)
             .gte('fecha_solicitud', inicioMes.toISOString())
             .lte('fecha_solicitud', finMes.toISOString());
-            
+
         if (solicitudesError) throw solicitudesError;
-        
+
         console.log(`Solicitudes con token encontradas: ${solicitudesToken.length}`);
         console.log('Detalles de solicitudes:', solicitudesToken);
-        
+
         let tokenRenovado = true;
-        
+
         if (solicitudesToken.length > 0) {
             console.log('Verificando si todas están marcadas como recibidas...');
-            
+
             for (const solicitud of solicitudesToken) {
                 console.log(`Verificando solicitud ${solicitud.id.substring(0, 8)}...`);
-                
+
                 const { data: recibido, error: recibidoError } = await supabase
                     .from('solicitudes_recibidos')
                     .select('id, fecha_marcado_recibido')
                     .eq('solicitud_id', solicitud.id)
                     .eq('usuario_id', usuarioId)
                     .single();
-                    
+
                 console.log(`Resultado búsqueda recibido:`, { data: recibido, error: recibidoError?.code });
-                    
+
                 if (recibidoError && recibidoError.code !== 'PGRST116') {
                     throw recibidoError;
                 }
-                
+
                 if (!recibido) {
                     console.log(`BLOQUEO: Solicitud ${solicitud.id.substring(0, 8)} NO marcada como recibida`);
                     tokenRenovado = false;
@@ -514,9 +514,9 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
         } else {
             console.log('Usuario sin solicitudes con token del mes anterior - token renovado automáticamente');
         }
-        
+
         console.log(`DECISION FINAL: Token para usuario ${usuarioId} será ${tokenRenovado ? 'RENOVADO' : 'BLOQUEADO'}`);
-        
+
         // 3. Registrar en tokens_renovacion
         const { error: tokenError } = await supabase
             .from('tokens_renovacion')
@@ -528,21 +528,21 @@ async function procesarTokenUsuario(usuarioId, inicioMes, finMes) {
                 token_renovado: tokenRenovado,
                 fecha_verificacion: new Date().toISOString()
             });
-            
+
         if (tokenError) throw tokenError;
-        
+
         // 4. Actualizar token_disponible del usuario
         const nuevoToken = tokenRenovado ? 1 : 0;
         const { error: updateError } = await supabase
             .from('usuarios')
             .update({ token_disponible: nuevoToken })
             .eq('id', usuarioId);
-            
+
         if (updateError) throw updateError;
-        
+
         console.log(`COMPLETADO: Usuario ${usuarioId} - Token actualizado a ${nuevoToken}`);
         console.log('---');
-        
+
     } catch (error) {
         console.error(`Error procesando usuario ${usuarioId}:`, error);
     }
@@ -554,20 +554,20 @@ async function verificarElegibilidadToken(usuarioId) {
     try {
         // Buscar solicitudes del mes actual con token usado
         const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-        
+
         const { data: solicitudesToken, error } = await supabase
             .from('solicitudes')
             .select('id')
             .eq('usuario_id', usuarioId)
             .eq('token_usado', true)
             .gte('fecha_solicitud', inicioMes.toISOString());
-            
+
         if (error) throw error;
-        
+
         if (solicitudesToken.length === 0) {
             return { elegible: true, mensaje: 'Sin solicitudes pendientes' };
         }
-        
+
         // Verificar si todas están marcadas
         for (const solicitud of solicitudesToken) {
             const { data: recibido } = await supabase
@@ -576,17 +576,17 @@ async function verificarElegibilidadToken(usuarioId) {
                 .eq('solicitud_id', solicitud.id)
                 .eq('usuario_id', usuarioId)
                 .single();
-                
+
             if (!recibido) {
-                return { 
-                    elegible: false, 
-                    mensaje: `Tienes solicitudes sin marcar como recibidas` 
+                return {
+                    elegible: false,
+                    mensaje: `Tienes solicitudes sin marcar como recibidas`
                 };
             }
         }
-        
+
         return { elegible: true, mensaje: 'Todas las solicitudes marcadas' };
-        
+
     } catch (error) {
         console.error('Error verificando elegibilidad:', error);
         return { elegible: false, mensaje: 'Error verificando estado' };
@@ -595,7 +595,7 @@ async function verificarElegibilidadToken(usuarioId) {
 
 
 // Para ejecutar manualmente o programar
-window.ejecutarProcesoMensual = async function() {
+window.ejecutarProcesoMensual = async function () {
     const resultado = await procesarRenovacionMensual();
     if (resultado) {
         showNotification('Proceso de renovación mensual completado exitosamente', 'success');
@@ -614,7 +614,7 @@ window.ejecutarProcesoMensual = async function() {
 async function loadComponent(containerId, filePath) {
     try {
         console.log(`🔄 Intentando cargar: ${filePath}`);
-        
+
         // Intentar fetch con manejo de errores mejorado
         const response = await fetch(filePath, {
             method: 'GET',
@@ -623,26 +623,26 @@ async function loadComponent(containerId, filePath) {
             },
             cache: 'no-cache'
         });
-        
+
         console.log(`📡 Respuesta de ${filePath}:`, response.status, response.statusText);
-        
+
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-        
+
         const html = await response.text();
         console.log(`📄 HTML obtenido de ${filePath}:`, html.substring(0, 100) + '...');
-        
+
         const container = document.getElementById(containerId);
-        
+
         if (!container) {
             console.error(`❌ Container no encontrado: ${containerId}`);
             return;
         }
-        
+
         container.innerHTML = html;
         console.log(`✅ Componente cargado exitosamente: ${filePath}`);
-        
+
         // Ejecutar scripts específicos después de cargar
         if (filePath.includes('header')) {
             setTimeout(setupHeaderEvents, 100);
@@ -652,10 +652,10 @@ async function loadComponent(containerId, filePath) {
                 updateFooterStats();
             }, 100);
         }
-        
+
     } catch (error) {
         console.error(`❌ Error detallado cargando ${filePath}:`, error);
-        
+
         // Fallback: cargar contenido básico
         const container = document.getElementById(containerId);
         if (container) {
@@ -780,7 +780,7 @@ function loadFallbackFooter(container) {
             </div>
         </footer>
     `;
-    
+
     setTimeout(() => {
         setupFooterEvents();
         updateFooterStats();
@@ -829,7 +829,7 @@ function loadFallbackHeader(container) {
             </div>
         </header>
     `;
-    
+
     setTimeout(setupHeaderEvents, 100);
 }
 
@@ -840,13 +840,13 @@ function updateDynamicInfo() {
     yearElements.forEach(el => {
         if (el) el.textContent = new Date().getFullYear();
     });
-    
+
     // Actualizar última actualización
     const updateElements = document.querySelectorAll('#lastUpdate, .last-updated');
     updateElements.forEach(el => {
         if (el) el.textContent = new Date().toLocaleTimeString();
     });
-    
+
     // ACTUALIZAR USUARIO DESDE SESIÓN
     const session = sessionStorage.getItem('currentUser');
     if (session) {
@@ -863,7 +863,7 @@ function updateDynamicInfo() {
             console.error('Error actualizando usuario:', error);
         }
     }
-    
+
     // Actualizar información del usuario
     updateUserInfo();
 }
@@ -872,57 +872,57 @@ function updateDynamicInfo() {
 // INICIALIZACIÓN DE LA APLICACIÓN
 // ===================================
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     console.log('🚀 ' + APP_CONFIG.name + ' v' + APP_CONFIG.version + ' iniciando...');
     console.log('📍 URL actual:', window.location.href);
     console.log('🔍 Verificando contenedores DOM...');
-    
+
     // Verificar que los contenedores existan
     const headerContainer = document.getElementById('header-container');
     const footerContainer = document.getElementById('footer-container');
-    
+
     console.log('Header container:', headerContainer ? '✅ Encontrado' : '❌ No encontrado');
     console.log('Footer container:', footerContainer ? '✅ Encontrado' : '❌ No encontrado');
-    
+
     if (!headerContainer || !footerContainer) {
         console.error('❌ Contenedores faltantes. Verificar HTML.');
         return;
     }
-    
+
     try {
         console.log('🔄 Iniciando carga de componentes...');
-        
+
         // Cargar componentes del sistema con timeout
         const headerPromise = loadComponent('header-container', 'includes/header.html');
         const footerPromise = loadComponent('footer-container', 'includes/foot.html');
-        
+
         // Esperar máximo 5 segundos por componente
         await Promise.race([
             Promise.all([headerPromise, footerPromise]),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
         ]);
-        
+
         console.log('✅ Componentes cargados exitosamente');
-        
+
         // Actualizar información dinámica
         updateDynamicInfo();
-        
+
         // Configurar eventos principales
         setTimeout(setupAllEventListeners, 300);
-        
+
         // Cargar datos iniciales
         setTimeout(loadInitialData, 500);
-        
+
         console.log('✅ Aplicación inicializada correctamente');
-        
+
     } catch (error) {
         console.error('❌ Error durante la inicialización:', error);
-        
+
         // Mostrar notificación de error solo si existe la función
         if (typeof showNotification === 'function') {
             showNotification('Error al inicializar componentes: ' + error.message, 'warning');
         }
-        
+
         // Continuar con la inicialización básica
         setTimeout(() => {
             updateDynamicInfo();
@@ -941,28 +941,28 @@ setTimeout(actualizarEstadoDashboard, 1000);
 
 function setupAllEventListeners() {
     console.log('Configurando event listeners...');
-    
+
     // Event listeners del header
     setupHeaderEvents();
-    
+
     // Event listeners del footer
     setupFooterEvents();
-    
+
     // Event listeners del modal
     setupModalEvents();
-    
+
     // Event listeners generales
     setupGeneralEvents();
 }
 
 function setupHeaderEvents() {
     // Cerrar dropdowns al hacer click fuera
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!e.target.closest('.user-menu')) {
             closeUserDropdown();
         }
     });
-    
+
     // Eventos de navegación móvil
     const mobileOverlay = document.getElementById('mobileOverlay');
     if (mobileOverlay) {
@@ -981,16 +981,16 @@ function setupFooterEvents() {
 function setupModalEvents() {
     const modal = document.getElementById('solicitud-modal');
     const form = document.getElementById('solicitud-form');
-    
+
     if (modal) {
         // Cerrar modal al hacer click en el overlay
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
             if (e.target === modal) {
                 cerrarModal();
             }
         });
     }
-    
+
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
     }
@@ -998,16 +998,16 @@ function setupModalEvents() {
 
 function setupGeneralEvents() {
     // Navegación con teclado
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             cerrarModal();
             closeMobileMenus();
             closeUserDropdown();
         }
     });
-    
+
     // Prevenir submit por defecto en formularios sin handler
-    document.addEventListener('submit', function(e) {
+    document.addEventListener('submit', function (e) {
         if (!e.target.hasAttribute('data-handled')) {
             e.preventDefault();
         }
@@ -1044,10 +1044,10 @@ function closeUserDropdown() {
 function toggleMobileMenu() {
     const mobileMenu = document.getElementById('mobileMenu');
     const mobileOverlay = document.getElementById('mobileOverlay');
-    
+
     if (mobileMenu && mobileOverlay) {
         const isVisible = mobileMenu.style.display !== 'none';
-        
+
         if (isVisible) {
             closeMobileMenus();
         } else {
@@ -1062,7 +1062,7 @@ function toggleMobileMenu() {
 function closeMobileMenus() {
     const mobileMenu = document.getElementById('mobileMenu');
     const mobileOverlay = document.getElementById('mobileOverlay');
-    
+
     if (mobileMenu) mobileMenu.style.display = 'none';
     if (mobileOverlay) mobileOverlay.style.display = 'none';
     document.body.style.overflow = '';
@@ -1072,11 +1072,11 @@ function closeMobileMenus() {
 function updateUserInfo() {
     const userNameElements = document.querySelectorAll('.user-name, .user-display-name');
     const userEmailElements = document.querySelectorAll('.user-email');
-    
+
     userNameElements.forEach(el => {
         if (el) el.textContent = currentUser.name;
     });
-    
+
     userEmailElements.forEach(el => {
         if (el) el.textContent = currentUser.email;
     });
@@ -1098,13 +1098,13 @@ function scrollToTop() {
 function updateFooterStats() {
     const totalSolicitudesEl = document.getElementById('totalSolicitudes');
     const solicitudesActivasEl = document.getElementById('solicitudesActivas');
-    
+
     if (totalSolicitudesEl) {
         totalSolicitudesEl.textContent = solicitudes.length;
     }
-    
+
     if (solicitudesActivasEl) {
-        const activeSolicitudes = solicitudes.filter(s => 
+        const activeSolicitudes = solicitudes.filter(s =>
             s.estado === 'pendiente' || s.estado === 'en_proceso'
         ).length;
         solicitudesActivasEl.textContent = activeSolicitudes;
@@ -1118,32 +1118,49 @@ function updateFooterStats() {
 // Abrir modal de solicitud
 function abrirSolicitud(tipo) {
     currentSolicitudType = tipo;
-    
+
     // Verificar token para solicitudes ordinarias
     if (tipo === 'ordinaria' && !verificarTokenDisponible()) {
         showNotification('No tienes token disponible para solicitudes ordinarias', 'warning');
         return;
     }
-    
+
     const modal = document.getElementById('solicitud-modal');
     const modalTitle = document.getElementById('modal-title');
-    
+
     if (modal && modalTitle) {
         // Configurar título según el tipo
         const titles = {
             'ordinaria': 'Nueva Solicitud Mensual/Ordinaria',
             'juntas': 'Nueva Solicitud para Juntas'
         };
-        
+
         modalTitle.textContent = titles[tipo] || 'Nueva Solicitud';
-        
+
         // ACTUALIZAR INFO DEL USUARIO EN EL MODAL
         actualizarInfoUsuarioModal();
         cargarDatosCarrito();
-        
+
         // Mostrar modal
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+    }
+
+    // Mostrar/ocultar campos según tipo
+    const camposJunta = document.getElementById('camposJunta');
+    if (camposJunta) {
+        if (tipo === 'juntas') {
+            camposJunta.style.display = 'block';
+            // Establecer fecha mínima como mañana
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const fechaEvento = document.getElementById('fechaEvento');
+            if (fechaEvento) {
+                fechaEvento.min = tomorrow.toISOString().split('T')[0];
+            }
+        } else {
+            camposJunta.style.display = 'none';
+        }
     }
 }
 
@@ -1152,31 +1169,31 @@ function abrirSolicitud(tipo) {
 function cerrarModal() {
     const modal = document.getElementById('solicitud-modal');
     const form = document.getElementById('solicitud-form');
-    
+
     if (modal) {
         modal.style.display = 'none';
         document.body.style.overflow = '';
     }
-    
+
     if (form) {
         form.reset();
     }
-    
+
     currentSolicitudType = '';
 }
 
 // Manejar envío del formulario
 function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     const form = e.target;
     const formData = new FormData(form);
-    
+
     // Validar formulario
     if (!validateForm(form)) {
         return;
     }
-    
+
     // Crear objeto de solicitud
     const solicitud = {
         id: generateId(),
@@ -1191,16 +1208,16 @@ function handleFormSubmit(e) {
         estado: 'pendiente',
         usuario: currentUser.email
     };
-    
+
     // Guardar solicitud
     saveSolicitud(solicitud);
-    
+
     // Mostrar confirmación
     showNotification('Solicitud enviada exitosamente', 'success');
-    
+
     // Cerrar modal
     cerrarModal();
-    
+
     // Actualizar estadísticas
     updateFooterStats();
 }
@@ -1212,7 +1229,7 @@ function handleFormSubmit(e) {
 function validateForm(form) {
     const requiredFields = form.querySelectorAll('[required]');
     let isValid = true;
-    
+
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             showFieldError(field, 'Este campo es obligatorio');
@@ -1221,38 +1238,38 @@ function validateForm(form) {
             clearFieldError(field);
         }
     });
-    
+
     // Validaciones específicas
     const email = form.querySelector('input[type="email"]');
     if (email && email.value && !isValidEmail(email.value)) {
         showFieldError(email, 'Ingrese un email válido');
         isValid = false;
     }
-    
+
     const fechaEvento = document.getElementById('fecha-evento');
     if (fechaEvento && fechaEvento.required && fechaEvento.value) {
         const fechaSeleccionada = new Date(fechaEvento.value);
         const ahora = new Date();
-        
+
         if (fechaSeleccionada <= ahora) {
             showFieldError(fechaEvento, 'La fecha del evento debe ser futura');
             isValid = false;
         }
     }
-    
+
     return isValid;
 }
 
 function showFieldError(field, message) {
     clearFieldError(field);
-    
+
     const errorDiv = document.createElement('div');
     errorDiv.className = 'field-error';
     errorDiv.style.color = '#e74c3c';
     errorDiv.style.fontSize = '0.9rem';
     errorDiv.style.marginTop = '0.25rem';
     errorDiv.textContent = message;
-    
+
     field.style.borderColor = '#e74c3c';
     field.parentNode.appendChild(errorDiv);
 }
@@ -1278,17 +1295,17 @@ function isValidEmail(email) {
 function loadInitialData() {
     // Cargar solicitudes desde localStorage
     solicitudes = JSON.parse(localStorage.getItem('solicitudes')) || [];
-    
+
     // Cargar configuración de usuario
     const savedUser = JSON.parse(localStorage.getItem('currentUser'));
     if (savedUser) {
         currentUser = { ...currentUser, ...savedUser };
         updateUserInfo();
     }
-    
+
     // Actualizar estadísticas
     updateFooterStats();
-    
+
     console.log(`📊 Datos cargados: ${solicitudes.length} solicitudes`);
 }
 
@@ -1296,7 +1313,7 @@ function loadInitialData() {
 function saveSolicitud(solicitud) {
     solicitudes.push(solicitud);
     localStorage.setItem('solicitudes', JSON.stringify(solicitudes));
-    
+
     console.log('💾 Solicitud guardada:', solicitud);
 }
 
@@ -1328,7 +1345,7 @@ function showNotification(message, type = 'info', duration = 3000) {
         align-items: center;
         gap: 0.75rem;
     `;
-    
+
     // Colores según el tipo
     const colors = {
         success: { border: '#27ae60', background: '#d4edda', color: '#155724' },
@@ -1336,13 +1353,13 @@ function showNotification(message, type = 'info', duration = 3000) {
         warning: { border: '#f39c12', background: '#fff3cd', color: '#856404' },
         info: { border: '#3498db', background: '#d1ecf1', color: '#0c5460' }
     };
-    
+
     const colorScheme = colors[type] || colors.info;
     notification.style.borderLeftColor = colorScheme.border;
     notification.style.backgroundColor = colorScheme.background;
     notification.style.color = colorScheme.color;
     notification.style.borderLeftWidth = '4px';
-    
+
     // Icono según el tipo
     const icons = {
         success: '✅',
@@ -1350,15 +1367,15 @@ function showNotification(message, type = 'info', duration = 3000) {
         warning: '⚠️',
         info: 'ℹ️'
     };
-    
+
     notification.innerHTML = `
         <span style="font-size: 1.2rem;">${icons[type] || icons.info}</span>
         <span style="flex: 1;">${message}</span>
         <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; padding: 0;">×</button>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto-remove
     if (duration > 0) {
         setTimeout(() => {
@@ -1368,7 +1385,7 @@ function showNotification(message, type = 'info', duration = 3000) {
             }
         }, duration);
     }
-    
+
     return notification;
 }
 
@@ -1404,7 +1421,7 @@ function debounce(func, wait) {
 // Throttle function
 function throttle(func, limit) {
     let inThrottle;
-    return function() {
+    return function () {
         const args = arguments;
         const context = this;
         if (!inThrottle) {
@@ -1425,7 +1442,7 @@ function irAHistorial() {
         showNotification('No tienes solicitudes registradas', 'info');
         return;
     }
-    
+
     // Si existe la página de historial, navegar
     window.location.href = 'historial.html';
 }
@@ -1434,12 +1451,12 @@ function irAHistorial() {
 // MANEJO DE ERRORES GLOBAL
 // ===================================
 
-window.addEventListener('error', function(e) {
+window.addEventListener('error', function (e) {
     console.error('Error global capturado:', e.error);
     showNotification('Ha ocurrido un error inesperado', 'error');
 });
 
-window.addEventListener('unhandledrejection', function(e) {
+window.addEventListener('unhandledrejection', function (e) {
     console.error('Promise rechazada:', e.reason);
     showNotification('Error de conexión o procesamiento', 'error');
 });
@@ -1514,14 +1531,14 @@ function forceReloadComponents() {
 // Función para probar rutas
 async function testRoutes() {
     console.log('🧪 Probando rutas de archivos...');
-    
+
     const routes = [
         'includes/header.html',
         'includes/footer.html',
         'css/styles.css',
         'js/script.js'
     ];
-    
+
     for (const route of routes) {
         try {
             const response = await fetch(route, { method: 'HEAD' });
@@ -1563,7 +1580,7 @@ if (window.location.hostname === 'localhost' || window.location.hostname.include
             console.log('📝 Datos de prueba agregados');
         }
     };
-    
+
     // Auto-ejecutar debug info al cargar en desarrollo
     setTimeout(debugInfo, 2000);
 }

@@ -76,7 +76,7 @@
                             <h2>SOLICITUD PARA JUNTAS</h2>
                             <p>Específicamente para eventos, reuniones y presentaciones</p>
                             <button class="btn-solicitar" onclick="abrirSolicitud('juntas')">Solicitar</button>
-                        </div>  
+                        </div>
                     </div>
 
                 </div>
@@ -125,6 +125,45 @@
                     <div class="token-status">
                         <span class="token-label">Token disponible:</span>
                         <span class="token-indicator" id="tokenStatus">1</span>
+                    </div>
+                </div>
+
+
+                <!-- Campos específicos para juntas -->
+                <div class="campos-junta" id="camposJunta" style="display: none;">
+                    <div class="junta-header">
+                        <h4>Información del Evento</h4>
+                        <p>Complete los datos específicos de la junta o evento</p>
+                    </div>
+
+                    <div class="junta-fields">
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="fechaEvento">Fecha del evento *</label>
+                                <input type="date" id="fechaEvento" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="horaEvento">Hora del evento *</label>
+                                <input type="time" id="horaEvento" required>
+                            </div>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="numParticipantes">Número de participantes *</label>
+                                <input type="number" id="numParticipantes" min="1" max="100" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="salaEvento">Sala o ubicación *</label>
+                                <input type="text" id="salaEvento" placeholder="Ej: Sala de Juntas A" required>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="descripcionEvento">Descripción del evento</label>
+                            <textarea id="descripcionEvento" rows="3"
+                                placeholder="Breve descripción del tipo de evento o junta"></textarea>
+                        </div>
                     </div>
                 </div>
 

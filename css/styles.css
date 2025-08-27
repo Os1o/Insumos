@@ -1584,3 +1584,63 @@ body {
     color: #b7b6c2;
     margin-bottom: 1rem;
 }
+
+
+/* Campos específicos de juntas */
+.campos-junta {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.junta-header h4 {
+    color: #657153;
+    margin-bottom: 0.5rem;
+}
+
+.junta-header p {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-group label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.field-group input,
+.field-group textarea {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.field-group input:focus,
+.field-group textarea:focus {
+    border-color: #657153;
+    box-shadow: 0 0 0 2px rgba(101, 113, 83, 0.1);
+    outline: none;
+}
+
+@media (max-width: 768px) {
+    .field-row {
+        grid-template-columns: 1fr;
+    }
+}
