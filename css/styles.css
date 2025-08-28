@@ -1644,3 +1644,52 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+
+
+/* Información de evento en historial */
+.solicitud-evento {
+    background: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.solicitud-evento h5 {
+    color: #0c5460;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.evento-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.evento-item {
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.evento-item strong {
+    color: #0c5460;
+}
+
+.evento-descripcion {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.evento-descripcion strong {
+    color: #0c5460;
+}
+
+@media (max-width: 768px) {
+    .evento-grid {
+        grid-template-columns: 1fr;
+    }
+}
