@@ -1327,6 +1327,10 @@
 .pl-1 { padding-left: var(--spacing-sm); }
 .pr-1 { padding-right: var(--spacing-sm); }
 
+.system-status-admin .status-item span {
+    color: var(--color-text-dark);
+}
+
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */

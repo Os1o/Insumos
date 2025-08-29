@@ -36,7 +36,7 @@
     <div id="header-container"></div>
 
     <main class="main-content admin-content">
-        
+
         <!-- Header del panel administrativo -->
         <section class="admin-header">
             <div class="container">
@@ -94,7 +94,7 @@
         <section class="admin-controls">
             <div class="container">
                 <div class="controls-wrapper">
-                    
+
                     <!-- Filtros de solicitudes -->
                     <div class="filtros-admin">
                         <select id="filtroEstadoAdmin" onchange="filtrarSolicitudesAdmin()">
@@ -121,7 +121,7 @@
                             📊 Exportar Datos
                         </button>
                     </div>
-                    
+
                 </div>
             </div>
         </section>
@@ -129,7 +129,7 @@
         <!-- Lista principal de solicitudes -->
         <section class="admin-solicitudes">
             <div class="container">
-                
+
                 <!-- Estado de carga -->
                 <div id="loadingAdmin" class="loading-admin" style="display: none;">
                     <div class="loading-spinner"></div>
@@ -157,15 +157,17 @@
         <section class="admin-tools">
             <div class="container">
                 <div class="tools-grid">
-                    
+
                     <!-- Herramientas rápidas -->
                     <div class="tool-card">
                         <h3>🔧 Herramientas Rápidas</h3>
                         <div class="tool-actions">
-                            <button class="btn-admin-secondary" onclick="generarReporte()" title="Generar reporte del día">
-                                📈 Reporte Diario
+                            <button class="btn-admin-secondary" onclick="generarReporte()"
+                                title="Generar reporte del día">
+                                📈 Reporte Mensual
                             </button>
-                            <button class="btn-admin-secondary" onclick="limpiarFiltros()" title="Limpiar todos los filtros">
+                            <button class="btn-admin-secondary" onclick="limpiarFiltros()"
+                                title="Limpiar todos los filtros">
                                 🧹 Limpiar Filtros
                             </button>
                         </div>
@@ -220,21 +222,23 @@
             <div class="modal-body">
                 <div class="confirm-content">
                     <div class="confirm-icon">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                     </div>
                     <h4 id="confirmTitle">¿Estás seguro?</h4>
                     <p id="confirmMessage">Esta acción no se puede deshacer.</p>
                 </div>
-                
+
                 <div class="modal-actions">
                     <button type="button" class="btn-admin-secondary" onclick="cerrarConfirmModal()">
                         Cancelar
                     </button>
-                    <button type="button" class="btn-admin-danger" onclick="ejecutarAccionConfirmada()" id="btnConfirmarAccion">
+                    <button type="button" class="btn-admin-danger" onclick="ejecutarAccionConfirmada()"
+                        id="btnConfirmarAccion">
                         Confirmar
                     </button>
                 </div>
@@ -253,7 +257,7 @@
                 <div class="solicitud-proceso-info" id="solicitudProcesoInfo">
                     <!-- Se llena dinámicamente -->
                 </div>
-                
+
                 <div class="proceso-acciones">
                     <div class="form-group">
                         <label for="estadoNuevo">Cambiar estado a:</label>
@@ -264,13 +268,13 @@
                             <option value="cancelado">❌ Cancelado</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="notasAdmin">Notas administrativas:</label>
                         <textarea id="notasAdmin" rows="3" placeholder="Agregar notas internas (opcional)"></textarea>
                     </div>
                 </div>
-                
+
                 <div class="modal-actions">
                     <button type="button" class="btn-admin-secondary" onclick="cerrarProcesarModal()">
                         Cancelar
@@ -278,6 +282,20 @@
                     <button type="button" class="btn-admin-primary" onclick="confirmarProcesamiento()" id="btnProcesar">
                         💾 Procesar Solicitud
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="revisionSolicitudModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content revision-modal">
+            <div class="modal-header">
+                <h3 id="revisionModalTitle">🔍 Revisar Solicitud</h3>
+                <button class="modal-close" onclick="cerrarRevisionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="revisionSolicitudDetalle">
+                    <!-- Se llena dinámicamente -->
                 </div>
             </div>
         </div>
@@ -352,11 +370,11 @@
         }
 
         // Verificar si las funciones del admin.js están disponibles
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Verificar funciones críticas
             const funcionesCriticas = [
                 'cargarTodasLasSolicitudes',
-                'filtrarSolicitudesAdmin', 
+                'filtrarSolicitudesAdmin',
                 'recargarSolicitudes',
                 'showNotificationAdmin'
             ];
@@ -371,7 +389,7 @@
         });
 
         // Manejo de errores específico para admin
-        window.addEventListener('error', function(e) {
+        window.addEventListener('error', function (e) {
             console.error('Error en admin panel:', e.error);
             if (typeof showNotificationAdmin === 'function') {
                 showNotificationAdmin('Ha ocurrido un error en el panel', 'error');
@@ -516,16 +534,16 @@
             .tools-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats-mini {
                 flex-direction: column;
                 gap: var(--spacing-sm);
             }
-            
+
             .tool-actions {
                 flex-direction: column;
             }
-            
+
             .tool-actions button {
                 width: 100%;
             }
@@ -533,4 +551,5 @@
     </style>
 
 </body>
+
 </html>
