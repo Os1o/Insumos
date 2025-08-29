@@ -1331,6 +1331,143 @@
     color: var(--color-text-dark);
 }
 
+
+
+
+
+
+
+/* Estilos para las tarjetas simples */
+.solicitudes-simples {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.solicitud-simple-card {
+    background: white;
+    border: 1px solid #d1d5de;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.solicitud-simple-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-color: #657153;
+}
+
+.solicitud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.solicitud-id {
+    font-family: 'Courier New', monospace;
+    background: #657153;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.solicitud-tipo {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.solicitud-tipo.juntas {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.solicitud-tipo.ordinaria {
+    background: #d4edda;
+    color: #155724;
+}
+
+.solicitud-body {
+    margin: 0.5rem 0;
+}
+
+.solicitud-estado {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.estado-pendiente { background: #fff3cd; color: #856404; }
+.estado-en_revision { background: #cce5ff; color: #004085; }
+.estado-cerrado { background: #d4edda; color: #155724; }
+
+.solicitud-fecha, .solicitud-items {
+    font-size: 0.9rem;
+    color: #837569;
+    margin: 0.25rem 0;
+}
+
+.solicitud-footer {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #d1d5de;
+}
+
+.token-indicator {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.token-indicator.used { color: #e74c3c; }
+.token-indicator.available { color: #27ae60; }
+
+/* Estilos para el modal de revisión */
+.revision-completa {
+    padding: 1rem;
+}
+
+.revision-completa h4 {
+    color: #657153;
+    margin: 1rem 0 0.5rem 0;
+    border-bottom: 2px solid #d1d5de;
+    padding-bottom: 0.25rem;
+}
+
+.usuario-info, .ticket-info, .insumos-solicitados, .junta-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #657153;
+}
+
+.insumo-detalle {
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid #d1d5de;
+    border-radius: 4px;
+    margin: 0.25rem 0;
+}
+
+.acciones-ticket {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #d1d5de;
+}
+
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */
