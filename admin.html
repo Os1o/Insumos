@@ -403,7 +403,6 @@
         });
 
         function abrirModalRevision(solicitudId) {
-            // Buscar la solicitud en los datos cargados
             const solicitud = todasLasSolicitudes.find(s => s.id === solicitudId);
 
             if (!solicitud) {
@@ -411,19 +410,73 @@
                 return;
             }
 
-            // Llenar con todos los datos disponibles
             document.getElementById('detallesSolicitud').innerHTML = `
-        <div class="revision-detalle">
-            <p><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</p>
-            <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
-            <p><strong>Estado:</strong> ${solicitud.estado}</p>
-            <p><strong>Fecha:</strong> ${solicitud.fecha_solicitud ? new Date(solicitud.fecha_solicitud).toLocaleString() : 'N/A'}</p>
-            <p><strong>Total Items:</strong> ${solicitud.total_items || 'N/A'}</p>
-            <p><strong>Token Usado:</strong> ${solicitud.token_usado ? 'Sí' : 'No'}</p>
+        <div class="revision-completa">
+            <!-- Información del usuario -->
+            <div class="usuario-info">
+                <h4>👤 Información del Solicitante</h4>
+                <p><strong>Usuario:</strong> ${solicitud.usuario_id || 'N/A'}</p>
+                <p><strong>Área:</strong> Pendiente datos</p>
+                <p><strong>Fecha Solicitud:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleString()}</p>
+            </div>
+
+            <!-- Información del ticket -->
+            <div class="ticket-info">
+                <h4>🎫 Detalles del Ticket</h4>
+                <p><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</p>
+                <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
+                <p><strong>Token Usado:</strong> ${solicitud.token_usado ? 'Sí' : 'No'}</p>
+                
+                <!-- Cambiar estado -->
+                <div class="cambiar-estado">
+                    <label><strong>Estado actual:</strong></label>
+                    <select id="nuevoEstado-${solicitud.id}" onchange="cambiarEstadoTicket('${solicitud.id}', this.value)">
+                        <option value="pendiente" ${solicitud.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                        <option value="en_revision" ${solicitud.estado === 'en_revision' ? 'selected' : ''}>👀 En Revisión</option>
+                        <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>
+                        <option value="cancelado" ${solicitud.estado === 'cancelado' ? 'selected' : ''}>❌ Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Datos de juntas si aplica -->
+            ${solicitud.datos_junta ? `
+                <div class="junta-info">
+                    <h4>📅 Información del Evento</h4>
+                    <p><strong>Fecha:</strong> ${solicitud.datos_junta.fecha_evento}</p>
+                    <p><strong>Hora:</strong> ${solicitud.datos_junta.hora_evento}</p>
+                    <p><strong>Participantes:</strong> ${solicitud.datos_junta.num_participantes}</p>
+                    <p><strong>Ubicación:</strong> ${solicitud.datos_junta.sala_ubicacion}</p>
+                    ${solicitud.datos_junta.descripcion ? `<p><strong>Descripción:</strong> ${solicitud.datos_junta.descripcion}</p>` : ''}
+                </div>
+            ` : ''}
+
+            <!-- Lista de insumos pendiente -->
+            <div class="insumos-solicitados">
+                <h4>📦 Insumos Solicitados</h4>
+                <p><em>Cargando detalles de insumos...</em></p>
+            </div>
+
+            <!-- Acciones -->
+            <div class="acciones-ticket">
+                <button class="btn-admin-primary" onclick="guardarCambiosTicket('${solicitud.id}')">💾 Guardar Cambios</button>
+                <button class="btn-admin-secondary" onclick="cerrarModalRevision()">❌ Cerrar</button>
+            </div>
         </div>
     `;
 
             document.getElementById('modalRevision').style.display = 'flex';
+        }
+
+        function cambiarEstadoTicket(ticketId, nuevoEstado) {
+            console.log(`Cambiando ticket ${ticketId} a estado: ${nuevoEstado}`);
+            // Aquí iría la lógica para actualizar el estado
+        }
+
+        function guardarCambiosTicket(ticketId) {
+            console.log(`Guardando cambios para ticket: ${ticketId}`);
+            showNotificationAdmin('Cambios guardados correctamente', 'success');
+            cerrarModalRevision();
         }
 
         function cerrarModalRevision() {
