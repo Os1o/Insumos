@@ -403,7 +403,26 @@
         });
 
         function abrirModalRevision(solicitudId) {
-            document.getElementById('detallesSolicitud').innerHTML = `<p>Solicitud ID: ${solicitudId}</p>`;
+            // Buscar la solicitud en los datos cargados
+            const solicitud = todasLasSolicitudes.find(s => s.id === solicitudId);
+
+            if (!solicitud) {
+                document.getElementById('detallesSolicitud').innerHTML = `<p>Error: Solicitud no encontrada</p>`;
+                return;
+            }
+
+            // Llenar con todos los datos disponibles
+            document.getElementById('detallesSolicitud').innerHTML = `
+        <div class="revision-detalle">
+            <p><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</p>
+            <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
+            <p><strong>Estado:</strong> ${solicitud.estado}</p>
+            <p><strong>Fecha:</strong> ${solicitud.fecha_solicitud ? new Date(solicitud.fecha_solicitud).toLocaleString() : 'N/A'}</p>
+            <p><strong>Total Items:</strong> ${solicitud.total_items || 'N/A'}</p>
+            <p><strong>Token Usado:</strong> ${solicitud.token_usado ? 'Sí' : 'No'}</p>
+        </div>
+    `;
+
             document.getElementById('modalRevision').style.display = 'flex';
         }
 
