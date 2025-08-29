@@ -272,10 +272,10 @@ function redirectToApp(user) {
 
     switch (user.rol) {
         case 'super_admin':
-            targetPage = 'admin/dashboard.html';
+            targetPage = 'admin/admin.html';
             break;
         case 'admin':
-            targetPage = 'admin/panel.html';
+            targetPage = 'admin/admin.html';
             break;
         case 'usuario':
         default:
