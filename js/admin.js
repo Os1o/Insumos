@@ -100,6 +100,7 @@ async function cargarTodasLasSolicitudes() {
     try {
         mostrarLoadingAdmin(true);
         
+        // Query simplificada para debuggear
         const { data: solicitudes, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
@@ -110,38 +111,51 @@ async function cargarTodasLasSolicitudes() {
                 total_items,
                 token_usado,
                 datos_junta,
-                admin_asignado,
-                notas_admin,
-                usuarios!inner(
-                    id,
-                    nombre,
-                    departamento,
-                    username
-                ),
-                solicitud_detalles(
-                    cantidad_solicitada,
-                    cantidad_aprobada,
-                    insumos(nombre, unidad_medida)
-                )
+                usuario_id
             `)
             .order('fecha_solicitud', { ascending: false });
+            
+        if (error) {
+            console.error('Error específico de Supabase:', error);
+            throw error;
+        }
         
-        if (error) throw error;
+        console.log('Solicitudes cargadas:', solicitudes);
         
         todasLasSolicitudes = solicitudes || [];
         solicitudesFiltradas = [...todasLasSolicitudes];
         
-        renderizarSolicitudesAdmin(solicitudesFiltradas);
+        // Renderizar con datos simplificados por ahora
+        renderizarSolicitudesSimples(solicitudesFiltradas);
         actualizarEstadisticasAdmin(todasLasSolicitudes);
         
         mostrarLoadingAdmin(false);
         
     } catch (error) {
-        console.error('Error cargando solicitudes:', error);
+        console.error('Error completo:', error);
         mostrarErrorAdmin('Error al cargar solicitudes. Intenta nuevamente.');
         mostrarLoadingAdmin(false);
     }
 }
+
+
+function renderizarSolicitudesSimples(solicitudes) {
+    const lista = document.getElementById('solicitudesAdminLista');
+    
+    if (!solicitudes || solicitudes.length === 0) {
+        lista.innerHTML = '<p>No hay solicitudes</p>';
+        return;
+    }
+    
+    let html = '<div>';
+    solicitudes.forEach(s => {
+        html += `<p>ID: ${s.id.substring(0,8)} - Tipo: ${s.tipo} - Estado: ${s.estado}</p>`;
+    });
+    html += '</div>';
+    
+    lista.innerHTML = html;
+}
+
 
 function mostrarLoadingAdmin(show) {
     const loading = document.getElementById('loadingAdmin');
