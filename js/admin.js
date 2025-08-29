@@ -122,10 +122,10 @@ function renderizarSolicitudesSimples(solicitudes) {
         return;
     }
     
-    let html = '<div class="solicitud-simple" onclick="abrirRevisionModal("${s.id}")" style="cursor: pointer;">';
+    let html = '<div class="solicitudes-simples">';
     solicitudes.forEach(s => {
         html += `
-            <div class="solicitud-simple" onclick="abrirRevisionModal("${s.id}")" style="cursor: pointer;">
+            <div class="solicitud-simple">
                 <strong>#${s.id ? s.id.substring(0,8) : 'N/A'}</strong> - 
                 ${s.tipo || 'N/A'} - 
                 <span class="estado-${s.estado || 'pendiente'}">${s.estado || 'N/A'}</span> -
@@ -252,28 +252,3 @@ window.addEventListener('error', function(e) {
 });
 
 console.log('Admin.js cargado correctamente');
-
-
-
-function abrirRevisionModal(solicitudId) {
-    // Buscar la solicitud
-    const solicitud = todasLasSolicitudes.find(s => s.id === solicitudId);
-    if (!solicitud) return;
-    
-    // Llenar el modal con datos
-    document.getElementById('revisionSolicitudDetalle').innerHTML = `
-        <div class="revision-content">
-            <p><strong>ID:</strong> ${solicitud.id.substring(0,8)}</p>
-            <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
-            <p><strong>Estado:</strong> ${solicitud.estado}</p>
-            <p><strong>Fecha:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleString()}</p>
-        </div>
-    `;
-    
-    // Mostrar modal
-    document.getElementById('revisionSolicitudModal').style.display = 'flex';
-}
-
-function cerrarRevisionModal() {
-    document.getElementById('revisionSolicitudModal').style.display = 'none';
-}
