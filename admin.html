@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Sistema de Insumos</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <script>
+        (function () {
+            const session = sessionStorage.getItem('currentUser');
+            if (!session) {
+                window.location.replace('/login.html');
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(session);
+                if (user.rol !== 'admin' && user.rol !== 'super_admin') {
+                    alert('No tienes permisos para acceder al panel de administración');
+                    window.location.replace('/index.html');
+                    return;
+                }
+            } catch (error) {
+                window.location.replace('/login.html');
+                return;
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Header se carga aquí -->
+    <div id="header-container"></div>
+
+    <main class="main-content admin-content">
+        <!-- Header del panel -->
+        <section class="admin-header">
+            <div class="container">
+                <h1>Panel de Administración</h1>
+                <p>Gestiona todas las solicitudes de insumos del sistema</p>
+            </div>
+        </section>
+
+        <!-- Estadísticas rápidas -->
+        <section class="admin-stats">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="totalPendientes">0</h3>
+                        <p>Pendientes</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalRevision">0</h3>
+                        <p>En Revisión</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalCerradas">0</h3>
+                        <p>Cerradas Hoy</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalItems">0</h3>
+                        <p>Items Totales</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controles y filtros -->
+        <section class="admin-controls">
+            <div class="container">
+                <div class="controls-wrapper">
+                    <div class="filtros-admin">
+                        <select id="filtroEstadoAdmin" onchange="filtrarSolicitudesAdmin()">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente">Pendientes</option>
+                            <option value="en_revision">En Revisión</option>
+                            <option value="cerrado">Cerradas</option>
+                        </select>
+                        
+                        <select id="filtroTipoAdmin" onchange="filtrarSolicitudesAdmin()">
+                            <option value="">Todos los tipos</option>
+                            <option value="ordinaria">Ordinarias</option>
+                            <option value="juntas">Para Juntas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="acciones-admin">
+                        <button class="btn-admin-primary" onclick="recargarSolicitudes()">
+                            Actualizar Lista
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lista de solicitudes -->
+        <section class="admin-solicitudes">
+            <div class="container">
+                <div id="loadingAdmin" class="loading-admin">
+                    <p>Cargando solicitudes...</p>
+                </div>
+                
+                <div id="solicitudesAdminLista" class="solicitudes-admin-lista" style="display: none;">
+                    <!-- Se cargan dinámicamente -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer se carga aquí -->
+    <div id="footer-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/script.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
