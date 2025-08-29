@@ -125,7 +125,7 @@ function renderizarSolicitudesSimples(solicitudes) {
     let html = '<div class="solicitudes-simples">';
     solicitudes.forEach(s => {
         html += `
-            <div class="solicitud-simple">
+            <div class="solicitud-simple" onclick="abrirModalRevision('${s.id}')" style="cursor: pointer;">
                 <strong>#${s.id ? s.id.substring(0,8) : 'N/A'}</strong> - 
                 ${s.tipo || 'N/A'} - 
                 <span class="estado-${s.estado || 'pendiente'}">${s.estado || 'N/A'}</span> -
@@ -210,7 +210,7 @@ function actualizarEstadisticasAdmin(solicitudes) {
     updateElement('totalPendientes', stats.pendientes);
     updateElement('totalRevision', stats.revision);
     updateElement('totalCerradas', stats.cerradas);
-    updateElement('totalSolicitudes', stats.total);
+    updateElement('totalItems', stats.total);
 }
 
 // ===================================
