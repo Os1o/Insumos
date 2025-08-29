@@ -395,6 +395,25 @@
                 showNotificationAdmin('Ha ocurrido un error en el panel', 'error');
             }
         });
+
+        function abrirRevisionModal(solicitudId) {
+            const solicitud = todasLasSolicitudes.find(s => s.id === solicitudId);
+            if (!solicitud) return;
+
+            document.getElementById('revisionSolicitudDetalle').innerHTML = `
+        <div class="revision-content">
+            <p><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</p>
+            <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
+            <p><strong>Estado:</strong> ${solicitud.estado}</p>
+        </div>
+    `;
+
+            document.getElementById('revisionSolicitudModal').style.display = 'flex';
+        }
+
+        function cerrarRevisionModal() {
+            document.getElementById('revisionSolicitudModal').style.display = 'none';
+        }
     </script>
 
     <!-- Estilos adicionales específicos para esta página -->
@@ -547,6 +566,10 @@
             .tool-actions button {
                 width: 100%;
             }
+        }
+
+        .system-status-admin .status-item span {
+            color: var(--color-text-dark);
         }
     </style>
 
