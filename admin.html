@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,7 @@
                 window.location.replace('/login.html');
                 return;
             }
-            
+
             try {
                 const user = JSON.parse(session);
                 if (user.rol !== 'admin' && user.rol !== 'super_admin') {
@@ -28,6 +29,7 @@
         })();
     </script>
 </head>
+
 <body>
     <!-- Header se carga aquí -->
     <div id="header-container"></div>
@@ -65,6 +67,25 @@
             </div>
         </section>
 
+
+        <!-- Sección adicional solo para super_admin -->
+        <section class="super-admin-section" id="superAdminSection" style="display: none;">
+            <div class="container">
+                <h2>Gestión Avanzada</h2>
+                <div class="super-admin-controls">
+                    <button class="btn-super-admin" onclick="gestionarUsuarios()">
+                        Gestionar Usuarios
+                    </button>
+                    <button class="btn-super-admin" onclick="reportesAvanzados()">
+                        Reportes Avanzados
+                    </button>
+                    <button class="btn-super-admin" onclick="configurarSistema()">
+                        Configuración
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- Controles y filtros -->
         <section class="admin-controls">
             <div class="container">
@@ -76,14 +97,14 @@
                             <option value="en_revision">En Revisión</option>
                             <option value="cerrado">Cerradas</option>
                         </select>
-                        
+
                         <select id="filtroTipoAdmin" onchange="filtrarSolicitudesAdmin()">
                             <option value="">Todos los tipos</option>
                             <option value="ordinaria">Ordinarias</option>
                             <option value="juntas">Para Juntas</option>
                         </select>
                     </div>
-                    
+
                     <div class="acciones-admin">
                         <button class="btn-admin-primary" onclick="recargarSolicitudes()">
                             Actualizar Lista
@@ -99,7 +120,7 @@
                 <div id="loadingAdmin" class="loading-admin">
                     <p>Cargando solicitudes...</p>
                 </div>
-                
+
                 <div id="solicitudesAdminLista" class="solicitudes-admin-lista" style="display: none;">
                     <!-- Se cargan dinámicamente -->
                 </div>
@@ -114,4 +135,5 @@
     <script src="js/script.js"></script>
     <script src="js/admin.js"></script>
 </body>
+
 </html>
