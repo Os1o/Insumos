@@ -7,6 +7,7 @@
     <title>Panel de Administración - Sistema de Insumos</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/supadmin.css">
+    <meta name="description" content="Panel administrativo para gestión de solicitudes de insumos">
     <script>
         (function () {
             const session = sessionStorage.getItem('currentUser');
@@ -31,11 +32,12 @@
 </head>
 
 <body>
-    <!-- Header se carga aquí -->
+    <!-- Header se carga dinámicamente -->
     <div id="header-container"></div>
 
     <main class="main-content admin-content">
-        <!-- Header del panel -->
+        
+        <!-- Header del panel administrativo -->
         <section class="admin-header">
             <div class="container">
                 <h1>Panel de Administración</h1>
@@ -43,97 +45,492 @@
             </div>
         </section>
 
-        <!-- Estadísticas rápidas -->
+        <!-- Estadísticas principales -->
         <section class="admin-stats">
             <div class="container">
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="stat-card pendientes">
                         <h3 id="totalPendientes">0</h3>
-                        <p>Pendientes</p>
+                        <p>Solicitudes Pendientes</p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card revision">
                         <h3 id="totalRevision">0</h3>
                         <p>En Revisión</p>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card cerradas">
                         <h3 id="totalCerradas">0</h3>
                         <p>Cerradas Hoy</p>
                     </div>
-                    <div class="stat-card">
-                        <h3 id="totalItems">0</h3>
-                        <p>Items Totales</p>
+                    <div class="stat-card items">
+                        <h3 id="totalSolicitudes">0</h3>
+                        <p>Total Solicitudes</p>
                     </div>
                 </div>
             </div>
         </section>
 
-
-        <!-- Sección adicional solo para super_admin -->
-        <section class="super-admin-section" id="superAdminSection" style="display: none;">
+        <!-- Sección Super Admin (solo visible para super_admin) -->
+        <section class="super-admin-section super-admin-only" id="superAdminSection" style="display: none;">
             <div class="container">
-                <h2>Gestión Avanzada</h2>
+                <h2>🛡️ Gestión Avanzada - Super Administrador</h2>
                 <div class="super-admin-controls">
                     <button class="btn-super-admin" onclick="gestionarUsuarios()">
-                        Gestionar Usuarios
+                        👥 Gestionar Usuarios
                     </button>
                     <button class="btn-super-admin" onclick="reportesAvanzados()">
-                        Reportes Avanzados
+                        📊 Reportes Avanzados
                     </button>
                     <button class="btn-super-admin" onclick="configurarSistema()">
-                        Configuración
+                        ⚙️ Configuración del Sistema
+                    </button>
+                    <button class="btn-super-admin" onclick="window.ejecutarProcesoMensual()">
+                        🔄 Ejecutar Proceso Mensual
                     </button>
                 </div>
             </div>
         </section>
 
-        <!-- Controles y filtros -->
+        <!-- Controles de filtrado y acciones -->
         <section class="admin-controls">
             <div class="container">
                 <div class="controls-wrapper">
+                    
+                    <!-- Filtros de solicitudes -->
                     <div class="filtros-admin">
                         <select id="filtroEstadoAdmin" onchange="filtrarSolicitudesAdmin()">
-                            <option value="">Todos los estados</option>
-                            <option value="pendiente">Pendientes</option>
-                            <option value="en_revision">En Revisión</option>
-                            <option value="cerrado">Cerradas</option>
+                            <option value="">🔍 Todos los estados</option>
+                            <option value="pendiente">⏳ Pendientes</option>
+                            <option value="en_revision">👀 En Revisión</option>
+                            <option value="cerrado">✅ Cerradas</option>
+                            <option value="cancelado">❌ Canceladas</option>
                         </select>
 
                         <select id="filtroTipoAdmin" onchange="filtrarSolicitudesAdmin()">
-                            <option value="">Todos los tipos</option>
-                            <option value="ordinaria">Ordinarias</option>
-                            <option value="juntas">Para Juntas</option>
+                            <option value="">📋 Todos los tipos</option>
+                            <option value="ordinaria">📅 Ordinarias</option>
+                            <option value="juntas">👥 Para Juntas</option>
                         </select>
                     </div>
 
+                    <!-- Acciones principales -->
                     <div class="acciones-admin">
-                        <button class="btn-admin-primary" onclick="recargarSolicitudes()">
-                            Actualizar Lista
+                        <button class="btn-admin-primary" onclick="recargarSolicitudes()" id="btnRecargarAdmin">
+                            🔄 Actualizar Lista
+                        </button>
+                        <button class="btn-admin-secondary" onclick="exportarDatos()" title="Próximamente">
+                            📊 Exportar Datos
                         </button>
                     </div>
+                    
                 </div>
             </div>
         </section>
 
-        <!-- Lista de solicitudes -->
+        <!-- Lista principal de solicitudes -->
         <section class="admin-solicitudes">
             <div class="container">
-                <div id="loadingAdmin" class="loading-admin">
-                    <p>Cargando solicitudes...</p>
+                
+                <!-- Estado de carga -->
+                <div id="loadingAdmin" class="loading-admin" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando solicitudes del sistema...</p>
                 </div>
 
+                <!-- Lista de solicitudes -->
                 <div id="solicitudesAdminLista" class="solicitudes-admin-lista" style="display: none;">
-                    <!-- Se cargan dinámicamente -->
+                    <!-- Las solicitudes se cargan dinámicamente desde admin.js -->
+                </div>
+
+                <!-- Estado sin solicitudes -->
+                <div id="noSolicitudesAdmin" class="no-solicitudes-admin" style="display: none;">
+                    <h3>📋 No hay solicitudes</h3>
+                    <p>No se encontraron solicitudes con los filtros aplicados.</p>
+                    <button class="btn-admin-primary" onclick="recargarSolicitudes()">
+                        🔄 Recargar Lista
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Sección de herramientas adicionales -->
+        <section class="admin-tools">
+            <div class="container">
+                <div class="tools-grid">
+                    
+                    <!-- Herramientas rápidas -->
+                    <div class="tool-card">
+                        <h3>🔧 Herramientas Rápidas</h3>
+                        <div class="tool-actions">
+                            <button class="btn-admin-secondary" onclick="generarReporte()" title="Generar reporte del día">
+                                📈 Reporte Diario
+                            </button>
+                            <button class="btn-admin-secondary" onclick="limpiarFiltros()" title="Limpiar todos los filtros">
+                                🧹 Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas adicionales -->
+                    <div class="tool-card">
+                        <h3>📊 Estadísticas Rápidas</h3>
+                        <div class="stats-mini">
+                            <div class="mini-stat">
+                                <span class="mini-stat-number" id="totalTokensUsados">0</span>
+                                <span class="mini-stat-label">Tokens Usados</span>
+                            </div>
+                            <div class="mini-stat">
+                                <span class="mini-stat-number" id="solicitudesHoy">0</span>
+                                <span class="mini-stat-label">Solicitudes Hoy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado del sistema -->
+                    <div class="tool-card">
+                        <h3>🖥️ Estado del Sistema</h3>
+                        <div class="system-status-admin">
+                            <div class="status-item">
+                                <div class="status-indicator online"></div>
+                                <span>Base de Datos</span>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-indicator online"></div>
+                                <span>Sistema Activo</span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
+
     </main>
 
-    <!-- Footer se carga aquí -->
+    <!-- Footer se carga dinámicamente -->
     <div id="footer-container"></div>
 
+    <!-- Modal de confirmación para acciones críticas -->
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content confirm-modal">
+            <div class="modal-header">
+                <h3>⚠️ Confirmar Acción</h3>
+                <button class="modal-close" onclick="cerrarConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-content">
+                    <div class="confirm-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h4 id="confirmTitle">¿Estás seguro?</h4>
+                    <p id="confirmMessage">Esta acción no se puede deshacer.</p>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-admin-secondary" onclick="cerrarConfirmModal()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-admin-danger" onclick="ejecutarAccionConfirmada()" id="btnConfirmarAccion">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de procesamiento de solicitudes -->
+    <div id="procesarModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content procesar-modal">
+            <div class="modal-header">
+                <h3>⚙️ Procesar Solicitud</h3>
+                <button class="modal-close" onclick="cerrarProcesarModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="solicitud-proceso-info" id="solicitudProcesoInfo">
+                    <!-- Se llena dinámicamente -->
+                </div>
+                
+                <div class="proceso-acciones">
+                    <div class="form-group">
+                        <label for="estadoNuevo">Cambiar estado a:</label>
+                        <select id="estadoNuevo" class="admin-estado-select">
+                            <option value="pendiente">⏳ Pendiente</option>
+                            <option value="en_revision">👀 En Revisión</option>
+                            <option value="cerrado">✅ Cerrado</option>
+                            <option value="cancelado">❌ Cancelado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notasAdmin">Notas administrativas:</label>
+                        <textarea id="notasAdmin" rows="3" placeholder="Agregar notas internas (opcional)"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-admin-secondary" onclick="cerrarProcesarModal()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-admin-primary" onclick="confirmarProcesamiento()" id="btnProcesar">
+                        💾 Procesar Solicitud
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts necesarios -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
     <script src="js/admin.js"></script>
-</body>
 
+    <!-- Script para funciones auxiliares del admin -->
+    <script>
+        // Variables globales auxiliares
+        let accionPendiente = null;
+        let solicitudEnProceso = null;
+
+        // Funciones auxiliares para los modales
+        function cerrarConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            accionPendiente = null;
+        }
+
+        function cerrarProcesarModal() {
+            document.getElementById('procesarModal').style.display = 'none';
+            solicitudEnProceso = null;
+        }
+
+        function ejecutarAccionConfirmada() {
+            if (accionPendiente && typeof accionPendiente === 'function') {
+                accionPendiente();
+            }
+            cerrarConfirmModal();
+        }
+
+        function confirmarProcesamiento() {
+            // Esta función será implementada en admin.js
+            console.log('Procesando solicitud:', solicitudEnProceso);
+            cerrarProcesarModal();
+        }
+
+        // Funciones auxiliares adicionales
+        function exportarDatos() {
+            showNotificationAdmin('Función de exportación en desarrollo', 'info');
+        }
+
+        function generarReporte() {
+            showNotificationAdmin('Generación de reportes en desarrollo', 'info');
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filtroEstadoAdmin').value = '';
+            document.getElementById('filtroTipoAdmin').value = '';
+            if (typeof filtrarSolicitudesAdmin === 'function') {
+                filtrarSolicitudesAdmin();
+            }
+            showNotificationAdmin('Filtros limpiados', 'success');
+        }
+
+        // Función para mostrar modal de confirmación
+        function mostrarConfirmacion(titulo, mensaje, accion) {
+            document.getElementById('confirmTitle').textContent = titulo;
+            document.getElementById('confirmMessage').textContent = mensaje;
+            document.getElementById('confirmModal').style.display = 'flex';
+            accionPendiente = accion;
+        }
+
+        // Función para procesar solicitud (llamada desde admin.js)
+        function abrirModalProcesar(solicitudId) {
+            solicitudEnProceso = solicitudId;
+            // Aquí se llenarían los datos de la solicitud
+            document.getElementById('procesarModal').style.display = 'flex';
+        }
+
+        // Verificar si las funciones del admin.js están disponibles
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar funciones críticas
+            const funcionesCriticas = [
+                'cargarTodasLasSolicitudes',
+                'filtrarSolicitudesAdmin', 
+                'recargarSolicitudes',
+                'showNotificationAdmin'
+            ];
+
+            funcionesCriticas.forEach(func => {
+                if (typeof window[func] !== 'function') {
+                    console.warn(`Función ${func} no encontrada en admin.js`);
+                }
+            });
+
+            console.log('Admin HTML inicializado correctamente');
+        });
+
+        // Manejo de errores específico para admin
+        window.addEventListener('error', function(e) {
+            console.error('Error en admin panel:', e.error);
+            if (typeof showNotificationAdmin === 'function') {
+                showNotificationAdmin('Ha ocurrido un error en el panel', 'error');
+            }
+        });
+    </script>
+
+    <!-- Estilos adicionales específicos para esta página -->
+    <style>
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+
+        .tool-card {
+            background: var(--color-white);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border);
+            transition: var(--transition-normal);
+        }
+
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .tool-card h3 {
+            color: var(--color-primary);
+            margin: 0 0 var(--spacing-md) 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .tool-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .stats-mini {
+            display: flex;
+            justify-content: space-around;
+            gap: var(--spacing-md);
+        }
+
+        .mini-stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .mini-stat-number {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .mini-stat-label {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .system-status-admin {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .confirm-modal .modal-content {
+            max-width: 500px;
+        }
+
+        .confirm-content {
+            text-align: center;
+            padding: var(--spacing-lg);
+        }
+
+        .confirm-icon {
+            color: var(--color-warning);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .confirm-content h4 {
+            color: var(--color-text-dark);
+            font-size: 1.3rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .confirm-content p {
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+        }
+
+        .procesar-modal .modal-content {
+            max-width: 600px;
+        }
+
+        .solicitud-proceso-info {
+            background: var(--color-bg-white);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-md);
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .proceso-acciones .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .proceso-acciones label {
+            display: block;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .proceso-acciones select,
+        .proceso-acciones textarea {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 2px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            transition: var(--transition-fast);
+        }
+
+        .proceso-acciones select:focus,
+        .proceso-acciones textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(101, 113, 83, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-mini {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+            
+            .tool-actions {
+                flex-direction: column;
+            }
+            
+            .tool-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+
+</body>
 </html>
