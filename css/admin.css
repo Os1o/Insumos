@@ -1,0 +1,616 @@
+/* ===================================
+   ESTILOS PANEL DE ADMINISTRACIÓN
+   Compatible con diseño existente
+   =================================== */
+
+/* Variables consistentes con tu tema */
+:root {
+  --admin-primary: #2c3e50;
+  --admin-secondary: #34495e;
+  --admin-accent: #3498db;
+  --admin-success: #27ae60;
+  --admin-warning: #f39c12;
+  --admin-danger: #e74c3c;
+  --admin-light: #ecf0f1;
+  --admin-dark: #2c3e50;
+  --admin-border: #bdc3c7;
+  --admin-bg: #f8f9fa;
+}
+
+/* Contenedor principal admin */
+.admin-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--admin-bg);
+  min-height: 100vh;
+}
+
+/* Header del panel admin */
+.admin-header {
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 600;
+}
+
+.admin-header p {
+  margin: 0.5rem 0 0 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+/* Stats cards */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.admin-stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-left: 4px solid var(--admin-accent);
+  transition: transform 0.2s ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.admin-stat-card.success {
+  border-left-color: var(--admin-success);
+}
+
+.admin-stat-card.warning {
+  border-left-color: var(--admin-warning);
+}
+
+.admin-stat-card.danger {
+  border-left-color: var(--admin-danger);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--admin-dark);
+  margin: 0;
+}
+
+.stat-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Controles de filtrado */
+.admin-controls {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--admin-dark);
+  font-size: 0.9rem;
+}
+
+.filter-select {
+  padding: 0.75rem;
+  border: 2px solid var(--admin-border);
+  border-radius: 8px;
+  background: white;
+  font-size: 1rem;
+  min-width: 180px;
+  transition: border-color 0.2s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+}
+
+/* Botones admin */
+.btn-admin {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-admin-primary {
+  background: var(--admin-accent);
+  color: white;
+}
+
+.btn-admin-primary:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.btn-admin-secondary {
+  background: var(--admin-light);
+  color: var(--admin-dark);
+  border: 2px solid var(--admin-border);
+}
+
+.btn-admin-secondary:hover {
+  background: #dfe6e9;
+}
+
+.btn-admin-danger {
+  background: var(--admin-danger);
+  color: white;
+}
+
+.btn-admin-danger:hover {
+  background: #c0392b;
+}
+
+.btn-admin-success {
+  background: var(--admin-success);
+  color: white;
+}
+
+.btn-admin-success:hover {
+  background: #229954;
+}
+
+/* Lista de solicitudes */
+.solicitudes-admin-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.solicitud-admin-item {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: all 0.2s ease;
+  border-left: 4px solid var(--admin-border);
+}
+
+.solicitud-admin-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.solicitud-admin-item.pendiente {
+  border-left-color: var(--admin-warning);
+}
+
+.solicitud-admin-item.en_revision {
+  border-left-color: var(--admin-accent);
+}
+
+.solicitud-admin-item.cerrado {
+  border-left-color: var(--admin-success);
+}
+
+.solicitud-admin-item.cancelado {
+  border-left-color: var(--admin-danger);
+}
+
+/* Header de cada solicitud */
+.solicitud-admin-header {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--admin-light);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.solicitud-admin-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.solicitud-admin-id {
+  font-weight: 700;
+  color: var(--admin-dark);
+  font-size: 1.1rem;
+}
+
+.solicitud-admin-tipo {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tipo-ordinaria {
+  background: #d4edda;
+  color: #155724;
+}
+
+.tipo-junta {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.solicitud-admin-estado {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.estado-pendiente {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.estado-revision {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.estado-cerrado {
+  background: #d4edda;
+  color: #155724;
+}
+
+.estado-cancelado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.admin-token-usado {
+  background: #e8f4fd;
+  color: #0c5460;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Body de la solicitud */
+.solicitud-admin-body {
+  padding: 1.5rem;
+}
+
+.solicitud-admin-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.solicitud-admin-resumen p {
+  margin: 0;
+  color: var(--admin-dark);
+}
+
+.solicitud-admin-resumen strong {
+  color: var(--admin-secondary);
+}
+
+/* Información de evento */
+.admin-evento-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border-left: 3px solid var(--admin-accent);
+}
+
+.admin-evento-info h5 {
+  margin: 0 0 0.5rem 0;
+  color: var(--admin-dark);
+}
+
+.admin-evento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+}
+
+.admin-evento-grid span {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* Items de la solicitud */
+.solicitud-admin-items {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-item-detalle {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.admin-item-nombre {
+  flex: 1;
+  font-weight: 600;
+  color: var(--admin-dark);
+}
+
+.admin-item-cantidades {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-cantidad-aprobada {
+  width: 60px;
+  padding: 0.25rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Footer con acciones */
+.solicitud-admin-actions {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-top: 1px solid var(--admin-border);
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-estado-controls {
+  flex: 1;
+}
+
+.admin-estado-select {
+  padding: 0.5rem;
+  border: 2px solid var(--admin-border);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Estados visuales */
+.solicitud-admin-item[data-estado="pendiente"] {
+  border-left-color: var(--admin-warning);
+}
+
+.solicitud-admin-item[data-estado="en_revision"] {
+  border-left-color: var(--admin-accent);
+}
+
+.solicitud-admin-item[data-estado="cerrado"] {
+  border-left-color: var(--admin-success);
+}
+
+.solicitud-admin-item[data-estado="cancelado"] {
+  border-left-color: var(--admin-danger);
+}
+
+/* Loading y estados vacíos */
+.loading-admin {
+  text-align: center;
+  padding: 3rem;
+  color: var(--admin-dark);
+}
+
+.no-solicitudes-admin {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+}
+
+.error-admin {
+  text-align: center;
+  padding: 2rem;
+  background: #fee;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  color: #721c24;
+}
+
+/* Notificaciones */
+.admin-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  z-index: 10000;
+  animation: slideInRight 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-notification-success {
+  background: #d4edda;
+  color: #155724;
+  border-left: 4px solid #27ae60;
+}
+
+.admin-notification-error {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #e74c3c;
+}
+
+.admin-notification-warning {
+  background: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #f39c12;
+}
+
+.admin-notification-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border-left: 4px solid #3498db;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 1rem;
+  }
+  
+  .admin-header {
+    padding: 1.5rem;
+  }
+  
+  .admin-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .solicitud-admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .solicitud-admin-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .admin-action-buttons {
+    justify-content: center;
+  }
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Utilidades */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+/* Super admin específico */
+.super-admin-only {
+  display: none;
+}
+
+.super-admin-section {
+  background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+/* Modo oscuro opcional */
+@media (prefers-color-scheme: dark) {
+  .admin-container {
+    background: #1a1a1a;
+    color: white;
+  }
+  
+  .admin-stat-card,
+  .admin-controls,
+  .solicitud-admin-item {
+    background: #2d2d2d;
+    color: white;
+  }
+  
+  .stat-number {
+    color: white;
+  }
+  
+  .filter-select,
+  .admin-estado-select,
+  .admin-cantidad-aprobada {
+    background: #3d3d3d;
+    color: white;
+    border-color: #555;
+  }
+}
