@@ -428,7 +428,7 @@ function validarStock(input, stockDisponible) {
 }
 
 // ===================================
-// FILTRADO Y BÚSQUEDA
+// FILTRADO Y BÚSQUEDAS
 // ===================================
 
 function filtrarSolicitudesAdmin() {
