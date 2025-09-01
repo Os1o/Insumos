@@ -338,6 +338,58 @@ function renderizarSolicitudesSimples(solicitudes) {
 }
 
 
+
+async function guardarCambiosCompletos(solicitudId) {
+    try {
+        const nuevoEstado = document.getElementById('nuevoEstado').value;
+        const notasAdmin = document.getElementById('notasAdmin').value;
+        
+        // 1. Actualizar la solicitud principal
+        const updateData = {
+            estado: nuevoEstado,
+            notas_admin: notasAdmin
+        };
+        
+        // Agregar fechas según el estado
+        if (nuevoEstado === 'en_revision' && !solicitud.fecha_revision) {
+            updateData.fecha_revision = new Date().toISOString();
+        }
+        if (nuevoEstado === 'cerrado') {
+            updateData.fecha_cerrado = new Date().toISOString();
+        }
+
+        const { error: solicitudError } = await supabaseAdmin
+            .from('solicitudes')
+            .update(updateData)
+            .eq('id', solicitudId);
+            
+        if (solicitudError) throw solicitudError;
+
+        // 2. Actualizar cantidades aprobadas de cada insumo
+        const detalles = document.querySelectorAll('[id^="cantidad-"]');
+        for (const input of detalles) {
+            const detalleId = input.id.replace('cantidad-', '');
+            const cantidadAprobada = parseInt(input.value) || 0;
+            
+            const { error: detalleError } = await supabaseAdmin
+                .from('solicitud_detalles')
+                .update({ cantidad_aprobada: cantidadAprobada })
+                .eq('id', detalleId);
+                
+            if (detalleError) throw detalleError;
+        }
+        
+        showNotificationAdmin('Cambios guardados exitosamente', 'success');
+        cerrarModalRevision();
+        recargarSolicitudes();
+        
+    } catch (error) {
+        console.error('Error guardando:', error);
+        showNotificationAdmin('Error al guardar cambios', 'error');
+    }
+}
+
+
 // ===================================
 // FILTRADO Y BÚSQUEDA
 // ===================================
