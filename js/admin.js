@@ -165,15 +165,16 @@ async function abrirModalRevision(solicitudId) {
     try {
         console.log('Abriendo modal para solicitud:', solicitudId);
 
-        // 1. Obtener datos COMPLETOS de la solicitud
         const { data: solicitud, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
                 *,
                 usuarios:usuario_id(nombre, departamento),
                 solicitud_detalles(
+                    id,
                     cantidad_solicitada,
                     cantidad_aprobada,
+                    notas,
                     insumos(nombre, unidad_medida)
                 )
             `)
@@ -186,42 +187,71 @@ async function abrirModalRevision(solicitudId) {
             return;
         }
 
-        // 2. Renderizar contenido del modal
         const modalContent = `
             <div class="revision-completa">
-                <!-- Información básica -->
+                <!-- Información del solicitante -->
                 <div class="usuario-info">
-                    <h4>👤 Información del Solicitante</h4>
-                    <p><strong>Usuario:</strong> ${solicitud.usuarios?.nombre || 'N/A'}</p>
+                    <h4>👤 Solicitud de: ${solicitud.usuarios?.nombre || 'N/A'}</h4>
                     <p><strong>Área:</strong> ${solicitud.usuarios?.departamento || 'N/A'}</p>
-                    <p><strong>Fecha:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleString()}</p>
+                    <p><strong>Fecha:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleDateString()}</p>
                 </div>
 
                 <!-- Detalles del ticket -->
                 <div class="ticket-info">
-                    <h4>🎫 Detalles del Ticket</h4>
-                    <p><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</p>
-                    <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
-                    <p><strong>Estado:</strong> ${solicitud.estado}</p>
-                    <p><strong>Token usado:</strong> ${solicitud.token_usado ? 'Sí' : 'No'}</p>
+                    <h4>🎫 Detalles del ticket</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div><strong>ID:</strong> ${solicitud.id.substring(0,8)}</div>
+                        <div><strong>Tipo:</strong> ${solicitud.tipo}</div>
+                        <div><strong>Estado:</strong> 
+                            <select id="nuevoEstado" style="margin-left: 0.5rem;">
+                                <option value="pendiente" ${solicitud.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                                <option value="en_revision" ${solicitud.estado === 'en_revision' ? 'selected' : ''}>👀 En Revisión</option>
+                                <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>
+                                <option value="cancelado" ${solicitud.estado === 'cancelado' ? 'selected' : ''}>❌ Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Insumos solicitados -->
+                <!-- Insumos solicitados con tabla como la imagen -->
                 <div class="insumos-solicitados">
-                    <h4>📦 Insumos Solicitados</h4>
-                    ${solicitud.solicitud_detalles && solicitud.solicitud_detalles.length > 0 ?
-                solicitud.solicitud_detalles.map(detalle => `
-                            <div class="insumo-detalle">
-                                <strong>${detalle.insumos?.nombre || 'Insumo'}:</strong>
-                                ${detalle.cantidad_solicitada} ${detalle.insumos?.unidad_medida || 'unidades'}
-                                ${detalle.cantidad_aprobada ? ` (Aprobado: ${detalle.cantidad_aprobada})` : ''}
-                            </div>
-                        `).join('') :
-                '<p>No hay insumos registrados</p>'
-            }
+                    <h4>📦 Insumos solicitados</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                        <thead>
+                            <tr style="background: #f8f9fa; text-align: left;">
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">Nombre del producto</th>
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">Cantidad solicitada</th>
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">En inventario</th>
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">Cantidad aprobada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${solicitud.solicitud_detalles.map((detalle, index) => `
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">
+                                        <strong>${detalle.insumos?.nombre || 'N/A'}</strong>
+                                    </td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">
+                                        ${detalle.cantidad_solicitada}
+                                    </td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">
+                                        <span style="color: green;">✓</span> ${detalle.cantidad_solicitada}
+                                    </td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">
+                                        <input type="number" 
+                                               id="cantidad-${detalle.id}" 
+                                               value="${detalle.cantidad_aprobada || detalle.cantidad_solicitada}" 
+                                               min="0" 
+                                               max="${detalle.cantidad_solicitada}"
+                                               style="width: 80px; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px;">
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- Datos de juntas si aplica -->
+                <!-- Información de juntas si aplica -->
                 ${solicitud.datos_junta ? `
                     <div class="junta-info">
                         <h4>📅 Información del Evento</h4>
@@ -233,10 +263,18 @@ async function abrirModalRevision(solicitudId) {
                     </div>
                 ` : ''}
 
+                <!-- Notas administrativas generales -->
+                <div class="notas-admin">
+                    <h4>📝 Notas Administrativas</h4>
+                    <textarea id="notasAdmin" 
+                              style="width: 100%; height: 80px; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
+                              placeholder="Notas generales del pedido...">${solicitud.notas_admin || ''}</textarea>
+                </div>
+
                 <!-- Acciones -->
                 <div class="acciones-ticket">
-                    <button class="btn-admin-primary" onclick="cambiarEstado('${solicitud.id}', 'cerrado')">
-                        ✅ Cerrar Ticket
+                    <button class="btn-admin-primary" onclick="guardarCambiosCompletos('${solicitud.id}')">
+                        💾 Guardar Cambios
                     </button>
                     <button class="btn-admin-secondary" onclick="cerrarModalRevision()">
                         ❌ Cerrar
@@ -245,7 +283,6 @@ async function abrirModalRevision(solicitudId) {
             </div>
         `;
 
-        // 3. Mostrar modal
         document.getElementById('detallesSolicitud').innerHTML = modalContent;
         document.getElementById('modalRevision').style.display = 'flex';
 
