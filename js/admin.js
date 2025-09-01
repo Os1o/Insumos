@@ -206,8 +206,7 @@ async function abrirModalRevision(solicitudId) {
                             <select id="nuevoEstado" style="margin-left: 0.5rem;">
                                 <option value="pendiente" ${solicitud.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
                                 <option value="en_revision" ${solicitud.estado === 'en_revision' ? 'selected' : ''}>👀 En Revisión</option>
-                                <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>
-                                <option value="cancelado" ${solicitud.estado === 'cancelado' ? 'selected' : ''}>❌ Cancelado</option>
+                                <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>                              
                             </select>
                         </div>
                     </div>
@@ -264,6 +263,7 @@ async function abrirModalRevision(solicitudId) {
                         ${solicitud.datos_junta.descripcion ? `<p><strong>Descripción:</strong> ${solicitud.datos_junta.descripcion}</p>` : ''}
                     </div>
                 ` : ''}
+                
 
                 <!-- Acciones -->
                 <div class="acciones-ticket">
@@ -279,6 +279,16 @@ async function abrirModalRevision(solicitudId) {
 
         document.getElementById('detallesSolicitud').innerHTML = modalContent;
         document.getElementById('modalRevision').style.display = 'flex';
+        // Deshabilitar campos si ya está cerrado
+        if (solicitud.estado === 'cerrado') {
+            setTimeout(() => {
+                document.querySelectorAll('[id^="cantidad-"]').forEach(input => {
+                    input.disabled = true;
+                    input.style.backgroundColor = '#f5f5f5';
+                });
+                document.getElementById('nuevoEstado').disabled = true;
+            }, 100);
+        }
 
     } catch (error) {
         console.error('Error abriendo modal:', error);
@@ -339,20 +349,19 @@ async function guardarCambiosCompletos(solicitudId) {
 
         // 1. Actualizar la solicitud principal
         // VALIDACIÓN 1: Verificar estado actual del ticket
-        const { data: solicitudActual, error: checkError } = await supabaseAdmin
+        const { error: solicitudError } = await supabaseAdmin
             .from('solicitudes')
-            .select('estado, fecha_cerrado')
-            .eq('id', solicitudId)
-            .single();
+            .update(updateData)
+            .eq('id', solicitudId);
 
-        if (checkError) throw checkError;
+        if (solicitudError) throw solicitudError;
 
         // VALIDACIÓN 2: Si ya está cerrado, no permitir cambios a inventario
         const yaEstabaCerrado = solicitudActual.estado === 'cerrado';
         const ahoraSeraCerrado = nuevoEstado === 'cerrado';
 
         if (yaEstabaCerrado && ahoraSeraCerrado) {
-            showNotificationAdmin('Este ticket ya fue cerrado previamente. No se puede modificar el inventario.', 'warning');
+            showNotificationAdmin('Este ticket ya está cerrado. No hay cambios que aplicar.', 'warning');
             return;
         }
 
