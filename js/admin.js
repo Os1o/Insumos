@@ -346,53 +346,63 @@ function renderizarSolicitudesSimples(solicitudes) {
 async function guardarCambiosCompletos(solicitudId) {
     try {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
+        
+        // Verificar estado actual del ticket
+        const { data: solicitudActual, error: checkError } = await supabaseAdmin
+            .from('solicitudes')
+            .select('estado')
+            .eq('id', solicitudId)
+            .single();
+            
+        if (checkError) throw checkError;
+        
+        const yaEstabaCerrado = solicitudActual.estado === 'cerrado';
+        const ahoraSeraCerrado = nuevoEstado === 'cerrado';
+        
+        // 1. Siempre actualizar el estado (sin restricciones)
+        const updateData = { estado: nuevoEstado };
+        
+        if (nuevoEstado === 'en_revision') {
+            updateData.fecha_revision = new Date().toISOString();
+        }
+        if (nuevoEstado === 'cerrado') {
+            updateData.fecha_cerrado = new Date().toISOString();
+        }
 
-        // 1. Actualizar la solicitud principal
-        // VALIDACIÓN 1: Verificar estado actual del ticket
         const { error: solicitudError } = await supabaseAdmin
             .from('solicitudes')
             .update(updateData)
             .eq('id', solicitudId);
-
+            
         if (solicitudError) throw solicitudError;
 
-        // VALIDACIÓN 2: Si ya está cerrado, no permitir cambios a inventario
-        const yaEstabaCerrado = solicitudActual.estado === 'cerrado';
-        const ahoraSeraCerrado = nuevoEstado === 'cerrado';
-
-        if (yaEstabaCerrado && ahoraSeraCerrado) {
-            showNotificationAdmin('Este ticket ya está cerrado. No hay cambios que aplicar.', 'warning');
-            return;
-        }
-
-        // VALIDACIÓN 3: Si ya estaba cerrado, solo permitir cambios de estado (no cantidades)
-        if (yaEstabaCerrado) {
-            showNotificationAdmin('Ticket ya cerrado. Solo se actualizará el estado, no el inventario.', 'info');
-        }
-
-        // 2. Actualizar cantidades aprobadas
+        // 2. Actualizar cantidades aprobadas (solo si no está deshabilitado)
         const detalles = document.querySelectorAll('[id^="cantidad-"]');
         for (const input of detalles) {
-            const detalleId = input.id.replace('cantidad-', '');
-            const cantidadAprobada = parseInt(input.value) || 0;
-
-            const { error: detalleError } = await supabaseAdmin
-                .from('solicitud_detalles')
-                .update({ cantidad_aprobada: cantidadAprobada })
-                .eq('id', detalleId);
-
-            if (detalleError) throw detalleError;
+            if (!input.disabled) {
+                const detalleId = input.id.replace('cantidad-', '');
+                const cantidadAprobada = parseInt(input.value) || 0;
+                
+                const { error: detalleError } = await supabaseAdmin
+                    .from('solicitud_detalles')
+                    .update({ cantidad_aprobada: cantidadAprobada })
+                    .eq('id', detalleId);
+                    
+                if (detalleError) throw detalleError;
+            }
         }
 
-        // 3. Si cerrado, descontar inventario
-        if (nuevoEstado === 'cerrado') {
+        // 3. SOLO descontar inventario si: NO estaba cerrado antes Y ahora SÍ está cerrado
+        if (ahoraSeraCerrado && !yaEstabaCerrado) {
             await descontarInventario(solicitudId);
+            showNotificationAdmin('Ticket cerrado e inventario actualizado', 'success');
+        } else {
+            showNotificationAdmin('Cambios guardados exitosamente', 'success');
         }
-
-        showNotificationAdmin('Cambios guardados exitosamente', 'success');
+        
         cerrarModalRevision();
         recargarSolicitudes();
-
+        
     } catch (error) {
         console.error('Error guardando:', error);
         showNotificationAdmin('Error al guardar cambios', 'error');
