@@ -165,7 +165,7 @@ async function abrirModalRevision(solicitudId) {
     try {
         console.log('Abriendo modal para solicitud:', solicitudId);
 
-        // ✅ CONSULTA CORREGIDA con sintaxis correcta
+        // ✅ CONSULTA CORREGIDA con sintaxis correctas
         const { data: solicitud, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
