@@ -280,13 +280,14 @@ async function abrirModalRevision(solicitudId) {
         document.getElementById('detallesSolicitud').innerHTML = modalContent;
         document.getElementById('modalRevision').style.display = 'flex';
         // Deshabilitar campos si ya está cerrado
+        // Solo deshabilitar inputs de cantidad si está cerrado
         if (solicitud.estado === 'cerrado') {
             setTimeout(() => {
                 document.querySelectorAll('[id^="cantidad-"]').forEach(input => {
                     input.disabled = true;
                     input.style.backgroundColor = '#f5f5f5';
+                    input.title = 'No se pueden modificar cantidades de tickets cerrados';
                 });
-                document.getElementById('nuevoEstado').disabled = true;
             }, 100);
         }
 
@@ -346,22 +347,22 @@ function renderizarSolicitudesSimples(solicitudes) {
 async function guardarCambiosCompletos(solicitudId) {
     try {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
-        
+
         // Verificar estado actual del ticket
         const { data: solicitudActual, error: checkError } = await supabaseAdmin
             .from('solicitudes')
             .select('estado')
             .eq('id', solicitudId)
             .single();
-            
+
         if (checkError) throw checkError;
-        
+
         const yaEstabaCerrado = solicitudActual.estado === 'cerrado';
         const ahoraSeraCerrado = nuevoEstado === 'cerrado';
-        
+
         // 1. Siempre actualizar el estado (sin restricciones)
         const updateData = { estado: nuevoEstado };
-        
+
         if (nuevoEstado === 'en_revision') {
             updateData.fecha_revision = new Date().toISOString();
         }
@@ -373,7 +374,7 @@ async function guardarCambiosCompletos(solicitudId) {
             .from('solicitudes')
             .update(updateData)
             .eq('id', solicitudId);
-            
+
         if (solicitudError) throw solicitudError;
 
         // 2. Actualizar cantidades aprobadas (solo si no está deshabilitado)
@@ -382,12 +383,12 @@ async function guardarCambiosCompletos(solicitudId) {
             if (!input.disabled) {
                 const detalleId = input.id.replace('cantidad-', '');
                 const cantidadAprobada = parseInt(input.value) || 0;
-                
+
                 const { error: detalleError } = await supabaseAdmin
                     .from('solicitud_detalles')
                     .update({ cantidad_aprobada: cantidadAprobada })
                     .eq('id', detalleId);
-                    
+
                 if (detalleError) throw detalleError;
             }
         }
@@ -399,10 +400,10 @@ async function guardarCambiosCompletos(solicitudId) {
         } else {
             showNotificationAdmin('Cambios guardados exitosamente', 'success');
         }
-        
+
         cerrarModalRevision();
         recargarSolicitudes();
-        
+
     } catch (error) {
         console.error('Error guardando:', error);
         showNotificationAdmin('Error al guardar cambios', 'error');
