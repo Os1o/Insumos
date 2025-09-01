@@ -345,9 +345,45 @@ async function guardarCambiosCompletos(solicitudId) {
             updateData.fecha_revision = new Date().toISOString();
         }
         if (nuevoEstado === 'cerrado') {
-            updateData.fecha_cerrado = new Date().toISOString();
+            for (const input of detalles) {
+                const detalleId = input.id.replace('cantidad-', '');
+                const cantidadAprobada = parseInt(input.value) || 0;
+                
+                if (cantidadAprobada > 0) {
+                    // Obtener info del insumo
+                    const { data: detalle } = await supabaseAdmin
+                        .from('solicitud_detalles')
+                        .select('insumo_id, insumos(stock_actual)')
+                        .eq('id', detalleId)
+                        .single();
+                        
+                    if (detalle) {
+                        const stockAnterior = detalle.insumos.stock_actual;
+                        const stockNuevo = stockAnterior - cantidadAprobada;
+                        
+                        // Actualizar stock
+                        await supabaseAdmin
+                            .from('insumos')
+                            .update({ stock_actual: stockNuevo })
+                            .eq('id', detalle.insumo_id);
+                            
+                        // Registrar movimiento
+                        await supabaseAdmin
+                            .from('inventario_movimientos')
+                            .insert({
+                                insumo_id: detalle.insumo_id,
+                                tipo_movimiento: 'entrega',
+                                cantidad: -cantidadAprobada,
+                                stock_anterior: stockAnterior,
+                                stock_nuevo: stockNuevo,
+                                referencia_id: solicitudId,
+                                admin_id: currentAdmin.id,
+                                motivo: `Entrega por cierre de ticket #${solicitudId.substring(0,8)}`
+                            });
+                    }
+                }
+            }
         }
-
         const { error: solicitudError } = await supabaseAdmin
             .from('solicitudes')
             .update(updateData)
@@ -380,18 +416,16 @@ async function guardarCambiosCompletos(solicitudId) {
 }
 
 
-
 function validarStock(input, stockDisponible) {
-    const cantidad = parseInt(input.value);
+    const cantidad = parseInt(input.value) || 0;
     if (cantidad > stockDisponible) {
         input.style.borderColor = 'red';
         showNotificationAdmin(`No hay suficiente stock. Disponible: ${stockDisponible}`, 'warning');
-        input.value = stockDisponible;
+        input.value = stockDisponible; // Se queda en el máximo permitido
     } else {
         input.style.borderColor = '#ddd';
     }
 }
-
 
 // ===================================
 // FILTRADO Y BÚSQUEDA
