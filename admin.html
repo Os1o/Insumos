@@ -256,6 +256,15 @@
 
 
     <!-- Scripts necesarios -->
+    <script>
+        function limpiarFiltros() {
+            document.getElementById('filtroEstadoAdmin').value = '';
+            document.getElementById('filtroTipoAdmin').value = '';
+            filtrarSolicitudesAdmin();
+            showNotificationAdmin('Filtros limpiados', 'success');
+        }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
     <script src="js/admin.js"></script>

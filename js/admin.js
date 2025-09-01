@@ -198,27 +198,47 @@ async function abrirModalRevision(solicitudId) {
                 </div>
 
                 <!-- Detalles del ticket -->
+                <!-- Cambiar estado del ticket -->
                 <div class="ticket-info">
                     <h4>🎫 Detalles del Ticket</h4>
                     <p><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</p>
                     <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
-                    <p><strong>Estado:</strong> ${solicitud.estado}</p>
                     <p><strong>Token usado:</strong> ${solicitud.token_usado ? 'Sí' : 'No'}</p>
+                    
+                    <div class="cambiar-estado-admin">
+                        <label><strong>Cambiar estado:</strong></label>
+                        <select id="nuevoEstado-${solicitud.id}">
+                            <option value="pendiente" ${solicitud.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                            <option value="en_revision" ${solicitud.estado === 'en_revision' ? 'selected' : ''}>👀 En Revisión</option>
+                            <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>
+                            <option value="cancelado" ${solicitud.estado === 'cancelado' ? 'selected' : ''}>❌ Cancelado</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Insumos solicitados -->
                 <div class="insumos-solicitados">
                     <h4>📦 Insumos Solicitados</h4>
                     ${solicitud.solicitud_detalles && solicitud.solicitud_detalles.length > 0 ?
-                solicitud.solicitud_detalles.map(detalle => `
-                            <div class="insumo-detalle">
-                                <strong>${detalle.insumos?.nombre || 'Insumo'}:</strong>
-                                ${detalle.cantidad_solicitada} ${detalle.insumos?.unidad_medida || 'unidades'}
-                                ${detalle.cantidad_aprobada ? ` (Aprobado: ${detalle.cantidad_aprobada})` : ''}
+                                solicitud.solicitud_detalles.map((detalle, index) => `
+                            <div class="insumo-detalle-admin">
+                                <div class="insumo-info">
+                                    <strong>${detalle.insumos?.nombre || 'Insumo'}:</strong>
+                                    <span>Solicitado: ${detalle.cantidad_solicitada} ${detalle.insumos?.unidad_medida || 'unidades'}</span>
+                                </div>
+                                <div class="insumo-cantidad">
+                                    <label>Cantidad a entregar:</label>
+                                    <input type="number" 
+                                        id="cantidad-${index}" 
+                                        value="${detalle.cantidad_aprobada || detalle.cantidad_solicitada}" 
+                                        min="0" 
+                                        max="${detalle.cantidad_solicitada}"
+                                        class="cantidad-input">
+                                </div>
                             </div>
                         `).join('') :
-                '<p>No hay insumos registrados</p>'
-            }
+                                '<p>No hay insumos registrados</p>'
+                            }
                 </div>
 
                 <!-- Datos de juntas si aplica -->
@@ -235,8 +255,8 @@ async function abrirModalRevision(solicitudId) {
 
                 <!-- Acciones -->
                 <div class="acciones-ticket">
-                    <button class="btn-admin-primary" onclick="cambiarEstado('${solicitud.id}', 'cerrado')">
-                        ✅ Cerrar Ticket
+                    <button class="btn-admin-primary" onclick="guardarCambiosTicket('${solicitud.id}')">
+                        💾 Guardar Cambios
                     </button>
                     <button class="btn-admin-secondary" onclick="cerrarModalRevision()">
                         ❌ Cerrar
@@ -264,18 +284,18 @@ function cerrarModalRevision() {
 function renderizarSolicitudesSimples(solicitudes) {
     const lista = document.getElementById('solicitudesAdminLista');
     if (!lista) return;
-    
+
     if (!solicitudes || solicitudes.length === 0) {
         lista.innerHTML = '<div class="no-solicitudes-admin"><p>No hay solicitudes</p></div>';
         return;
     }
-    
+
     let html = '<div class="solicitudes-simples">';
-    
+
     solicitudes.forEach(s => {
         const fecha = s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : 'N/A';
         const tipo = s.tipo === 'juntas' ? '👥 Juntas' : '📅 Ordinaria';
-        
+
         html += `
             <div class="solicitud-simple-card" onclick="abrirModalRevision('${s.id}')">
                 <div class="solicitud-header">
@@ -295,7 +315,7 @@ function renderizarSolicitudesSimples(solicitudes) {
             </div>
         `;
     });
-    
+
     html += '</div>';
     lista.innerHTML = html;
 }
@@ -393,3 +413,27 @@ window.addEventListener('error', function (e) {
 });
 
 console.log('Admin.js cargado correctamente');
+
+
+
+async function guardarCambiosTicket(solicitudId) {
+    try {
+        const nuevoEstado = document.getElementById(`nuevoEstado-${solicitudId}`).value;
+        
+        // Actualizar estado en base de datos
+        const { error } = await supabaseAdmin
+            .from('solicitudes')
+            .update({ estado: nuevoEstado })
+            .eq('id', solicitudId);
+            
+        if (error) throw error;
+        
+        showNotificationAdmin('Cambios guardados exitosamente', 'success');
+        cerrarModalRevision();
+        recargarSolicitudes();
+        
+    } catch (error) {
+        console.error('Error guardando:', error);
+        showNotificationAdmin('Error al guardar cambios', 'error');
+    }
+}
