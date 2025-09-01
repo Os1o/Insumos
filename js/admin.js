@@ -263,14 +263,6 @@ async function abrirModalRevision(solicitudId) {
                     </div>
                 ` : ''}
 
-                <!-- Notas administrativas generales -->
-                <div class="notas-admin">
-                    <h4>📝 Notas Administrativas</h4>
-                    <textarea id="notasAdmin" 
-                              style="width: 100%; height: 80px; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
-                              placeholder="Notas generales del pedido...">${solicitud.notas_admin || ''}</textarea>
-                </div>
-
                 <!-- Acciones -->
                 <div class="acciones-ticket">
                     <button class="btn-admin-primary" onclick="guardarCambiosCompletos('${solicitud.id}')">
@@ -342,16 +334,12 @@ function renderizarSolicitudesSimples(solicitudes) {
 async function guardarCambiosCompletos(solicitudId) {
     try {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
-        const notasAdmin = document.getElementById('notasAdmin').value;
         
         // 1. Actualizar la solicitud principal
-        const updateData = {
-            estado: nuevoEstado,
-            notas_admin: notasAdmin
-        };
+        const updateData = { estado: nuevoEstado };
         
         // Agregar fechas según el estado
-        if (nuevoEstado === 'en_revision' && !solicitud.fecha_revision) {
+        if (nuevoEstado === 'en_revision') {
             updateData.fecha_revision = new Date().toISOString();
         }
         if (nuevoEstado === 'cerrado') {
@@ -388,7 +376,6 @@ async function guardarCambiosCompletos(solicitudId) {
         showNotificationAdmin('Error al guardar cambios', 'error');
     }
 }
-
 
 // ===================================
 // FILTRADO Y BÚSQUEDA
