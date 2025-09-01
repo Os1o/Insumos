@@ -200,7 +200,7 @@ async function abrirModalRevision(solicitudId) {
                 <div class="ticket-info">
                     <h4>🎫 Detalles del ticket</h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div><strong>ID:</strong> ${solicitud.id.substring(0,8)}</div>
+                        <div><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</div>
                         <div><strong>Tipo:</strong> ${solicitud.tipo}</div>
                         <div><strong>Estado:</strong> 
                             <select id="nuevoEstado" style="margin-left: 0.5rem;">
@@ -295,18 +295,18 @@ function cerrarModalRevision() {
 function renderizarSolicitudesSimples(solicitudes) {
     const lista = document.getElementById('solicitudesAdminLista');
     if (!lista) return;
-    
+
     if (!solicitudes || solicitudes.length === 0) {
         lista.innerHTML = '<div class="no-solicitudes-admin"><p>No hay solicitudes</p></div>';
         return;
     }
-    
+
     let html = '<div class="solicitudes-simples">';
-    
+
     solicitudes.forEach(s => {
         const fecha = s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : 'N/A';
         const tipo = s.tipo === 'juntas' ? '👥 Juntas' : '📅 Ordinaria';
-        
+
         html += `
             <div class="solicitud-simple-card" onclick="abrirModalRevision('${s.id}')">
                 <div class="solicitud-header">
@@ -326,7 +326,7 @@ function renderizarSolicitudesSimples(solicitudes) {
             </div>
         `;
     });
-    
+
     html += '</div>';
     lista.innerHTML = html;
 }
@@ -336,35 +336,42 @@ function renderizarSolicitudesSimples(solicitudes) {
 async function guardarCambiosCompletos(solicitudId) {
     try {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
-        
+
         // 1. Actualizar la solicitud principal
-        const updateData = { estado: nuevoEstado };
-        
-        if (nuevoEstado === 'en_revision') {
-            updateData.fecha_revision = new Date().toISOString();
-        }
-        if (nuevoEstado === 'cerrado') {
-            updateData.fecha_cerrado = new Date().toISOString();
+        // VALIDACIÓN 1: Verificar estado actual del ticket
+        const { data: solicitudActual, error: checkError } = await supabaseAdmin
+            .from('solicitudes')
+            .select('estado, fecha_cerrado')
+            .eq('id', solicitudId)
+            .single();
+
+        if (checkError) throw checkError;
+
+        // VALIDACIÓN 2: Si ya está cerrado, no permitir cambios a inventario
+        const yaEstabaCerrado = solicitudActual.estado === 'cerrado';
+        const ahoraSeraCerrado = nuevoEstado === 'cerrado';
+
+        if (yaEstabaCerrado && ahoraSeraCerrado) {
+            showNotificationAdmin('Este ticket ya fue cerrado previamente. No se puede modificar el inventario.', 'warning');
+            return;
         }
 
-        const { error: solicitudError } = await supabaseAdmin
-            .from('solicitudes')
-            .update(updateData)
-            .eq('id', solicitudId);
-            
-        if (solicitudError) throw solicitudError;
+        // VALIDACIÓN 3: Si ya estaba cerrado, solo permitir cambios de estado (no cantidades)
+        if (yaEstabaCerrado) {
+            showNotificationAdmin('Ticket ya cerrado. Solo se actualizará el estado, no el inventario.', 'info');
+        }
 
         // 2. Actualizar cantidades aprobadas
         const detalles = document.querySelectorAll('[id^="cantidad-"]');
         for (const input of detalles) {
             const detalleId = input.id.replace('cantidad-', '');
             const cantidadAprobada = parseInt(input.value) || 0;
-            
+
             const { error: detalleError } = await supabaseAdmin
                 .from('solicitud_detalles')
                 .update({ cantidad_aprobada: cantidadAprobada })
                 .eq('id', detalleId);
-                
+
             if (detalleError) throw detalleError;
         }
 
@@ -372,11 +379,11 @@ async function guardarCambiosCompletos(solicitudId) {
         if (nuevoEstado === 'cerrado') {
             await descontarInventario(solicitudId);
         }
-        
+
         showNotificationAdmin('Cambios guardados exitosamente', 'success');
         cerrarModalRevision();
         recargarSolicitudes();
-        
+
     } catch (error) {
         console.error('Error guardando:', error);
         showNotificationAdmin('Error al guardar cambios', 'error');
@@ -400,13 +407,13 @@ async function descontarInventario(solicitudId) {
             if (detalle.cantidad_aprobada > 0) {
                 const stockAnterior = detalle.insumos.stock_actual;
                 const stockNuevo = stockAnterior - detalle.cantidad_aprobada;
-                
+
                 // Actualizar stock
                 await supabaseAdmin
                     .from('insumos')
                     .update({ stock_actual: stockNuevo })
                     .eq('id', detalle.insumo_id);
-                    
+
                 // Registrar movimiento
                 await supabaseAdmin
                     .from('inventario_movimientos')
