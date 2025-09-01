@@ -340,50 +340,13 @@ async function guardarCambiosCompletos(solicitudId) {
         // 1. Actualizar la solicitud principal
         const updateData = { estado: nuevoEstado };
         
-        // Agregar fechas según el estado
         if (nuevoEstado === 'en_revision') {
             updateData.fecha_revision = new Date().toISOString();
         }
         if (nuevoEstado === 'cerrado') {
-            for (const input of detalles) {
-                const detalleId = input.id.replace('cantidad-', '');
-                const cantidadAprobada = parseInt(input.value) || 0;
-                
-                if (cantidadAprobada > 0) {
-                    // Obtener info del insumo
-                    const { data: detalle } = await supabaseAdmin
-                        .from('solicitud_detalles')
-                        .select('insumo_id, insumos(stock_actual)')
-                        .eq('id', detalleId)
-                        .single();
-                        
-                    if (detalle) {
-                        const stockAnterior = detalle.insumos.stock_actual;
-                        const stockNuevo = stockAnterior - cantidadAprobada;
-                        
-                        // Actualizar stock
-                        await supabaseAdmin
-                            .from('insumos')
-                            .update({ stock_actual: stockNuevo })
-                            .eq('id', detalle.insumo_id);
-                            
-                        // Registrar movimiento
-                        await supabaseAdmin
-                            .from('inventario_movimientos')
-                            .insert({
-                                insumo_id: detalle.insumo_id,
-                                tipo_movimiento: 'entrega',
-                                cantidad: -cantidadAprobada,
-                                stock_anterior: stockAnterior,
-                                stock_nuevo: stockNuevo,
-                                referencia_id: solicitudId,
-                                admin_id: currentAdmin.id,
-                                motivo: `Entrega por cierre de ticket #${solicitudId.substring(0,8)}`
-                            });
-                    }
-                }
-            }
+            updateData.fecha_cerrado = new Date().toISOString();
         }
+
         const { error: solicitudError } = await supabaseAdmin
             .from('solicitudes')
             .update(updateData)
@@ -391,7 +354,7 @@ async function guardarCambiosCompletos(solicitudId) {
             
         if (solicitudError) throw solicitudError;
 
-        // 2. Actualizar cantidades aprobadas de cada insumo
+        // 2. Actualizar cantidades aprobadas
         const detalles = document.querySelectorAll('[id^="cantidad-"]');
         for (const input of detalles) {
             const detalleId = input.id.replace('cantidad-', '');
@@ -404,6 +367,11 @@ async function guardarCambiosCompletos(solicitudId) {
                 
             if (detalleError) throw detalleError;
         }
+
+        // 3. Si cerrado, descontar inventario
+        if (nuevoEstado === 'cerrado') {
+            await descontarInventario(solicitudId);
+        }
         
         showNotificationAdmin('Cambios guardados exitosamente', 'success');
         cerrarModalRevision();
@@ -412,6 +380,50 @@ async function guardarCambiosCompletos(solicitudId) {
     } catch (error) {
         console.error('Error guardando:', error);
         showNotificationAdmin('Error al guardar cambios', 'error');
+    }
+}
+
+async function descontarInventario(solicitudId) {
+    try {
+        // Query separada para obtener detalles con stock actual
+        const { data: detalles } = await supabaseAdmin
+            .from('solicitud_detalles')
+            .select(`
+                id,
+                insumo_id,
+                cantidad_aprobada,
+                insumos!inner(stock_actual)
+            `)
+            .eq('solicitud_id', solicitudId);
+
+        for (const detalle of detalles) {
+            if (detalle.cantidad_aprobada > 0) {
+                const stockAnterior = detalle.insumos.stock_actual;
+                const stockNuevo = stockAnterior - detalle.cantidad_aprobada;
+                
+                // Actualizar stock
+                await supabaseAdmin
+                    .from('insumos')
+                    .update({ stock_actual: stockNuevo })
+                    .eq('id', detalle.insumo_id);
+                    
+                // Registrar movimiento
+                await supabaseAdmin
+                    .from('inventario_movimientos')
+                    .insert({
+                        insumo_id: detalle.insumo_id,
+                        tipo_movimiento: 'entrega',
+                        cantidad: -detalle.cantidad_aprobada,
+                        stock_anterior: stockAnterior,
+                        stock_nuevo: stockNuevo,
+                        referencia_id: solicitudId,
+                        admin_id: currentAdmin.id
+                    });
+            }
+        }
+    } catch (error) {
+        console.error('Error descontando inventario:', error);
+        throw error;
     }
 }
 
