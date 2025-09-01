@@ -175,7 +175,7 @@ async function abrirModalRevision(solicitudId) {
                     cantidad_solicitada,
                     cantidad_aprobada,
                     notas,
-                    insumos(nombre, unidad_medida)
+                    insumos(id, nombre, unidad_medida, stock_actual)
                 )
             `)
             .eq('id', solicitudId)
@@ -235,15 +235,17 @@ async function abrirModalRevision(solicitudId) {
                                         ${detalle.cantidad_solicitada}
                                     </td>
                                     <td style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">
-                                        <span style="color: green;">✓</span> ${detalle.cantidad_solicitada}
-                                    </td>
+                                        <span style="color: ${detalle.insumos.stock_actual >= detalle.cantidad_solicitada ? 'green' : 'red'};">
+                                            ${detalle.insumos.stock_actual >= detalle.cantidad_solicitada ? '✓' : '⚠️'}
+                                        </span> ${detalle.insumos.stock_actual}                                    </td>
                                     <td style="padding: 0.5rem; border: 1px solid #ddd;">
                                         <input type="number" 
-                                               id="cantidad-${detalle.id}" 
-                                               value="${detalle.cantidad_aprobada || detalle.cantidad_solicitada}" 
-                                               min="0" 
-                                               max="${detalle.cantidad_solicitada}"
-                                               style="width: 80px; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px;">
+                                            id="cantidad-${detalle.id}" 
+                                            value="${detalle.cantidad_aprobada || Math.min(detalle.cantidad_solicitada, detalle.insumos.stock_actual)}" 
+                                            min="0" 
+                                            max="${detalle.insumos.stock_actual}"
+                                            style="width: 80px; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px;"
+                                            onchange="validarStock(this, ${detalle.insumos.stock_actual})">
                                     </td>
                                 </tr>
                             `).join('')}
@@ -376,6 +378,20 @@ async function guardarCambiosCompletos(solicitudId) {
         showNotificationAdmin('Error al guardar cambios', 'error');
     }
 }
+
+
+
+function validarStock(input, stockDisponible) {
+    const cantidad = parseInt(input.value);
+    if (cantidad > stockDisponible) {
+        input.style.borderColor = 'red';
+        showNotificationAdmin(`No hay suficiente stock. Disponible: ${stockDisponible}`, 'warning');
+        input.value = stockDisponible;
+    } else {
+        input.style.borderColor = '#ddd';
+    }
+}
+
 
 // ===================================
 // FILTRADO Y BÚSQUEDA
