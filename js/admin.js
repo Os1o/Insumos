@@ -165,31 +165,21 @@ async function abrirModalRevision(solicitudId) {
     try {
         console.log('Abriendo modal para solicitud:', solicitudId);
 
-        // ✅ CONSULTA CORREGIDA con sintaxis correcta
         const { data: solicitud, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
                 *,
-                usuarios!solicitudes_usuario_id_fkey (
-                    nombre, 
-                    departamento
-                ),
-                solicitud_detalles (
+                usuarios:usuario_id(nombre, departamento),
+                solicitud_detalles(
                     id,
                     cantidad_solicitada,
                     cantidad_aprobada,
                     notas,
-                    insumos!solicitud_detalles_insumo_id_fkey (
-                        id, 
-                        nombre, 
-                        unidad_medida, 
-                        stock_actual
-                    )
+                    insumos(id, nombre, unidad_medida, stock_actual)
                 )
             `)
             .eq('id', solicitudId)
             .single();
-
 
         if (error) throw error;
         if (!solicitud) {
@@ -348,79 +338,52 @@ async function guardarCambiosCompletos(solicitudId) {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
         
         // 1. Actualizar la solicitud principal
-        const updateData = { 
-            estado: nuevoEstado,
-            admin_asignado: currentAdmin.id,
-            updated_at: new Date().toISOString()
-        };
+        const updateData = { estado: nuevoEstado };
         
         // Agregar fechas según el estado
         if (nuevoEstado === 'en_revision') {
             updateData.fecha_revision = new Date().toISOString();
-        } else if (nuevoEstado === 'cerrado') {
-            updateData.fecha_cerrado = new Date().toISOString();
-            
-            // ✅ OBTENER DETALLES CORRECTAMENTE
-            const detalles = document.querySelectorAll('[id^="cantidad-"]');
-            
+        }
+        if (nuevoEstado === 'cerrado') {
             for (const input of detalles) {
                 const detalleId = input.id.replace('cantidad-', '');
                 const cantidadAprobada = parseInt(input.value) || 0;
                 
                 if (cantidadAprobada > 0) {
-                    // Obtener info del detalle completo
-                    const { data: detalleCompleto, error: detalleError } = await supabaseAdmin
+                    // Obtener info del insumo
+                    const { data: detalle } = await supabaseAdmin
                         .from('solicitud_detalles')
-                        .select(`
-                            insumo_id,
-                            insumos!solicitud_detalles_insumo_id_fkey(stock_actual)
-                        `)
+                        .select('insumo_id, insumos(stock_actual)')
                         .eq('id', detalleId)
                         .single();
                         
-                    if (detalleError) {
-                        console.error('Error obteniendo detalle:', detalleError);
-                        continue;
-                    }
-                    
-                    if (detalleCompleto && detalleCompleto.insumos) {
-                        const stockAnterior = detalleCompleto.insumos.stock_actual;
+                    if (detalle) {
+                        const stockAnterior = detalle.insumos.stock_actual;
                         const stockNuevo = stockAnterior - cantidadAprobada;
                         
-                        if (stockNuevo < 0) {
-                            showNotificationAdmin(`Stock insuficiente para el insumo`, 'warning');
-                            continue;
-                        }
-                        
                         // Actualizar stock
-                        const { error: stockError } = await supabaseAdmin
+                        await supabaseAdmin
                             .from('insumos')
                             .update({ stock_actual: stockNuevo })
-                            .eq('id', detalleCompleto.insumo_id);
-                            
-                        if (stockError) {
-                            console.error('Error actualizando stock:', stockError);
-                            continue;
-                        }
+                            .eq('id', detalle.insumo_id);
                             
                         // Registrar movimiento
                         await supabaseAdmin
                             .from('inventario_movimientos')
                             .insert({
-                                insumo_id: detalleCompleto.insumo_id,
+                                insumo_id: detalle.insumo_id,
                                 tipo_movimiento: 'entrega',
-                                cantidad: cantidadAprobada,
+                                cantidad: -cantidadAprobada,
                                 stock_anterior: stockAnterior,
                                 stock_nuevo: stockNuevo,
                                 referencia_id: solicitudId,
                                 admin_id: currentAdmin.id,
-                                motivo: `Entrega por aprobación de solicitud #${solicitudId.substring(0,8)}`
+                                motivo: `Entrega por cierre de ticket #${solicitudId.substring(0,8)}`
                             });
                     }
                 }
             }
         }
-        
         const { error: solicitudError } = await supabaseAdmin
             .from('solicitudes')
             .update(updateData)
@@ -429,36 +392,26 @@ async function guardarCambiosCompletos(solicitudId) {
         if (solicitudError) throw solicitudError;
 
         // 2. Actualizar cantidades aprobadas de cada insumo
-        const detallesInputs = document.querySelectorAll('[id^="cantidad-"]');
-        for (const input of detallesInputs) {
+        const detalles = document.querySelectorAll('[id^="cantidad-"]');
+        for (const input of detalles) {
             const detalleId = input.id.replace('cantidad-', '');
             const cantidadAprobada = parseInt(input.value) || 0;
             
             const { error: detalleError } = await supabaseAdmin
                 .from('solicitud_detalles')
-                .update({ 
-                    cantidad_aprobada: cantidadAprobada,
-                    updated_at: new Date().toISOString()
-                })
+                .update({ cantidad_aprobada: cantidadAprobada })
                 .eq('id', detalleId);
                 
-            if (detalleError) {
-                console.error('Error actualizando detalle:', detalleError);
-                continue;
-            }
+            if (detalleError) throw detalleError;
         }
         
         showNotificationAdmin('Cambios guardados exitosamente', 'success');
-        
-        // Cerrar modal y recargar después de un breve delay
-        setTimeout(() => {
-            cerrarModalRevision();
-            recargarSolicitudes();
-        }, 1500);
+        cerrarModalRevision();
+        recargarSolicitudes();
         
     } catch (error) {
-        console.error('Error guardando cambios:', error);
-        showNotificationAdmin('Error al guardar cambios: ' + error.message, 'error');
+        console.error('Error guardando:', error);
+        showNotificationAdmin('Error al guardar cambios', 'error');
     }
 }
 
