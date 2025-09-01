@@ -163,18 +163,24 @@ function mostrarErrorAdmin(mensaje) {
 //FUNCION PARA ABRIR MODALES
 async function abrirModalRevision(solicitudId) {
     try {
-        console.log('Abriendo modal para solicitud:', solicitudId);
-
-        // 1. Obtener datos COMPLETOS de la solicitud
+        console.log('Abriendo modal para:', solicitudId);
+        
+        // CONSULTA ESPECÍFICA CORREGIDA
         const { data: solicitud, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
                 *,
-                usuarios:usuario_id(nombre, departamento),
-                solicitud_detalles(
+                usuarios!solicitudes_usuario_id_fkey (
+                    nombre,
+                    departamento
+                ),
+                solicitud_detalles (
                     cantidad_solicitada,
                     cantidad_aprobada,
-                    insumos(nombre, unidad_medida)
+                    insumos!solicitud_detalles_insumo_id_fkey (
+                        nombre,
+                        unidad_medida
+                    )
                 )
             `)
             .eq('id', solicitudId)
@@ -186,56 +192,57 @@ async function abrirModalRevision(solicitudId) {
             return;
         }
 
-        // 2. Renderizar contenido del modal
+        // RENDERIZADO CORRECTO
         const modalContent = `
             <div class="revision-completa">
-                <!-- Información básica -->
+                <!-- Información del usuario -->
                 <div class="usuario-info">
                     <h4>👤 Información del Solicitante</h4>
                     <p><strong>Usuario:</strong> ${solicitud.usuarios?.nombre || 'N/A'}</p>
                     <p><strong>Área:</strong> ${solicitud.usuarios?.departamento || 'N/A'}</p>
-                    <p><strong>Fecha:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleString()}</p>
+                    <p><strong>Fecha Solicitud:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleString()}</p>
                 </div>
 
-                <!-- Detalles del ticket -->
+                <!-- Información del ticket -->
                 <div class="ticket-info">
                     <h4>🎫 Detalles del Ticket</h4>
                     <p><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</p>
                     <p><strong>Tipo:</strong> ${solicitud.tipo}</p>
                     <p><strong>Estado:</strong> ${solicitud.estado}</p>
-                    <p><strong>Token usado:</strong> ${solicitud.token_usado ? 'Sí' : 'No'}</p>
+                    <p><strong>Token Usado:</strong> ${solicitud.token_usado ? 'Sí' : 'No'}</p>
+                    <p><strong>Total Items:</strong> ${solicitud.total_items}</p>
                 </div>
 
                 <!-- Insumos solicitados -->
                 <div class="insumos-solicitados">
                     <h4>📦 Insumos Solicitados</h4>
-                    ${solicitud.solicitud_detalles && solicitud.solicitud_detalles.length > 0 ?
-                solicitud.solicitud_detalles.map(detalle => `
+                    ${solicitud.solicitud_detalles && solicitud.solicitud_detalles.length > 0 ? 
+                        solicitud.solicitud_detalles.map(detalle => `
                             <div class="insumo-detalle">
                                 <strong>${detalle.insumos?.nombre || 'Insumo'}:</strong>
                                 ${detalle.cantidad_solicitada} ${detalle.insumos?.unidad_medida || 'unidades'}
                                 ${detalle.cantidad_aprobada ? ` (Aprobado: ${detalle.cantidad_aprobada})` : ''}
                             </div>
-                        `).join('') :
-                '<p>No hay insumos registrados</p>'
-            }
+                        `).join('') : 
+                        '<p>No hay insumos registrados</p>'
+                    }
                 </div>
 
                 <!-- Datos de juntas si aplica -->
                 ${solicitud.datos_junta ? `
                     <div class="junta-info">
                         <h4>📅 Información del Evento</h4>
-                        <p><strong>Fecha:</strong> ${solicitud.datos_junta.fecha_evento}</p>
-                        <p><strong>Hora:</strong> ${solicitud.datos_junta.hora_evento}</p>
-                        <p><strong>Participantes:</strong> ${solicitud.datos_junta.num_participantes}</p>
-                        <p><strong>Ubicación:</strong> ${solicitud.datos_junta.sala_ubicacion}</p>
+                        ${solicitud.datos_junta.fecha_evento ? `<p><strong>Fecha:</strong> ${solicitud.datos_junta.fecha_evento}</p>` : ''}
+                        ${solicitud.datos_junta.hora_evento ? `<p><strong>Hora:</strong> ${solicitud.datos_junta.hora_evento}</p>` : ''}
+                        ${solicitud.datos_junta.num_participantes ? `<p><strong>Participantes:</strong> ${solicitud.datos_junta.num_participantes}</p>` : ''}
+                        ${solicitud.datos_junta.sala_ubicacion ? `<p><strong>Ubicación:</strong> ${solicitud.datos_junta.sala_ubicacion}</p>` : ''}
                         ${solicitud.datos_junta.descripcion ? `<p><strong>Descripción:</strong> ${solicitud.datos_junta.descripcion}</p>` : ''}
                     </div>
                 ` : ''}
 
                 <!-- Acciones -->
                 <div class="acciones-ticket">
-                    <button class="btn-admin-primary" onclick="cambiarEstado('${solicitud.id}', 'cerrado')">
+                    <button class="btn-admin-primary" onclick="cambiarEstadoSolicitud('${solicitud.id}', 'cerrado')">
                         ✅ Cerrar Ticket
                     </button>
                     <button class="btn-admin-secondary" onclick="cerrarModalRevision()">
@@ -245,15 +252,15 @@ async function abrirModalRevision(solicitudId) {
             </div>
         `;
 
-        // 3. Mostrar modal
         document.getElementById('detallesSolicitud').innerHTML = modalContent;
         document.getElementById('modalRevision').style.display = 'flex';
 
     } catch (error) {
         console.error('Error abriendo modal:', error);
-        showNotificationAdmin('Error al cargar detalles', 'error');
+        showNotificationAdmin('Error al cargar detalles de la solicitud', 'error');
     }
 }
+
 
 function cerrarModalRevision() {
     document.getElementById('modalRevision').style.display = 'none';
@@ -274,19 +281,24 @@ function renderizarSolicitudesSimples(solicitudes) {
     
     solicitudes.forEach(s => {
         const fecha = s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : 'N/A';
-        const tipo = s.tipo === 'juntas' ? '👥 Juntas' : '📅 Ordinaria';
+        const tipoIcon = s.tipo === 'juntas' ? '👥' : '📅';
+        const userName = s.usuarios?.nombre || 'Usuario';
+        const userDepto = s.usuarios?.departamento || 'N/A';
         
         html += `
             <div class="solicitud-simple-card" onclick="abrirModalRevision('${s.id}')">
                 <div class="solicitud-header">
                     <span class="solicitud-id">#${s.id.substring(0, 8)}</span>
-                    <span class="solicitud-tipo ${s.tipo}">${tipo}</span>
+                    <span class="solicitud-tipo ${s.tipo}">${tipoIcon} ${s.tipo}</span>
                 </div>
+                
                 <div class="solicitud-body">
+                    <p class="solicitud-usuario">${userName} (${userDepto})</p>
                     <p class="solicitud-estado estado-${s.estado}">${s.estado}</p>
                     <p class="solicitud-fecha">${fecha}</p>
                     <p class="solicitud-items">${s.total_items || 0} items</p>
                 </div>
+                
                 <div class="solicitud-footer">
                     <span class="token-indicator ${s.token_usado ? 'used' : 'available'}">
                         ${s.token_usado ? '🔴 Token usado' : '🟢 Token disponible'}
@@ -300,6 +312,102 @@ function renderizarSolicitudesSimples(solicitudes) {
     lista.innerHTML = html;
 }
 
+
+function getEstadoLabel(estado) {
+    const labels = {
+        'pendiente': 'Pendiente',
+        'en_revision': 'En Revisión',
+        'cerrado': 'Cerrado', 
+        'cancelado': 'Cancelado'
+    };
+    return labels[estado] || estado;
+}
+
+// ===================================
+// GESTIÓN DE ESTADOS DE SOLICITUDES
+// ===================================
+
+async function cambiarEstadoSolicitud(solicitudId, nuevoEstado) {
+    try {
+        console.log(`Cambiando estado de solicitud ${solicitudId} a: ${nuevoEstado}`);
+        
+        // Obtener el usuario admin actual desde sessionStorage
+        const session = sessionStorage.getItem('currentUser');
+        if (!session) {
+            showNotificationAdmin('Sesión expirada. Por favor, inicia sesión again.', 'error');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const currentAdmin = JSON.parse(session);
+        
+        // Preparar datos de actualización
+        const updateData = {
+            estado: nuevoEstado,
+            admin_asignado: currentAdmin.id,
+            updated_at: new Date().toISOString()
+        };
+        
+        // Agregar timestamps específicos según el estado
+        if (nuevoEstado === 'en_revision') {
+            updateData.fecha_revision = new Date().toISOString();
+        } else if (nuevoEstado === 'cerrado') {
+            updateData.fecha_cerrado = new Date().toISOString();
+        }
+        
+        // Actualizar en la base de datos
+        const { error } = await supabaseAdmin
+            .from('solicitudes')
+            .update(updateData)
+            .eq('id', solicitudId);
+            
+        if (error) {
+            console.error('Error de Supabase:', error);
+            throw error;
+        }
+        
+        // Mostrar notificación de éxito
+        const estadoLabels = {
+            'pendiente': 'Pendiente',
+            'en_revision': 'En Revisión', 
+            'cerrado': 'Cerrado',
+            'cancelado': 'Cancelado'
+        };
+        
+        showNotificationAdmin(`Estado cambiado a: ${estadoLabels[nuevoEstado] || nuevoEstado}`, 'success');
+        
+        // Actualizar los datos locales
+        const solicitudIndex = todasLasSolicitudes.findIndex(s => s.id === solicitudId);
+        if (solicitudIndex !== -1) {
+            todasLasSolicitudes[solicitudIndex] = {
+                ...todasLasSolicitudes[solicitudIndex],
+                ...updateData
+            };
+            
+            // Actualizar también en las solicitudes filtradas
+            const filteredIndex = solicitudesFiltradas.findIndex(s => s.id === solicitudId);
+            if (filteredIndex !== -1) {
+                solicitudesFiltradas[filteredIndex] = {
+                    ...solicitudesFiltradas[filteredIndex],
+                    ...updateData
+                };
+            }
+        }
+        
+        // Re-renderizar la lista
+        renderizarSolicitudesSimples(solicitudesFiltradas);
+        actualizarEstadisticasAdmin(todasLasSolicitudes);
+        
+        // Cerrar el modal después de cambiar el estado
+        setTimeout(() => {
+            cerrarModalRevision();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error completo cambiando estado:', error);
+        showNotificationAdmin('Error al cambiar el estado de la solicitud', 'error');
+    }
+}
 
 // ===================================
 // FILTRADO Y BÚSQUEDA
