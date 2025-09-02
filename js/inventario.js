@@ -10,7 +10,7 @@ let movimientosData = [];
 let currentSuperAdmin = null;
 
 // Configuración Supabase - Usar la instancia global ya creada
-const supabaseInventario = window.supabase;
+const supabaseInventario = window.supabase || supabase;
 
 // ===================================
 // INICIALIZACIÓN DEL SISTEMA
