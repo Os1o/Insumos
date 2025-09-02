@@ -719,19 +719,67 @@ async function confirmarEdicionInsumo() {
     const btnConfirmar = document.getElementById('btnConfirmarEdicion');
     
     try {
-        // Validaciones y lógica actual...
+        // OBTENER EL ID DEL FORMULARIO - ESTO FALTA
+        const insumoId = document.getElementById('editarInsumoId').value;
+        
+        // Validar que tengamos un ID
+        if (!insumoId) {
+            showNotificationInventario('Error: ID de insumo no encontrado', 'error');
+            return;
+        }
+
+        const nombre = document.getElementById('editarNombre').value.trim();
+        const descripcion = document.getElementById('editarDescripcion').value.trim();
+        const categoriaId = document.getElementById('editarCategoria').value;
+        const unidad = document.getElementById('editarUnidad').value;
+        const stockMinimo = parseInt(document.getElementById('editarStockMinimo').value);
+        const visibilidad = document.getElementById('editarVisibilidad').value;
+        const activo = document.getElementById('editarActivo').value === 'true';
+        
+        // Validaciones
+        if (!nombre || !categoriaId || !unidad || !stockMinimo) {
+            showNotificationInventario('Completa todos los campos obligatorios', 'warning');
+            return;
+        }
+        
+        if (stockMinimo < 1) {
+            showNotificationInventario('El stock mínimo debe ser al menos 1', 'warning');
+            return;
+        }
+        
         btnConfirmar.disabled = true;
         btnConfirmar.innerHTML = '⏳ Guardando...';
-
-        // Tu código actual de actualización...
+        
+        // Actualizar insumo
         const { error } = await supabaseInventario
             .from('insumos')
-            .update({ /* ... */ })
+            .update({
+                nombre: nombre,
+                descripcion: descripcion || null,
+                categoria_id: categoriaId,
+                unidad_medida: unidad,
+                cantidad_warning: stockMinimo,
+                acceso_tipo: visibilidad,
+                activo: activo,
+                updated_at: new Date().toISOString()
+            })
             .eq('id', insumoId);
-
+        
         if (error) throw error;
-
+        
         showNotificationInventario(`Insumo "${nombre}" actualizado exitosamente`, 'success');
+        cerrarModalEditarInsumo();
+        
+        // 🔄 ACTUALIZACIÓN: Recargar datos y re-aplicar filtros
+        await cargarDatosInventario();
+        
+        const filtroCategoria = document.getElementById('filtroCategoria')?.value || '';
+        const filtroEstadoStock = document.getElementById('filtroEstadoStock')?.value || '';
+        const filtroVisibilidad = document.getElementById('filtroVisibilidad')?.value || '';
+        
+        if (filtroCategoria || filtroEstadoStock || filtroVisibilidad) {
+            filtrarInventario();
+        }
         
     } catch (error) {
         console.error('Error editando insumo:', error);
@@ -740,20 +788,6 @@ async function confirmarEdicionInsumo() {
         // ⚠️ ESTA LÍNEA ES CRÍTICA - Reactivar el botón SIEMPRE
         btnConfirmar.disabled = false;
         btnConfirmar.innerHTML = '💾 Guardar Cambios';
-    }
-    
-    // Mantener el cierre del modal si la operación fue exitosa
-    cerrarModalEditarInsumo();
-    
-    // 🔄 ACTUALIZACIÓN: Recargar datos y re-aplicar filtros
-    await cargarDatosInventario();
-    
-    const filtroCategoria = document.getElementById('filtroCategoria')?.value || '';
-    const filtroEstadoStock = document.getElementById('filtroEstadoStock')?.value || '';
-    const filtroVisibilidad = document.getElementById('filtroVisibilidad')?.value || '';
-    
-    if (filtroCategoria || filtroEstadoStock || filtroVisibilidad) {
-        filtrarInventario();
     }
 }
 
