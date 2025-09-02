@@ -81,10 +81,7 @@ async function cargarDatosInventario() {
             `)
             .order('nombre');
         
-        if (invError) {
-            console.error('Error cargando insumos:', invError);
-            throw invError;
-        }
+        if (invError) throw invError;
         
         // Cargar categorías
         const { data: categorias, error: catError } = await supabaseInventario
@@ -93,16 +90,12 @@ async function cargarDatosInventario() {
             .eq('activo', true)
             .order('orden');
         
-        if (catError) {
-            console.error('Error cargando categorías:', catError);
-            throw catError;
-        }
+        if (catError) throw catError;
         
         inventarioData = inventario || [];
         categoriasData = categorias || [];
         
-        console.log(`✅ ${inventarioData.length} insumos cargados`);
-        console.log(`✅ ${categoriasData.length} categorías cargadas`);
+        console.log('✅ Datos cargados:', inventarioData.length, 'insumos');
         
         // Renderizar datos
         await renderizarInventario();
@@ -274,6 +267,12 @@ function filtrarInventario() {
     const filtroEstadoStock = document.getElementById('filtroEstadoStock')?.value || '';
     const filtroVisibilidad = document.getElementById('filtroVisibilidad')?.value || '';
     
+    console.log('🔍 Aplicando filtros:', {
+        categoria: filtroCategoria,
+        estadoStock: filtroEstadoStock,
+        visibilidad: filtroVisibilidad
+    });
+    
     let inventarioFiltrado = [...inventarioData];
     
     if (filtroCategoria) {
@@ -296,6 +295,7 @@ function filtrarInventario() {
         });
     }
     
+    console.log('📊 Resultados del filtro:', inventarioFiltrado.length, 'insumos');
     renderizarInventarioFiltrado(inventarioFiltrado);
 }
 
@@ -760,7 +760,19 @@ async function confirmarEdicionInsumo() {
         
         showNotificationInventario(`Insumo "${nombre}" actualizado exitosamente`, 'success');
         cerrarModalEditarInsumo();
+        
+        // 🔄 ACTUALIZACIÓN CRÍTICA: Recargar datos y re-aplicar filtros
         await cargarDatosInventario();
+        
+        // Obtener filtros actuales y re-aplicarlos
+        const filtroCategoria = document.getElementById('filtroCategoria')?.value || '';
+        const filtroEstadoStock = document.getElementById('filtroEstadoStock')?.value || '';
+        const filtroVisibilidad = document.getElementById('filtroVisibilidad')?.value || '';
+        
+        // Si hay filtros activos, re-aplicarlos
+        if (filtroCategoria || filtroEstadoStock || filtroVisibilidad) {
+            filtrarInventario();
+        }
         
     } catch (error) {
         console.error('Error editando insumo:', error);
