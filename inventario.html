@@ -33,10 +33,10 @@
 
 <body>
     <!-- Header Admin se carga aquí -->
-    <div id="headerAdmin-container"></div>
+    <div id="header-container"></div>
 
     <main class="main-content admin-content">
-        
+
         <!-- Header de Inventario -->
         <section class="inventario-header">
             <div class="container">
@@ -44,7 +44,7 @@
                     <h1>📦 Gestión de Inventario</h1>
                     <p>Control y administración del stock de insumos</p>
                 </div>
-                
+
                 <div class="inventario-stats">
                     <div class="stat-item">
                         <span class="stat-number" id="totalInsumos">0</span>
@@ -81,14 +81,14 @@
         <section class="inventario-controls">
             <div class="container">
                 <div class="controls-wrapper">
-                    
+
                     <!-- Filtros -->
                     <div class="filtros-inventario">
                         <select id="filtroCategoria" onchange="filtrarInventario()">
                             <option value="">📂 Todas las categorías</option>
                             <!-- Se cargan dinámicamente -->
                         </select>
-                        
+
                         <select id="filtroEstadoStock" onchange="filtrarInventario()">
                             <option value="">📊 Todos los estados</option>
                             <option value="critico">🔴 Stock Crítico</option>
@@ -120,7 +120,7 @@
                             📊 Exportar
                         </button>
                     </div>
-                    
+
                 </div>
             </div>
         </section>
@@ -128,7 +128,7 @@
         <!-- Lista Principal de Inventario -->
         <section class="inventario-lista">
             <div class="container">
-                
+
                 <!-- Estado de carga -->
                 <div id="loadingInventario" class="loading-admin" style="display: none;">
                     <div class="loading-spinner"></div>
@@ -177,7 +177,7 @@
                         Ver Historial Completo
                     </button>
                 </div>
-                
+
                 <div class="movimientos-container" id="movimientosRecientes">
                     <!-- Se cargan dinámicamente -->
                 </div>
@@ -198,7 +198,7 @@
             </div>
             <div class="modal-body">
                 <form id="nuevoInsumoForm" class="restock-form">
-                    
+
                     <!-- Información básica -->
                     <div class="form-group">
                         <label for="nombreInsumo">Nombre del insumo *</label>
@@ -207,7 +207,8 @@
 
                     <div class="form-group">
                         <label for="descripcionInsumo">Descripción</label>
-                        <textarea id="descripcionInsumo" rows="2" placeholder="Descripción opcional del insumo"></textarea>
+                        <textarea id="descripcionInsumo" rows="2"
+                            placeholder="Descripción opcional del insumo"></textarea>
                     </div>
 
                     <div class="field-row">
@@ -253,18 +254,19 @@
                         <select id="visibilidadInsumo" required>
                             <option value="todos">👥 Visible para todos los usuarios</option>
                             <option value="solo_direccion">🏢 Solo visible para Dirección Jurídica</option>
-                            <option value="ninguno">🚫 No visible (solo administradores)</option>
+                            <!-- "ninguno" se mapeará a "todos" en el código -->
                         </select>
                         <small>Controla qué usuarios pueden ver este insumo al hacer solicitudes</small>
-                    </div>
+                    </div>v>
 
                 </form>
-                
+
                 <div class="modal-actions">
                     <button type="button" class="btn-admin-secondary" onclick="cerrarModalNuevoInsumo()">
                         Cancelar
                     </button>
-                    <button type="button" class="btn-admin-primary" onclick="confirmarNuevoInsumo()" id="btnConfirmarNuevoInsumo">
+                    <button type="button" class="btn-admin-primary" onclick="confirmarNuevoInsumo()"
+                        id="btnConfirmarNuevoInsumo">
                         🆕 Crear Insumo
                     </button>
                 </div>
@@ -281,7 +283,7 @@
             </div>
             <div class="modal-body">
                 <form id="restockForm" class="restock-form">
-                    
+
                     <!-- Selección de Insumo -->
                     <div class="form-group">
                         <label for="insumoSelect">Insumo a reabastecer:</label>
@@ -290,7 +292,7 @@
                             <!-- Se cargan dinámicamente -->
                         </select>
                     </div>
-                    
+
                     <!-- Información actual del insumo -->
                     <div class="insumo-info-card" id="insumoInfoCard" style="display: none;">
                         <div class="info-grid">
@@ -316,13 +318,8 @@
                     <!-- Cantidad a agregar -->
                     <div class="form-group">
                         <label for="cantidadAgregar">Cantidad a agregar:</label>
-                        <input type="number" 
-                               id="cantidadAgregar" 
-                               min="1" 
-                               max="10000" 
-                               required
-                               placeholder="Ingrese cantidad..."
-                               onchange="calcularNuevoStock()">
+                        <input type="number" id="cantidadAgregar" min="1" max="10000" required
+                            placeholder="Ingrese cantidad..." onchange="calcularNuevoStock()">
                     </div>
 
                     <!-- Nuevo stock calculado -->
@@ -344,19 +341,18 @@
                     <!-- Motivo/Notas -->
                     <div class="form-group">
                         <label for="motivoRestock">Motivo/Notas:</label>
-                        <textarea id="motivoRestock" 
-                                  rows="3" 
-                                  placeholder="Describe el motivo del restock..."
-                                  maxlength="500"></textarea>
+                        <textarea id="motivoRestock" rows="3" placeholder="Describe el motivo del restock..."
+                            maxlength="500"></textarea>
                     </div>
 
                 </form>
-                
+
                 <div class="modal-actions">
                     <button type="button" class="btn-admin-secondary" onclick="cerrarModalRestock()">
                         Cancelar
                     </button>
-                    <button type="button" class="btn-admin-primary" onclick="confirmarRestock()" id="btnConfirmarRestock">
+                    <button type="button" class="btn-admin-primary" onclick="confirmarRestock()"
+                        id="btnConfirmarRestock">
                         ➕ Agregar Stock
                     </button>
                 </div>
@@ -374,7 +370,7 @@
             <div class="modal-body">
                 <form id="editarInsumoForm" class="restock-form">
                     <input type="hidden" id="editarInsumoId">
-                    
+
                     <!-- Información básica -->
                     <div class="form-group">
                         <label for="editarNombre">Nombre del insumo *</label>
@@ -438,12 +434,13 @@
                     </div>
 
                 </form>
-                
+
                 <div class="modal-actions">
                     <button type="button" class="btn-admin-secondary" onclick="cerrarModalEditarInsumo()">
                         Cancelar
                     </button>
-                    <button type="button" class="btn-admin-primary" onclick="confirmarEdicionInsumo()" id="btnConfirmarEdicion">
+                    <button type="button" class="btn-admin-primary" onclick="confirmarEdicionInsumo()"
+                        id="btnConfirmarEdicion">
                         💾 Guardar Cambios
                     </button>
                 </div>
@@ -470,12 +467,35 @@
                     <input type="date" id="filtroFechaDesde" placeholder="Fecha desde">
                     <input type="date" id="filtroFechaHasta" placeholder="Fecha hasta">
                 </div>
-                
+
                 <div id="historialCompleto" class="historial-completo">
                     <!-- Se carga dinámicamente -->
                 </div>
             </div>
         </div>
+    </div>
+
+
+    <!-- En el modal de nuevo insumo -->
+    <div class="form-group">
+        <label for="visibilidadInsumo">Visibilidad para usuarios *</label>
+        <select id="visibilidadInsumo" required>
+            <option value="todos">👥 Visible para todos los usuarios</option>
+            <option value="solo_direccion">🏢 Solo visible para Dirección Jurídica</option>
+            <option value="ninguno">🚫 No visible (solo administradores)</option>
+        </select>
+        <small>Controla qué usuarios pueden ver este insumo al hacer solicitudes</small>
+    </div>
+
+    <!-- En el modal de edición -->
+    <div class="form-group">
+        <label for="editarVisibilidad">Visibilidad para usuarios *</label>
+        <select id="editarVisibilidad" required>
+            <option value="todos">👥 Visible para todos los usuarios</option>
+            <option value="solo_direccion">🏢 Solo visible para Dirección Jurídica</option>
+            <option value="ninguno">🚫 No visible (solo administradores)</option>
+        </select>
+        <small>Controla qué usuarios pueden ver este insumo al hacer solicitudes</small>
     </div>
 
     <!-- Scripts necesarios -->
@@ -484,4 +504,5 @@
     <script src="js/inventario.js"></script>
 
 </body>
+
 </html>

@@ -2763,6 +2763,12 @@
     border-color: #ddd;
 }
 
+.visibilidad-ninguno {
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */
