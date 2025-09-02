@@ -10,7 +10,10 @@ let movimientosData = [];
 let currentSuperAdmin = null;
 
 // Configuración Supabase - Usar la instancia global ya creada
-const supabaseInventario = window.supabase || supabase;
+const SUPABASE_URL = 'https://nxuvisaibpmdvraybzbm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXZpc2FpYnBtZHZyYXliemJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTMxNjQsImV4cCI6MjA3MTQ2OTE2NH0.OybYM_E3mWsZym7mEf-NiRtrG0svkylXx_q8Tivonfg';
+
+const supabaseAdmin = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===================================
 // INICIALIZACIÓN DEL SISTEMA
