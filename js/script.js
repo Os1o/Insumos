@@ -916,6 +916,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Verificar que los contenedores existan
     const headerContainer = document.getElementById('header-container');
+    const headerContainer2 = document.getElementById('header-container2');
     const footerContainer = document.getElementById('footer-container');
 
     console.log('Header container:', headerContainer ? '✅ Encontrado' : '❌ No encontrado');
@@ -931,11 +932,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         // Cargar componentes del sistema con timeout
         const headerPromise = loadComponent('header-container', 'includes/header.html');
+        const headerPromise2 = loadComponent('header-container2', 'includes/headerAdmin.html');
         const footerPromise = loadComponent('footer-container', 'includes/foot.html');
 
         // Esperar máximo 5 segundos por componente
         await Promise.race([
-            Promise.all([headerPromise, footerPromise]),
+            Promise.all([headerPromise, headerPromise2, footerPromise]),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
         ]);
 
@@ -1559,6 +1561,7 @@ function debugInfo() {
     console.log('📁 Ubicación base:', window.location.origin);
     console.log('🔍 Contenedores DOM:');
     console.log('  - Header container:', document.getElementById('header-container') ? '✅' : '❌');
+    console.log('  - Header container 2:', document.getElementById('header-container2') ? '✅' : '❌');
     console.log('  - Footer container:', document.getElementById('footer-container') ? '✅' : '❌');
     console.log('📊 Datos:');
     console.log('  - Solicitudes:', solicitudes.length);
@@ -1573,6 +1576,7 @@ function debugInfo() {
 function forceReloadComponents() {
     console.log('🔄 Forzando recarga de componentes...');
     loadComponent('header-container', 'includes/header.html');
+    loadComponent('header-container2', 'includes/headerAdmin.html');
     loadComponent('footer-container', 'includes/footer.html');
 }
 
