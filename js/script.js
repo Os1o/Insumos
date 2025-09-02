@@ -266,7 +266,7 @@ function agregarAlCarrito(insumoId) {
 }
 
 // Actualizar vista del carrito
-function actualizarVistaCarrito() {
+/*function actualizarVistaCarrito() {
     const container = document.getElementById('carritoItems');
     const count = document.getElementById('carritoCount');
 
@@ -291,6 +291,40 @@ function actualizarVistaCarrito() {
     container.innerHTML = html;
     count.textContent = carritoItems.length;
     document.getElementById('btnEnviar').disabled = false;
+}*/
+// Actualizar vista del carrito
+function actualizarVistaCarrito() {
+    const container = document.getElementById('carritoItems');
+    const count = document.getElementById('carritoCount');
+    const btnEnviar = document.getElementById('btnEnviar');
+
+    // Verificar que los elementos existan antes de usarlos
+    if (!container || !count || !btnEnviar) {
+        console.log('Elementos del carrito no disponibles (modal probablemente cerrado)');
+        return; // Salir silenciosamente si el modal no está abierto
+    }
+
+    if (carritoItems.length === 0) {
+        container.innerHTML = '<p class="carrito-vacio">Agrega insumos a tu carrito</p>';
+        count.textContent = '0';
+        btnEnviar.disabled = true;
+        return;
+    }
+
+    let html = '';
+    carritoItems.forEach((item, index) => {
+        html += `
+            <div class="carrito-item">
+                <span class="item-nombre">${item.nombre}</span>
+                <span class="item-cantidad">${item.cantidad} ${item.unidad_medida}</span>
+                <button class="btn-remove" onclick="removerDelCarrito(${index})">×</button>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    count.textContent = carritoItems.length;
+    btnEnviar.disabled = false;
 }
 
 
