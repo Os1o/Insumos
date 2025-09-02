@@ -18,8 +18,8 @@
 
             try {
                 const user = JSON.parse(session);
-                if (user.rol !== 'super_admin') {
-                    alert('Solo los Super Administradores pueden acceder al inventario');
+                if (user.rol !== 'super_admin' && user.rol !== 'admin') {
+                    alert('Solo los Administradores pueden acceder al inventario');
                     window.location.replace('/admin.html');
                     return;
                 }
