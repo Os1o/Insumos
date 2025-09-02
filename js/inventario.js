@@ -3,17 +3,17 @@
    Gestión completa de stock, restock y reportes
    =================================== */
 
-// Variables globales del inventario
+// Variables globales
 let inventarioData = [];
 let categoriasData = [];
 let movimientosData = [];
 let currentSuperAdmin = null;
 
-// Configuración Supabase - Usar la instancia global ya creada
-const SUPABASE_URL = 'https://nxuvisaibpmdvraybzbm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXZpc2FpYnBtZHZyYXliemJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTMxNjQsImV4cCI6MjA3MTQ2OTE2NH0.OybYM_E3mWsZym7mEf-NiRtrG0svkylXx_q8Tivonfg';
-
-const supabaseAdmin = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Configuración Supabase - INICIALIZACIÓN INMEDIATA
+const supabaseInventario = window.supabase.createClient(
+    'https://nxuvisaibpmdvraybzbm.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dXZpc2FpYnBtZHZyYXliemJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4OTMxNjQsImV4cCI6MjA3MTQ2OTE2NH0.OybYM_E3mWsZym7mEf-NiRtrG0svkylXx_q8Tivonfg'
+);
 
 // ===================================
 // INICIALIZACIÓN DEL SISTEMA
@@ -63,12 +63,14 @@ function verificarPermisosSuperAdmin() {
 }
 
 // ===================================
-// CARGA DE DATOS
+// CARGA DE DATOS (CORREGIDA)
 // ===================================
 
 async function cargarDatosInventario() {
     try {
         mostrarLoadingInventario(true);
+        
+        console.log('📦 Cargando datos de inventario...');
         
         // Cargar inventario con categorías
         const { data: inventario, error: invError } = await supabaseInventario
@@ -79,7 +81,10 @@ async function cargarDatosInventario() {
             `)
             .order('nombre');
         
-        if (invError) throw invError;
+        if (invError) {
+            console.error('Error cargando insumos:', invError);
+            throw invError;
+        }
         
         // Cargar categorías
         const { data: categorias, error: catError } = await supabaseInventario
@@ -88,10 +93,16 @@ async function cargarDatosInventario() {
             .eq('activo', true)
             .order('orden');
         
-        if (catError) throw catError;
+        if (catError) {
+            console.error('Error cargando categorías:', catError);
+            throw catError;
+        }
         
         inventarioData = inventario || [];
         categoriasData = categorias || [];
+        
+        console.log(`✅ ${inventarioData.length} insumos cargados`);
+        console.log(`✅ ${categoriasData.length} categorías cargadas`);
         
         // Renderizar datos
         await renderizarInventario();
@@ -107,7 +118,6 @@ async function cargarDatosInventario() {
         mostrarLoadingInventario(false);
     }
 }
-
 // ===================================
 // RENDERIZADO DE INVENTARIO
 // ===================================
