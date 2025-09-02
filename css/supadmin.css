@@ -2663,7 +2663,105 @@
     margin-top: 1rem;
 }
 
+/* ===================================
+   ESTILOS ESPECÍFICOS PARA INVENTARIO - MODIFICADOS
+   =================================== */
 
+/* Indicadores de visibilidad */
+.visibilidad-todos {
+    background: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.visibilidad-solo_direccion {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.visibilidad-ninguno {
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.visibilidad-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Campos en fila para formularios */
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .field-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mejoras en la tabla de inventario */
+.inventario-table th:nth-child(1) { width: 25%; } /* Insumo */
+.inventario-table th:nth-child(2) { width: 15%; } /* Categoría */
+.inventario-table th:nth-child(3) { width: 10%; } /* Stock */
+.inventario-table th:nth-child(4) { width: 10%; } /* Mínimo */
+.inventario-table th:nth-child(5) { width: 12%; } /* Estado */
+.inventario-table th:nth-child(6) { width: 10%; } /* Unidad */
+.inventario-table th:nth-child(7) { width: 10%; } /* Visibilidad */
+.inventario-table th:nth-child(8) { width: 8%; }  /* Acciones */
+
+/* Filtro de visibilidad */
+.filtros-inventario {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filtros-inventario select {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-white);
+    color: var(--color-text-dark);
+    font-size: 1rem;
+    min-width: 180px;
+    transition: var(--transition-fast);
+}
+
+/* Texto de ayuda en formularios */
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* Estado inactivo en tabla */
+.insumo-inactivo {
+    opacity: 0.6;
+    background: #f9f9f9;
+}
+
+.insumo-inactivo td {
+    color: #999 !important;
+}
+
+.insumo-inactivo .stock-status {
+    background: #f5f5f5;
+    color: #999;
+    border-color: #ddd;
+}
 
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN

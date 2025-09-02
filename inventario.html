@@ -55,8 +55,8 @@
                         <span class="stat-label">Stock Crítico</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number" id="valorTotal">$0</span>
-                        <span class="stat-label">Valor Estimado</span>
+                        <span class="stat-number" id="totalActivos">0</span>
+                        <span class="stat-label">Insumos Activos</span>
                     </div>
                 </div>
             </div>
@@ -96,10 +96,20 @@
                             <option value="normal">🟢 Stock Normal</option>
                             <option value="alto">🔵 Stock Alto</option>
                         </select>
+
+                        <select id="filtroVisibilidad" onchange="filtrarInventario()">
+                            <option value="">👁️ Todos</option>
+                            <option value="todos">👥 Todos los usuarios</option>
+                            <option value="solo_direccion">🏢 Solo Dirección</option>
+                            <option value="ninguno">🚫 No visible</option>
+                        </select>
                     </div>
 
                     <!-- Acciones -->
                     <div class="acciones-inventario">
+                        <button class="btn-admin-primary" onclick="abrirModalNuevoInsumo()">
+                            🆕 Nuevo Insumo
+                        </button>
                         <button class="btn-admin-primary" onclick="abrirModalRestock()">
                             ➕ Agregar Stock
                         </button>
@@ -136,7 +146,7 @@
                                 <th>Stock Mínimo</th>
                                 <th>Estado</th>
                                 <th>Unidad</th>
-                                <th>Valor Unit.</th>
+                                <th>Visibilidad</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -179,6 +189,89 @@
     <!-- Footer se carga dinámicamente -->
     <div id="footer-container"></div>
 
+    <!-- Modal de Nuevo Insumo -->
+    <div id="nuevoInsumoModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content restock-modal">
+            <div class="modal-header">
+                <h3>🆕 Nuevo Insumo</h3>
+                <button class="modal-close" onclick="cerrarModalNuevoInsumo()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="nuevoInsumoForm" class="restock-form">
+                    
+                    <!-- Información básica -->
+                    <div class="form-group">
+                        <label for="nombreInsumo">Nombre del insumo *</label>
+                        <input type="text" id="nombreInsumo" required placeholder="Ej: Hojas blancas tamaño carta">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descripcionInsumo">Descripción</label>
+                        <textarea id="descripcionInsumo" rows="2" placeholder="Descripción opcional del insumo"></textarea>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="categoriaInsumo">Categoría *</label>
+                            <select id="categoriaInsumo" required>
+                                <option value="">Seleccionar categoría...</option>
+                                <!-- Se cargan dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="unidadInsumo">Unidad de medida *</label>
+                            <select id="unidadInsumo" required>
+                                <option value="">Seleccionar unidad...</option>
+                                <option value="pieza">Pieza</option>
+                                <option value="caja">Caja</option>
+                                <option value="paquete">Paquete</option>
+                                <option value="resma">Resma</option>
+                                <option value="litro">Litro</option>
+                                <option value="metro">Metro</option>
+                                <option value="rollo">Rollo</option>
+                                <option value="juego">Juego</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="stockInicial">Stock inicial</label>
+                            <input type="number" id="stockInicial" min="0" value="0" placeholder="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stockMinimo">Stock mínimo de alerta *</label>
+                            <input type="number" id="stockMinimo" min="1" required placeholder="5" value="5">
+                        </div>
+                    </div>
+
+                    <!-- Control de visibilidad -->
+                    <div class="form-group">
+                        <label for="visibilidadInsumo">Visibilidad para usuarios *</label>
+                        <select id="visibilidadInsumo" required>
+                            <option value="todos">👥 Visible para todos los usuarios</option>
+                            <option value="solo_direccion">🏢 Solo visible para Dirección Jurídica</option>
+                            <option value="ninguno">🚫 No visible (solo administradores)</option>
+                        </select>
+                        <small>Controla qué usuarios pueden ver este insumo al hacer solicitudes</small>
+                    </div>
+
+                </form>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-admin-secondary" onclick="cerrarModalNuevoInsumo()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-admin-primary" onclick="confirmarNuevoInsumo()" id="btnConfirmarNuevoInsumo">
+                        🆕 Crear Insumo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Restock -->
     <div id="restockModal" class="modal-overlay" style="display: none;">
         <div class="modal-content restock-modal">
@@ -212,6 +305,10 @@
                             <div class="info-item">
                                 <span class="info-label">Unidad:</span>
                                 <span class="info-value" id="unidadMedida">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Visibilidad:</span>
+                                <span class="info-value" id="visibilidadActual">-</span>
                             </div>
                         </div>
                     </div>
@@ -261,6 +358,93 @@
                     </button>
                     <button type="button" class="btn-admin-primary" onclick="confirmarRestock()" id="btnConfirmarRestock">
                         ➕ Agregar Stock
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edición de Insumo -->
+    <div id="editarInsumoModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content restock-modal">
+            <div class="modal-header">
+                <h3>✏️ Editar Insumo</h3>
+                <button class="modal-close" onclick="cerrarModalEditarInsumo()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editarInsumoForm" class="restock-form">
+                    <input type="hidden" id="editarInsumoId">
+                    
+                    <!-- Información básica -->
+                    <div class="form-group">
+                        <label for="editarNombre">Nombre del insumo *</label>
+                        <input type="text" id="editarNombre" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editarDescripcion">Descripción</label>
+                        <textarea id="editarDescripcion" rows="2"></textarea>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="editarCategoria">Categoría *</label>
+                            <select id="editarCategoria" required>
+                                <option value="">Seleccionar categoría...</option>
+                                <!-- Se cargan dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editarUnidad">Unidad de medida *</label>
+                            <select id="editarUnidad" required>
+                                <option value="">Seleccionar unidad...</option>
+                                <option value="pieza">Pieza</option>
+                                <option value="caja">Caja</option>
+                                <option value="paquete">Paquete</option>
+                                <option value="resma">Resma</option>
+                                <option value="litro">Litro</option>
+                                <option value="metro">Metro</option>
+                                <option value="rollo">Rollo</option>
+                                <option value="juego">Juego</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="editarStockMinimo">Stock mínimo de alerta *</label>
+                            <input type="number" id="editarStockMinimo" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editarActivo">Estado</label>
+                            <select id="editarActivo">
+                                <option value="true">✅ Activo</option>
+                                <option value="false">❌ Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Control de visibilidad -->
+                    <div class="form-group">
+                        <label for="editarVisibilidad">Visibilidad para usuarios *</label>
+                        <select id="editarVisibilidad" required>
+                            <option value="todos">👥 Visible para todos los usuarios</option>
+                            <option value="solo_direccion">🏢 Solo visible para Dirección Jurídica</option>
+                            <option value="ninguno">🚫 No visible (solo administradores)</option>
+                        </select>
+                        <small>Controla qué usuarios pueden ver este insumo al hacer solicitudes</small>
+                    </div>
+
+                </form>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-admin-secondary" onclick="cerrarModalEditarInsumo()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-admin-primary" onclick="confirmarEdicionInsumo()" id="btnConfirmarEdicion">
+                        💾 Guardar Cambios
                     </button>
                 </div>
             </div>

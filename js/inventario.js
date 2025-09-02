@@ -940,6 +940,276 @@ function configurarEventListeners() {
     }
 }
 
+
+
+// ===================================
+// GESTIÓN DE NUEVOS INSUMOS
+// ===================================
+
+function abrirModalNuevoInsumo() {
+    // Cargar categorías en el select
+    cargarCategoriasEnSelect('categoriaInsumo');
+    
+    document.getElementById('nuevoInsumoModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalNuevoInsumo() {
+    document.getElementById('nuevoInsumoModal').style.display = 'none';
+    document.body.style.overflow = '';
+    
+    // Limpiar formulario
+    document.getElementById('nuevoInsumoForm').reset();
+}
+
+async function confirmarNuevoInsumo() {
+    try {
+        const nombre = document.getElementById('nombreInsumo').value.trim();
+        const descripcion = document.getElementById('descripcionInsumo').value.trim();
+        const categoriaId = document.getElementById('categoriaInsumo').value;
+        const unidad = document.getElementById('unidadInsumo').value;
+        const stockInicial = parseInt(document.getElementById('stockInicial').value) || 0;
+        const stockMinimo = parseInt(document.getElementById('stockMinimo').value);
+        const visibilidad = document.getElementById('visibilidadInsumo').value;
+        
+        // Validaciones
+        if (!nombre || !categoriaId || !unidad || !stockMinimo) {
+            showNotificationInventario('Completa todos los campos obligatorios', 'warning');
+            return;
+        }
+        
+        if (stockMinimo < 1) {
+            showNotificationInventario('El stock mínimo debe ser al menos 1', 'warning');
+            return;
+        }
+        
+        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
+        btnConfirmar.disabled = true;
+        btnConfirmar.innerHTML = '⏳ Creando...';
+        
+        // Crear nuevo insumo
+        const { data: nuevoInsumo, error } = await supabaseInventario
+            .from('insumos')
+            .insert({
+                nombre: nombre,
+                descripcion: descripcion || null,
+                categoria_id: categoriaId,
+                unidad_medida: unidad,
+                stock_actual: stockInicial,
+                cantidad_warning: stockMinimo,
+                visibilidad: visibilidad,
+                activo: true
+            })
+            .select()
+            .single();
+        
+        if (error) throw error;
+        
+        // Registrar movimiento inicial si hay stock
+        if (stockInicial > 0) {
+            await supabaseInventario
+                .from('inventario_movimientos')
+                .insert({
+                    insumo_id: nuevoInsumo.id,
+                    tipo_movimiento: 'restock',
+                    cantidad: stockInicial,
+                    stock_anterior: 0,
+                    stock_nuevo: stockInicial,
+                    motivo: 'Stock inicial al crear insumo',
+                    admin_id: currentSuperAdmin.id
+                });
+        }
+        
+        showNotificationInventario(`Insumo "${nombre}" creado exitosamente`, 'success');
+        cerrarModalNuevoInsumo();
+        await cargarDatosInventario(); // Recargar datos
+        
+    } catch (error) {
+        console.error('Error creando insumo:', error);
+        showNotificationInventario('Error al crear el insumo', 'error');
+        
+        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerHTML = '🆕 Crear Insumo';
+    }
+}
+
+// ===================================
+// GESTIÓN DE EDICIÓN DE INSUMOS
+// ===================================
+
+async function editarInsumo(insumoId) {
+    try {
+        const insumo = inventarioData.find(i => i.id === insumoId);
+        if (!insumo) {
+            showNotificationInventario('Insumo no encontrado', 'error');
+            return;
+        }
+        
+        // Cargar categorías en el select
+        await cargarCategoriasEnSelect('editarCategoria');
+        
+        // Llenar formulario con datos actuales
+        document.getElementById('editarInsumoId').value = insumo.id;
+        document.getElementById('editarNombre').value = insumo.nombre;
+        document.getElementById('editarDescripcion').value = insumo.descripcion || '';
+        document.getElementById('editarCategoria').value = insumo.categoria_id;
+        document.getElementById('editarUnidad').value = insumo.unidad_medida;
+        document.getElementById('editarStockMinimo').value = insumo.cantidad_warning;
+        document.getElementById('editarVisibilidad').value = insumo.visibilidad || 'todos';
+        document.getElementById('editarActivo').value = insumo.activo.toString();
+        
+        document.getElementById('editarInsumoModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        console.error('Error preparando edición:', error);
+        showNotificationInventario('Error al cargar datos del insumo', 'error');
+    }
+}
+
+function cerrarModalEditarInsumo() {
+    document.getElementById('editarInsumoModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+async function confirmarEdicionInsumo() {
+    try {
+        const insumoId = document.getElementById('editarInsumoId').value;
+        const nombre = document.getElementById('editarNombre').value.trim();
+        const descripcion = document.getElementById('editarDescripcion').value.trim();
+        const categoriaId = document.getElementById('editarCategoria').value;
+        const unidad = document.getElementById('editarUnidad').value;
+        const stockMinimo = parseInt(document.getElementById('editarStockMinimo').value);
+        const visibilidad = document.getElementById('editarVisibilidad').value;
+        const activo = document.getElementById('editarActivo').value === 'true';
+        
+        // Validaciones
+        if (!nombre || !categoriaId || !unidad || !stockMinimo) {
+            showNotificationInventario('Completa todos los campos obligatorios', 'warning');
+            return;
+        }
+        
+        if (stockMinimo < 1) {
+            showNotificationInventario('El stock mínimo debe ser al menos 1', 'warning');
+            return;
+        }
+        
+        const btnConfirmar = document.getElementById('btnConfirmarEdicion');
+        btnConfirmar.disabled = true;
+        btnConfirmar.innerHTML = '⏳ Guardando...';
+        
+        // Actualizar insumo
+        const { error } = await supabaseInventario
+            .from('insumos')
+            .update({
+                nombre: nombre,
+                descripcion: descripcion || null,
+                categoria_id: categoriaId,
+                unidad_medida: unidad,
+                cantidad_warning: stockMinimo,
+                visibilidad: visibilidad,
+                activo: activo,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', insumoId);
+        
+        if (error) throw error;
+        
+        showNotificationInventario(`Insumo "${nombre}" actualizado exitosamente`, 'success');
+        cerrarModalEditarInsumo();
+        await cargarDatosInventario(); // Recargar datos
+        
+    } catch (error) {
+        console.error('Error editando insumo:', error);
+        showNotificationInventario('Error al actualizar el insumo', 'error');
+        
+        const btnConfirmar = document.getElementById('btnConfirmarEdicion');
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerHTML = '💾 Guardar Cambios';
+    }
+}
+
+// ===================================
+// FUNCIONES AUXILIARES
+// ===================================
+
+async function cargarCategoriasEnSelect(selectId) {
+    try {
+        const { data: categorias, error } = await supabaseInventario
+            .from('categorias_insumos')
+            .select('id, nombre')
+            .eq('activo', true)
+            .order('nombre');
+        
+        if (error) throw error;
+        
+        const select = document.getElementById(selectId);
+        let html = '<option value="">Seleccionar categoría...</option>';
+        
+        categorias.forEach(categoria => {
+            html += `<option value="${categoria.id}">${categoria.nombre}</option>`;
+        });
+        
+        select.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error cargando categorías:', error);
+    }
+}
+
+function getVisibilidadLabel(visibilidad) {
+    const labels = {
+        'todos': '👥 Todos',
+        'solo_direccion': '🏢 Solo Dirección',
+        'ninguno': '🚫 Ninguno'
+    };
+    return labels[visibilidad] || visibilidad;
+}
+
+function getVisibilidadClass(visibilidad) {
+    const classes = {
+        'todos': 'visibilidad-todos',
+        'solo_direccion': 'visibilidad-solo_direccion',
+        'ninguno': 'visibilidad-ninguno'
+    };
+    return classes[visibilidad] || '';
+}
+
+// Actualizar la función renderizarInventario para incluir visibilidad
+// (Busca la línea donde se genera cada fila de la tabla y agrega esto)
+// Dentro del forEach de inventarioData, después de la columna de unidad:
+`
+<td class="text-center">
+    <span class="visibilidad-badge ${getVisibilidadClass(item.visibilidad)}">
+        ${getVisibilidadLabel(item.visibilidad)}
+    </span>
+</td>
+`
+
+// Y actualizar actualizarInfoInsumo para mostrar visibilidad:
+function actualizarInfoInsumo() {
+    const selectInsumo = document.getElementById('insumoSelect');
+    const insumoId = selectInsumo.value;
+    
+    if (!insumoId) {
+        document.getElementById('insumoInfoCard').style.display = 'none';
+        return;
+    }
+    
+    const insumo = inventarioData.find(i => i.id == insumoId);
+    if (!insumo) return;
+    
+    document.getElementById('stockActual').textContent = insumo.stock_actual;
+    document.getElementById('stockMinimo').textContent = insumo.cantidad_warning;
+    document.getElementById('unidadMedida').textContent = insumo.unidad_medida;
+    document.getElementById('visibilidadActual').textContent = getVisibilidadLabel(insumo.visibilidad);
+    document.getElementById('insumoInfoCard').style.display = 'block';
+    
+    // Limpiar campos
+    document.getElementById('cantidadAgregar').value = '';
+    document.getElementById('nuevoStockPreview').style.display = 'none';
+}
 // ===================================
 // GENERACIÓN DE REPORTES AVANZADOS
 // ===================================
