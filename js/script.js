@@ -84,6 +84,10 @@ async function cargarDatosCarrito() {
         if (!departamentosConAccesoCompleto.includes(user.departamento)) {
             insumosQuery = insumosQuery.eq('acceso_tipo', 'todos');
         }
+        // SI ES usuario privilegiado: ver 'todos' Y 'solo_direccion', pero NO 'ninguno'
+        else {
+            insumosQuery = insumosQuery.neq('acceso_tipo', 'ninguno');
+        }
 
         const { data: insumosFromDB, error: insError } = await insumosQuery.order('nombre');
 
