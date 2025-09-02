@@ -16,8 +16,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         // 1. Cargar componentes UI
         await loadComponent('headerAdmin-container', 'includes/headerAdmin.html');
-        await loadComponent('footer-container', 'includes/footer.html');
-        
+       
         // 2. Verificar permisos
         currentSuperAdmin = verificarPermisosSuperAdmin();
         if (!currentSuperAdmin) return;
