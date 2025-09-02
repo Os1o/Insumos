@@ -572,6 +572,11 @@ async function cargarCategoriasEnSelect(selectId) {
         if (error) throw error;
         
         const select = document.getElementById(selectId);
+        if (!select) {
+            console.error('❌ Select no encontrado:', selectId);
+            return;
+        }
+        
         let html = '<option value="">Seleccionar categoría...</option>';
         
         categorias.forEach(categoria => {
@@ -582,6 +587,7 @@ async function cargarCategoriasEnSelect(selectId) {
         
     } catch (error) {
         console.error('Error cargando categorías:', error);
+        showNotificationInventario('Error cargando categorías', 'error');
     }
 }
 
@@ -664,11 +670,23 @@ async function confirmarNuevoInsumo() {
 
 async function editarInsumo(insumoId) {
     try {
-        const insumo = inventarioData.find(i => i.id === insumoId);
+        console.log('🔄 Intentando editar insumo ID:', insumoId);
+        console.log('📊 Total de insumos cargados:', inventarioData.length);
+        
+        // Mostrar todos los IDs para debug
+        console.log('📋 IDs de insumos disponibles:', inventarioData.map(i => i.id));
+        
+        // Buscar el insumo - asegurar comparación correcta
+        const insumo = inventarioData.find(i => i.id == insumoId); // == en lugar de ===
+        
         if (!insumo) {
-            showNotificationInventario('Insumo no encontrado', 'error');
+            console.error('❌ Insumo no encontrado. ID buscado:', insumoId);
+            console.error('💡 Tip: Verificar que el insumo esté en inventarioData');
+            showNotificationInventario('Insumo no encontrado en los datos cargados', 'error');
             return;
         }
+        
+        console.log('✅ Insumo encontrado:', insumo.nombre);
         
         // Cargar categorías en el select
         await cargarCategoriasEnSelect('editarCategoria');
