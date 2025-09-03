@@ -1187,3 +1187,104 @@
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px rgba(101, 113, 83, 0.1);
 }
+
+
+/* ===================================
+   FIX ESPECÍFICO: ALINEACIÓN DE HEADERS
+   Solo corrige los títulos de columnas
+   =================================== */
+
+/* 🎯 CORRECCIÓN: Headers alineados con contenido */
+.historial-header-row {
+    background: var(--color-primary) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 1rem !important;
+    border-radius: 6px 6px 0 0;
+    display: grid;
+    grid-template-columns: 
+        110px     /* Fecha - igual que contenido */
+        2.2fr     /* Insumo - más espacio */
+        100px     /* Tipo - igual que contenido */
+        80px      /* Cantidad - centrado */
+        120px     /* Stock - para "98 → 97" */
+        140px;    /* Admin - para "Super Administrador" */
+    gap: 1rem;
+    align-items: center;
+    text-align: left; /* Por defecto izquierda */
+}
+
+/* Centrar headers específicos que deben ir centrados */
+.historial-header-row > div:nth-child(4), /* Cantidad */
+.historial-header-row > div:nth-child(5)  /* Stock */ {
+    text-align: center;
+}
+
+/* 🎯 FILAS DE CONTENIDO: Mismas dimensiones que header */
+.historial-row {
+    padding: 1rem !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    display: grid;
+    grid-template-columns: 
+        110px     /* Fecha */
+        2.2fr     /* Insumo */
+        100px     /* Tipo */
+        80px      /* Cantidad */
+        120px     /* Stock */
+        140px;    /* Admin */
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+/* Alineación específica del contenido */
+.historial-fecha {
+    text-align: left;
+}
+
+.historial-insumo {
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.historial-tipo {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.historial-cantidad {
+    text-align: center; /* Centrado como el header */
+    font-weight: 700;
+}
+
+.historial-stock {
+    text-align: center; /* Centrado como el header */
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+.historial-admin {
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+/* 🎯 RESPONSIVE: Mantener alineación en pantallas menores */
+@media (max-width: 1200px) {
+    .historial-header-row,
+    .historial-row {
+        grid-template-columns: 
+            90px      /* Fecha - más pequeña */
+            2fr       /* Insumo - flexible */
+            90px      /* Tipo - más pequeña */
+            70px      /* Cantidad */
+            110px     /* Stock */
+            120px;    /* Admin */
+        gap: 0.75rem;
+        font-size: 0.85rem;
+    }
+}
