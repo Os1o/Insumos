@@ -263,6 +263,10 @@
             <div class="modal-body">
                 <!-- Selector de período -->
                 <div class="periodo-selector">
+                    <select id="tipoPeriodo" onchange="cambiarPeriodo()">
+                        <option value="mes">Un mes</option>
+                        <option value="anual">Año completo</option>
+                    </select>
                     <select id="selectorMes"></select>
                     <select id="selectorAno"></select>
                     <select id="selectorArea"></select>

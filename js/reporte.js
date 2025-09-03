@@ -554,27 +554,58 @@ function exportarReporteCompleto() {
         'Observaciones': calcularCambioSeguro(datosReporte.actual.total, datosReporte.anterior.total)
     });
     
-    datosExportacion.push({}); // Línea vacía
-    
-    // Datos por tipo
-    datosExportacion.push({ 'Sección': 'POR TIPO', 'Concepto': '', 'Valor': '', 'Observaciones': '' });
     datosExportacion.push({
         'Sección': '',
-        'Concepto': 'Ordinarias',
-        'Valor': datosReporte.actual.porTipo.ordinaria,
-        'Observaciones': calcularCambioSeguro(datosReporte.actual.porTipo.ordinaria, datosReporte.anterior.porTipo.ordinaria)
+        'Concepto': 'Tokens Usados',
+        'Valor': datosReporte.actual.tokenUsados,
+        'Observaciones': calcularCambioSeguro(datosReporte.actual.tokenUsados, datosReporte.anterior.tokenUsados)
     });
+    
     datosExportacion.push({
         'Sección': '',
-        'Concepto': 'Para Juntas',
-        'Valor': datosReporte.actual.porTipo.juntas,
-        'Observaciones': calcularCambioSeguro(datosReporte.actual.porTipo.juntas, datosReporte.anterior.porTipo.juntas)
+        'Concepto': 'Solicitudes Cerradas',
+        'Valor': datosReporte.actual.porEstado.cerrado,
+        'Observaciones': calcularCambioSeguro(datosReporte.actual.porEstado.cerrado, datosReporte.anterior.porEstado.cerrado)
     });
     
     datosExportacion.push({}); // Línea vacía
     
-    // Top insumos
-    datosExportacion.push({ 'Sección': 'TOP INSUMOS', 'Concepto': '', 'Valor': '', 'Observaciones': '' });
+    // SECCIÓN DETALLADA POR ÁREAS (EN LUGAR DE TIPOS)
+    datosExportacion.push({ 
+        'Sección': 'ANÁLISIS POR ÁREA', 
+        'Concepto': '', 
+        'Valor': '', 
+        'Observaciones': '' 
+    });
+    
+    // Ordenar áreas por cantidad de solicitudes
+    const areasOrdenadas = Object.entries(datosReporte.actual.porArea)
+        .sort((a, b) => b[1] - a[1]);
+    
+    areasOrdenadas.forEach(([area, cantidad]) => {
+        const anterior = datosReporte.anterior.porArea[area] || 0;
+        const cambio = calcularCambioSeguro(cantidad, anterior);
+        const porcentaje = datosReporte.actual.total > 0 ? 
+            ((cantidad / datosReporte.actual.total) * 100).toFixed(1) + '%' : '0%';
+        
+        datosExportacion.push({
+            'Sección': '',
+            'Concepto': area,
+            'Valor': cantidad,
+            'Observaciones': `${porcentaje} del total | Cambio: ${cambio}`
+        });
+    });
+    
+    datosExportacion.push({}); // Línea vacía
+    
+    // Top insumos (mantener como estaba)
+    datosExportacion.push({ 
+        'Sección': 'INSUMOS MÁS SOLICITADOS', 
+        'Concepto': '', 
+        'Valor': '', 
+        'Observaciones': '' 
+    });
+    
     Object.entries(datosReporte.actual.insumosSolicitados)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 15)
@@ -703,4 +734,9 @@ function cerrarReportes() {
     document.body.style.overflow = '';
 }
 
+function cambiarPeriodo() {
+    const tipo = document.getElementById('tipoPeriodo').value;
+    const mesContainer = document.getElementById('selectorMes');
+    mesContainer.style.display = tipo === 'mes' ? 'block' : 'none';
+}
 console.log('Sistema de reportes cargado correctamente');
