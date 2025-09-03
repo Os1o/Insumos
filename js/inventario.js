@@ -1087,55 +1087,7 @@ function actualizarInventario() {
     showNotificationInventario('Inventario exportado exitosamente', 'success');
 }*/
 
-function exportarInventario() {
-    let rows = inventarioData.map(item => `
-        <Row>
-            <Cell><Data ss:Type="String">${item.nombre}</Data></Cell>
-            <Cell><Data ss:Type="String">${item.categorias_insumos?.nombre || 'Sin categoría'}</Data></Cell>
-            <Cell><Data ss:Type="Number">${item.stock_actual}</Data></Cell>
-            <Cell><Data ss:Type="Number">${item.cantidad_warning}</Data></Cell>
-            <Cell><Data ss:Type="String">${item.unidad_medida}</Data></Cell>
-            <Cell><Data ss:Type="String">${getVisibilidadLabel(item.acceso_tipo)}</Data></Cell>
-            <Cell><Data ss:Type="String">${getStockStatus(item.stock_actual, item.cantidad_warning)}</Data></Cell>
-            <Cell><Data ss:Type="String">${item.activo ? 'Sí' : 'No'}</Data></Cell>
-        </Row>
-    `).join("");
-
-    let xml = `
-        <?xml version="1.0"?>
-        <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-                  xmlns:o="urn:schemas-microsoft-com:office:office"
-                  xmlns:x="urn:schemas-microsoft-com:office:excel"
-                  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-            <Worksheet ss:Name="Inventario">
-                <Table>
-                    <Row>
-                        <Cell><Data ss:Type="String">Insumo</Data></Cell>
-                        <Cell><Data ss:Type="String">Categoría</Data></Cell>
-                        <Cell><Data ss:Type="String">Stock Actual</Data></Cell>
-                        <Cell><Data ss:Type="String">Stock Mínimo</Data></Cell>
-                        <Cell><Data ss:Type="String">Unidad</Data></Cell>
-                        <Cell><Data ss:Type="String">Visibilidad</Data></Cell>
-                        <Cell><Data ss:Type="String">Estado</Data></Cell>
-                        <Cell><Data ss:Type="String">Activo</Data></Cell>
-                    </Row>
-                    ${rows}
-                </Table>
-            </Worksheet>
-        </Workbook>
-    `;
-
-    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `inventario_${new Date().toISOString().split('T')[0]}.xls`;
-    link.click();
-
-    showNotificationInventario('Inventario exportado en Excel (XML) exitosamente', 'success');
-}
-
-
-function convertirACSV(data) {
+/*function convertirACSV(data) {
     if (!data || data.length === 0) return '';
     
     const headers = Object.keys(data[0]);
@@ -1152,6 +1104,102 @@ function convertirACSV(data) {
     ].join('\n');
     
     return csvContent;
+}*/
+
+function exportarInventario() {
+    // Preparar datos para exportación
+    const data = inventarioData.map(item => ({
+        'Insumo': item.nombre,
+        'Categoría': item.categorias_insumos?.nombre || 'Sin categoría',
+        'Stock Actual': item.stock_actual,
+        'Stock Mínimo': item.cantidad_warning,
+        'Unidad': item.unidad_medida,
+        'Visibilidad': getVisibilidadLabel(item.acceso_tipo),
+        'Estado': getStockStatus(item.stock_actual, item.cantidad_warning),
+        'Activo': item.activo ? 'Sí' : 'No'
+    }));
+    
+    // Convertir a Excel
+    const excelContent = convertirAExcel(data);
+    
+    // Descargar archivo
+    const blob = new Blob([excelContent], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `inventario_${new Date().toISOString().split('T')[0]}.xlsx`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotificationInventario('Inventario exportado exitosamente', 'success');
+}
+
+function convertirAExcel(data) {
+    if (!data || data.length === 0) {
+        return '<?xml version="1.0"?><ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"></ss:Workbook>';
+    }
+    
+    // Obtener encabezados
+    const headers = Object.keys(data[0]);
+    
+    // Crear el contenido XML de Excel
+    let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>' +
+        '<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' +
+        '<ss:Worksheet ss:Name="Inventario">' +
+        '<ss:Table>';
+    
+    // Agregar encabezados con estilo de negrita
+    xmlContent += '<ss:Row>';
+    headers.forEach(header => {
+        xmlContent += `<ss:Cell><ss:Data ss:Type="String">${escapeXML(header)}</ss:Data></ss:Cell>`;
+    });
+    xmlContent += '</ss:Row>';
+    
+    // Agregar datos
+    data.forEach(row => {
+        xmlContent += '<ss:Row>';
+        headers.forEach(header => {
+            const value = row[header];
+            // Determinar el tipo de dato
+            let type = 'String';
+            let cellValue = value;
+            
+            if (typeof value === 'number' || !isNaN(value)) {
+                type = 'Number';
+                cellValue = Number(value);
+            } else if (value === 'Sí' || value === 'No') {
+                type = 'String';
+                cellValue = value;
+            } else if (!isNaN(Date.parse(value))) {
+                type = 'DateTime';
+                cellValue = new Date(value).toISOString();
+            }
+            
+            xmlContent += `<ss:Cell><ss:Data ss:Type="${type}">${escapeXML(cellValue.toString())}</ss:Data></ss:Cell>`;
+        });
+        xmlContent += '</ss:Row>';
+    });
+    
+    xmlContent += '</ss:Table></ss:Worksheet></ss:Workbook>';
+    
+    return xmlContent;
+}
+
+function escapeXML(text) {
+    if (text === null || text === undefined) {
+        return '';
+    }
+    
+    return text.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
 }
 
 function ocultarAlertas() {
