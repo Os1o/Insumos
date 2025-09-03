@@ -1057,7 +1057,7 @@ function actualizarInventario() {
     cargarDatosInventario();
 }
 
-function exportarInventario() {
+/*function exportarInventario() {
     // Preparar datos para exportación
     const data = inventarioData.map(item => ({
         'Insumo': item.nombre,
@@ -1085,7 +1085,55 @@ function exportarInventario() {
     document.body.removeChild(link);
     
     showNotificationInventario('Inventario exportado exitosamente', 'success');
+}*/
+
+function exportarInventarioExcelSinLib() {
+    let rows = inventarioData.map(item => `
+        <Row>
+            <Cell><Data ss:Type="String">${item.nombre}</Data></Cell>
+            <Cell><Data ss:Type="String">${item.categorias_insumos?.nombre || 'Sin categoría'}</Data></Cell>
+            <Cell><Data ss:Type="Number">${item.stock_actual}</Data></Cell>
+            <Cell><Data ss:Type="Number">${item.cantidad_warning}</Data></Cell>
+            <Cell><Data ss:Type="String">${item.unidad_medida}</Data></Cell>
+            <Cell><Data ss:Type="String">${getVisibilidadLabel(item.acceso_tipo)}</Data></Cell>
+            <Cell><Data ss:Type="String">${getStockStatus(item.stock_actual, item.cantidad_warning)}</Data></Cell>
+            <Cell><Data ss:Type="String">${item.activo ? 'Sí' : 'No'}</Data></Cell>
+        </Row>
+    `).join("");
+
+    let xml = `
+        <?xml version="1.0"?>
+        <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+                  xmlns:o="urn:schemas-microsoft-com:office:office"
+                  xmlns:x="urn:schemas-microsoft-com:office:excel"
+                  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+            <Worksheet ss:Name="Inventario">
+                <Table>
+                    <Row>
+                        <Cell><Data ss:Type="String">Insumo</Data></Cell>
+                        <Cell><Data ss:Type="String">Categoría</Data></Cell>
+                        <Cell><Data ss:Type="String">Stock Actual</Data></Cell>
+                        <Cell><Data ss:Type="String">Stock Mínimo</Data></Cell>
+                        <Cell><Data ss:Type="String">Unidad</Data></Cell>
+                        <Cell><Data ss:Type="String">Visibilidad</Data></Cell>
+                        <Cell><Data ss:Type="String">Estado</Data></Cell>
+                        <Cell><Data ss:Type="String">Activo</Data></Cell>
+                    </Row>
+                    ${rows}
+                </Table>
+            </Worksheet>
+        </Workbook>
+    `;
+
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `inventario_${new Date().toISOString().split('T')[0]}.xls`;
+    link.click();
+
+    showNotificationInventario('Inventario exportado en Excel (XML) exitosamente', 'success');
 }
+
 
 function convertirACSV(data) {
     if (!data || data.length === 0) return '';
