@@ -2004,6 +2004,21 @@
     grid-template-columns: 2fr 120px 120px; /* Anchos fijos para columnas numéricas */
     gap: 1rem;
 }
+
+.periodo-selector {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap; /* Para que se adapte en pantallas pequeñas */
+}
+
+.filtro-activo {
+    color: var(--color-primary);
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    background: rgba(101, 113, 83, 0.1);
+    border-radius: 4px;
+}
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */
