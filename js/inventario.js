@@ -1119,17 +1119,17 @@ function exportarInventario() {
         'Activo': item.activo ? 'Sí' : 'No'
     }));
     
-    // Convertir a Excel
-    const excelContent = convertirAExcel(data);
+    // Convertir a HTML table (compatible con Excel)
+    const htmlContent = convertirAHTML(data);
     
     // Descargar archivo
-    const blob = new Blob([excelContent], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    const blob = new Blob([htmlContent], { 
+        type: 'application/vnd.ms-excel' 
     });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `inventario_${new Date().toISOString().split('T')[0]}.xlsx`);
+    link.setAttribute('download', `inventario_${new Date().toISOString().split('T')[0]}.xls`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -1138,68 +1138,34 @@ function exportarInventario() {
     showNotificationInventario('Inventario exportado exitosamente', 'success');
 }
 
-function convertirAExcel(data) {
+function convertirAHTML(data) {
     if (!data || data.length === 0) {
-        return '<?xml version="1.0"?><ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"></ss:Workbook>';
+        return '<table></table>';
     }
     
-    // Obtener encabezados
     const headers = Object.keys(data[0]);
     
-    // Crear el contenido XML de Excel
-    let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>' +
-        '<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' +
-        '<ss:Worksheet ss:Name="Inventario">' +
-        '<ss:Table>';
+    let html = '<table border="1">';
     
-    // Agregar encabezados con estilo de negrita
-    xmlContent += '<ss:Row>';
+    // Encabezados con estilo
+    html += '<tr style="font-weight: bold; background-color: #f2f2f2;">';
     headers.forEach(header => {
-        xmlContent += `<ss:Cell><ss:Data ss:Type="String">${escapeXML(header)}</ss:Data></ss:Cell>`;
+        html += `<th>${header}</th>`;
     });
-    xmlContent += '</ss:Row>';
+    html += '</tr>';
     
-    // Agregar datos
-    data.forEach(row => {
-        xmlContent += '<ss:Row>';
+    // Datos
+    data.forEach((row, index) => {
+        const bgColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9';
+        html += `<tr style="background-color: ${bgColor}">`;
         headers.forEach(header => {
-            const value = row[header];
-            // Determinar el tipo de dato
-            let type = 'String';
-            let cellValue = value;
-            
-            if (typeof value === 'number' || !isNaN(value)) {
-                type = 'Number';
-                cellValue = Number(value);
-            } else if (value === 'Sí' || value === 'No') {
-                type = 'String';
-                cellValue = value;
-            } else if (!isNaN(Date.parse(value))) {
-                type = 'DateTime';
-                cellValue = new Date(value).toISOString();
-            }
-            
-            xmlContent += `<ss:Cell><ss:Data ss:Type="${type}">${escapeXML(cellValue.toString())}</ss:Data></ss:Cell>`;
+            html += `<td>${row[header]}</td>`;
         });
-        xmlContent += '</ss:Row>';
+        html += '</tr>';
     });
     
-    xmlContent += '</ss:Table></ss:Worksheet></ss:Workbook>';
-    
-    return xmlContent;
-}
-
-function escapeXML(text) {
-    if (text === null || text === undefined) {
-        return '';
-    }
-    
-    return text.toString()
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
+    html += '</table>';
+    return html;
 }
 
 function ocultarAlertas() {
