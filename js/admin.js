@@ -790,7 +790,7 @@ async function renderizarReporteCompleto() {
                     <span class="stat-label">Total Solicitudes</span>
                     <span class="stat-actual">${reporteData.actual.totalSolicitudes}</span>
                     <span class="stat-change ${getChangeClass(reporteData.actual.totalSolicitudes, reporteData.anterior.totalSolicitudes)}">
-                        ${calcularCambioMejorado(reporteData.actual.totalSolicitudes, reporteData.anterior.totalSolicitudes)}
+                        ${calcularCambio(reporteData.actual.totalSolicitudes, reporteData.anterior.totalSolicitudes)}
                     </span>
                 </div>
             </div>
