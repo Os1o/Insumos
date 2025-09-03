@@ -1193,6 +1193,11 @@
    FIX ESPECÍFICO: ALINEACIÓN DE HEADERS
    Solo corrige los títulos de columnas
    =================================== */
+.historial-grid {
+    display: grid;
+    grid-template-columns: 110px 2fr 100px 80px 120px 160px;
+    gap: 1rem;
+}
 
 /* 🎯 CORRECCIÓN: Headers alineados con contenido */
 .historial-header-row {

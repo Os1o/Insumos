@@ -934,7 +934,7 @@ async function cargarHistorialCompleto() {
     }
 }
 
-function renderizarHistorialCompleto(movimientos) {
+/*function renderizarHistorialCompleto(movimientos) {
     const container = document.getElementById('historialCompleto');
     if (!container) return;
     
@@ -976,7 +976,56 @@ function renderizarHistorialCompleto(movimientos) {
     
     html += '</div>';
     container.innerHTML = html;
+}*/
+
+
+function renderizarHistorialCompleto(movimientos) {
+    const container = document.getElementById('historialCompleto');
+    if (!container) return;
+
+    if (movimientos.length === 0) {
+        container.innerHTML = '<p class="text-center">No se encontraron movimientos con los filtros aplicados</p>';
+        return;
+    }
+
+    let html = '<div class="historial-tabla">';
+
+    // Header con la clase compartida
+    html += `
+        <div class="historial-header-row historial-grid">
+            <div>Fecha</div>
+            <div>Insumo</div>
+            <div>Tipo</div>
+            <div>Cantidad</div>
+            <div>Stock</div>
+            <div>Admin</div>
+        </div>
+    `;
+
+    // Filas con la misma grilla
+    movimientos.forEach(mov => {
+        const tipoIcon = getTipoMovimientoIcon(mov.tipo_movimiento);
+        const cantidad = mov.tipo_movimiento === 'entrega' ? mov.cantidad : Math.abs(mov.cantidad);
+        const signo = mov.cantidad > 0 ? '+' : '';
+
+        html += `
+            <div class="historial-row historial-grid">
+                <div class="historial-fecha">${new Date(mov.fecha).toLocaleDateString()}</div>
+                <div class="historial-insumo">${mov.insumos?.nombre || 'N/A'}</div>
+                <div class="historial-tipo">${tipoIcon} ${getTipoMovimientoLabel(mov.tipo_movimiento)}</div>
+                <div class="historial-cantidad ${mov.cantidad > 0 ? 'positivo' : 'negativo'}">
+                    ${signo}${cantidad}
+                </div>
+                <div class="historial-stock">${mov.stock_anterior} → ${mov.stock_nuevo}</div>
+                <div class="historial-admin">${mov.usuarios?.nombre || 'Sistema'}</div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
 }
+
 
 function cerrarHistorialModal() {
     document.getElementById('historialModal').style.display = 'none';
