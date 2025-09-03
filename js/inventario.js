@@ -1057,55 +1057,6 @@ function actualizarInventario() {
     cargarDatosInventario();
 }
 
-/*function exportarInventario() {
-    // Preparar datos para exportación
-    const data = inventarioData.map(item => ({
-        'Insumo': item.nombre,
-        'Categoría': item.categorias_insumos?.nombre || 'Sin categoría',
-        'Stock Actual': item.stock_actual,
-        'Stock Mínimo': item.cantidad_warning,
-        'Unidad': item.unidad_medida,
-        'Visibilidad': getVisibilidadLabel(item.acceso_tipo),
-        'Estado': getStockStatus(item.stock_actual, item.cantidad_warning),
-        'Activo': item.activo ? 'Sí' : 'No'
-    }));
-    
-    // Convertir a CSV
-    const csv = convertirACSV(data);
-    
-    // Descargar archivo
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `inventario_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showNotificationInventario('Inventario exportado exitosamente', 'success');
-}*/
-
-/*function convertirACSV(data) {
-    if (!data || data.length === 0) return '';
-    
-    const headers = Object.keys(data[0]);
-    const csvContent = [
-        headers.join(','),
-        ...data.map(row => headers.map(header => {
-            const value = row[header];
-            // Escapar comillas y agregar comillas si contiene coma
-            if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-                return `"${value.replace(/"/g, '""')}"`;
-            }
-            return value;
-        }).join(','))
-    ].join('\n');
-    
-    return csvContent;
-}*/
-
 
 function exportarInventario() {
     // Preparar datos para exportación
