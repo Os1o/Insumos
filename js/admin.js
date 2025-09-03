@@ -623,15 +623,64 @@ async function cargarAreasDisponibles() {
     }
 }
 
+
+// Fix 1: Función faltante obtenerNombreMes
+function obtenerNombreMes(numeroMes) {
+    const meses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return meses[numeroMes - 1] || 'Mes inválido';
+}
+
+
+function getEmptyReporteData() {
+    return {
+        totalSolicitudes: 0,
+        solicitudesPorArea: {},
+        solicitudesPorTipo: {
+            'ordinaria': 0,
+            'juntas': 0
+        },
+        solicitudesPorEstado: {
+            'pendiente': 0,
+            'en_revision': 0,
+            'cerrado': 0,
+            'cancelado': 0
+        },
+        insumosMasSolicitados: {},
+        categoriasMasSolicitadas: {}
+    };
+}
+
+
 // Modificar la función obtenerDatosReporte() existente
 async function obtenerDatosReporte(mes, ano, areaFiltro = '') {
     try {
-        // Fechas del mes
-        const fechaInicio = `${ano}-${mes.toString().padStart(2, '0')}-01`;
-        const fechaFin = new Date(ano, mes, 0).toISOString().split('T')[0];
+        // Validar parámetros de entrada
+        if (!mes || !ano || mes < 1 || mes > 12) {
+            console.error('Parámetros de fecha inválidos:', { mes, ano });
+            return getEmptyReporteData();
+        }
         
-        // Query base
-        let query = supabaseAdmin
+        // Crear fechas de forma segura
+        const fechaInicio = new Date(ano, mes - 1, 1); // mes-1 porque Date usa 0-11
+        const fechaFin = new Date(ano, mes, 0); // Último día del mes
+        
+        // Validar que las fechas se crearon correctamente
+        if (isNaN(fechaInicio.getTime()) || isNaN(fechaFin.getTime())) {
+            console.error('Error creando fechas:', { mes, ano });
+            return getEmptyReporteData();
+        }
+        
+        // Convertir a strings ISO de forma segura
+        const fechaInicioISO = fechaInicio.toISOString().split('T')[0];
+        const fechaFinISO = fechaFin.toISOString().split('T')[0];
+        
+        console.log('Consultando reporte para:', { fechaInicioISO, fechaFinISO, areaFiltro });
+        
+        // Query a Supabase
+        const { data: solicitudes, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
                 *,
@@ -641,31 +690,30 @@ async function obtenerDatosReporte(mes, ano, areaFiltro = '') {
                     insumos(nombre, categoria_id, categorias_insumos(nombre))
                 )
             `)
-            .gte('fecha_solicitud', fechaInicio + 'T00:00:00')
-            .lte('fecha_solicitud', fechaFin + 'T23:59:59');
+            .gte('fecha_solicitud', fechaInicioISO + 'T00:00:00')
+            .lte('fecha_solicitud', fechaFinISO + 'T23:59:59');
         
-        const { data: solicitudes, error } = await query;
-        if (error) throw error;
+        if (error) {
+            console.error('Error en query Supabase:', error);
+            throw error;
+        }
         
-        // Filtrar por área después de la consulta (más flexible)
+        console.log('Solicitudes obtenidas:', solicitudes?.length || 0);
+        
+        // Filtrar por área después de la consulta
         let solicitudesFiltradas = solicitudes || [];
         if (areaFiltro) {
             solicitudesFiltradas = solicitudesFiltradas.filter(s => 
                 s.usuarios?.departamento === areaFiltro
             );
+            console.log('Solicitudes filtradas por área:', solicitudesFiltradas.length);
         }
         
         return procesarDatosReporte(solicitudesFiltradas);
         
     } catch (error) {
-        console.error('Error obteniendo datos de reporte:', error);
-        return {
-            totalSolicitudes: 0,
-            solicitudesPorArea: {},
-            solicitudesPorTipo: {},
-            insumosMasSolicitados: {},
-            estadisticas: {}
-        };
+        console.error('Error completo en obtenerDatosReporte:', error);
+        return getEmptyReporteData();
     }
 }
 
@@ -801,29 +849,42 @@ async function renderizarReporteCompleto() {
 }
 
 // NUEVA función mejorada para cálculos
-function calcularCambioMejorado(actual, anterior) {
+function calcularCambio(actual, anterior) {
     // Validaciones robustas
     if (anterior === null || anterior === undefined || anterior === 0) {
-        return actual > 0 ? `+${actual} (nuevo)` : '0';
+        if (actual === null || actual === undefined || actual === 0) {
+            return '0';
+        }
+        return `+${actual} (nuevo)`;
     }
     
     const diferencia = actual - anterior;
     
     if (diferencia === 0) {
-        return '0 (sin cambio)';
+        return '0 (=)';
     }
     
-    const porcentaje = Math.abs((diferencia / anterior) * 100).toFixed(1);
+    // Calcular porcentaje de forma segura
+    const porcentaje = Math.abs((diferencia / anterior) * 100);
+    
+    // Verificar que el porcentaje es un número válido
+    if (!isFinite(porcentaje)) {
+        return diferencia > 0 ? `+${diferencia}` : `${diferencia}`;
+    }
+    
+    const porcentajeStr = porcentaje.toFixed(1);
     
     if (diferencia > 0) {
-        return `+${diferencia} (+${porcentaje}%)`;
+        return `+${diferencia} (+${porcentajeStr}%)`;
     } else {
-        return `${diferencia} (-${porcentaje}%)`;
+        return `${diferencia} (-${porcentajeStr}%)`;
     }
 }
 
 function getChangeClass(actual, anterior) {
-    if (!anterior || anterior === 0) return 'neutral';
+    if (!anterior || anterior === 0) {
+        return actual > 0 ? 'positivo' : 'neutral';
+    }
     
     const diferencia = actual - anterior;
     if (diferencia > 0) return 'positivo';
@@ -832,7 +893,11 @@ function getChangeClass(actual, anterior) {
 }
 
 
-
+// Fix 6: Cerrar modal del reporte
+function cerrarReporteModal() {
+    document.getElementById('reporteModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
 
 // ===================================
 // MANEJO DE ERRORES GLOBALES
