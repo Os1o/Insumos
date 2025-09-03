@@ -21,175 +21,46 @@ const supabaseReportes = window.supabase.createClient(
 // ===================================
 
 function inicializarReportes() {
-    console.log('Inicializando sistema de reportes...');    
+    console.log('Inicializando sistema de reportes...');
+    
+    // Configurar selectores iniciales
+    configurarSelectores();
     
     // Cargar áreas disponibles
     cargarAreas();
 }
 
-async function ejecutarReporte() {
-    try {
-        // Obtener tipo de período seleccionado
-        const tipoPeriodo = document.getElementById('selectorPeriodo').value;
-        anoSeleccionado = parseInt(document.getElementById('selectorAno').value);
-        areaSeleccionada = document.getElementById('selectorArea').value;
+function configurarSelectores() {
+    // Configurar selector de mes
+    const selectorMes = document.getElementById('selectorMes');
+    if (selectorMes) {
+        const meses = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
         
-        // Mostrar loading
-        mostrarLoadingReporte(true);
+        let html = '';
+        meses.forEach((nombre, index) => {
+            const valor = index + 1;
+            const selected = valor === mesSeleccionado ? 'selected' : '';
+            html += `<option value="${valor}" ${selected}>${nombre}</option>`;
+        });
         
-        let datosActual, datosAnterior;
-        
-        switch (tipoPeriodo) {
-            case 'mes':
-                mesSeleccionado = parseInt(document.getElementById('selectorMes').value);
-                datosActual = await consultarSolicitudesPeriodo(mesSeleccionado, anoSeleccionado, areaSeleccionada);
-                // Mes anterior para comparación
-                let mesAnt = mesSeleccionado - 1;
-                let anoAnt = anoSeleccionado;
-                if (mesAnt === 0) { mesAnt = 12; anoAnt--; }
-                datosAnterior = await consultarSolicitudesPeriodo(mesAnt, anoAnt, areaSeleccionada);
-                break;
-                
-            case 'trimestre':
-                const trimestre = parseInt(document.getElementById('selectorTrimestre').value);
-                datosActual = await consultarSolicitudesTrimestre(trimestre, anoSeleccionado, areaSeleccionada);
-                datosAnterior = await consultarSolicitudesTrimestre(trimestre, anoSeleccionado - 1, areaSeleccionada);
-                break;
-                
-            case 'semestre':
-                const semestre = parseInt(document.getElementById('selectorSemestre').value);
-                datosActual = await consultarSolicitudesSemestre(semestre, anoSeleccionado, areaSeleccionada);
-                datosAnterior = await consultarSolicitudesSemestre(semestre, anoSeleccionado - 1, areaSeleccionada);
-                break;
-                
-            case 'anual':
-                datosActual = await consultarSolicitudesAnual(anoSeleccionado, areaSeleccionada);
-                datosAnterior = await consultarSolicitudesAnual(anoSeleccionado - 1, areaSeleccionada);
-                break;
-                
-            case 'personalizado':
-                const fechaDesde = document.getElementById('fechaDesde').value;
-                const fechaHasta = document.getElementById('fechaHasta').value;
-                if (!fechaDesde || !fechaHasta) {
-                    alert('Selecciona ambas fechas para el rango personalizado');
-                    mostrarLoadingReporte(false);
-                    return;
-                }
-                datosActual = await consultarSolicitudesRango(fechaDesde, fechaHasta, areaSeleccionada);
-                datosAnterior = getEstadisticasVacias(); // Sin comparación para rangos personalizados
-                break;
-        }
-        
-        // Procesar datos para el reporte
-        datosReporte = {
-            periodo: {
-                tipo: tipoPeriodo,
-                mes: mesSeleccionado,
-                ano: anoSeleccionado,
-                area: areaSeleccionada
-            },
-            actual: datosActual,
-            anterior: datosAnterior
-        };
-        
-        // Renderizar el reporte
-        renderizarReporte();
-        
-        // Generar gráficos
-        setTimeout(() => {
-            crearGraficos();
-        }, 200);
-        
-        mostrarLoadingReporte(false);
-        
-    } catch (error) {
-        console.error('Error ejecutando reporte:', error);
-        mostrarErrorReporte('Error generando el reporte');
-        mostrarLoadingReporte(false);
-    }
-}
-
-// Nuevas funciones para diferentes períodos
-async function consultarSolicitudesTrimestre(trimestre, ano, area) {
-    const mesesTrimestre = {
-        1: [1, 2, 3],
-        2: [4, 5, 6], 
-        3: [7, 8, 9],
-        4: [10, 11, 12]
-    };
-    
-    const meses = mesesTrimestre[trimestre];
-    let solicitudesTrimestrales = [];
-    
-    for (const mes of meses) {
-        const solicitudesMes = await consultarSolicitudesBasico(mes, ano, area);
-        solicitudesTrimestrales = [...solicitudesTrimestrales, ...solicitudesMes];
+        selectorMes.innerHTML = html;
     }
     
-    return procesarSolicitudes(solicitudesTrimestrales);
-}
-
-async function consultarSolicitudesAnual(ano, area) {
-    try {
-        const fechaInicio = `${ano}-01-01T00:00:00`;
-        const fechaFin = `${ano}-12-31T23:59:59`;
+    // Configurar selector de año
+    const selectorAno = document.getElementById('selectorAno');
+    if (selectorAno) {
+        const anoActual = new Date().getFullYear();
+        let html = '';
         
-        const { data: solicitudes, error } = await supabaseReportes
-            .from('solicitudes')
-            .select(`
-                id, tipo, estado, fecha_solicitud, token_usado,
-                usuarios:usuario_id(departamento),
-                solicitud_detalles(cantidad_solicitada, insumos(nombre))
-            `)
-            .gte('fecha_solicitud', fechaInicio)
-            .lte('fecha_solicitud', fechaFin);
-        
-        if (error) throw error;
-        
-        let solicitudesFiltradas = solicitudes || [];
-        if (area) {
-            solicitudesFiltradas = solicitudesFiltradas.filter(s => 
-                s.usuarios && s.usuarios.departamento === area
-            );
+        for (let ano = anoActual - 2; ano <= anoActual; ano++) {
+            const selected = ano === anoSeleccionado ? 'selected' : '';
+            html += `<option value="${ano}" ${selected}>${ano}</option>`;
         }
         
-        return procesarSolicitudes(solicitudesFiltradas);
-        
-    } catch (error) {
-        console.error('Error consultando solicitudes anuales:', error);
-        return getEstadisticasVacias();
-    }
-}
-
-async function consultarSolicitudesRango(fechaDesde, fechaHasta, area) {
-    try {
-        const fechaInicio = fechaDesde + 'T00:00:00';
-        const fechaFin = fechaHasta + 'T23:59:59';
-        
-        const { data: solicitudes, error } = await supabaseReportes
-            .from('solicitudes')
-            .select(`
-                id, tipo, estado, fecha_solicitud, token_usado,
-                usuarios:usuario_id(departamento),
-                solicitud_detalles(cantidad_solicitada, insumos(nombre))
-            `)
-            .gte('fecha_solicitud', fechaInicio)
-            .lte('fecha_solicitud', fechaFin);
-        
-        if (error) throw error;
-        
-        let solicitudesFiltradas = solicitudes || [];
-        if (area) {
-            solicitudesFiltradas = solicitudesFiltradas.filter(s => 
-                s.usuarios && s.usuarios.departamento === area
-            );
-        }
-        
-        return procesarSolicitudes(solicitudesFiltradas);
-        
-    } catch (error) {
-        console.error('Error consultando rango personalizado:', error);
-        return getEstadisticasVacias();
+        selectorAno.innerHTML = html;
     }
 }
 
@@ -572,14 +443,12 @@ function crearTablaInsumos() {
 // ===================================
 
 function crearGraficos() {
-    crearGraficoTipos();
     if (!datosReporte.periodo.area) {
         crearGraficoAreas();
     }
     crearGraficoInsumos();
 }
 
-// Función crearGraficoTipos() eliminada - ya no se usa
 
 function crearGraficoAreas() {
     const canvas = document.getElementById('graficoAreas');
@@ -818,34 +687,3 @@ function cerrarReportes() {
 }
 
 console.log('Sistema de reportes cargado correctamente');
-
-
-// Función faltante para configurar los selectores
-function configurarSelectores() {
-    // Configurar selector de mes
-    const selectorMes = document.getElementById('selectorMes');
-    if (selectorMes) {
-        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        
-        let html = '';
-        meses.forEach((nombre, index) => {
-            const valor = index + 1;
-            const selected = valor === new Date().getMonth() + 1 ? 'selected' : '';
-            html += `<option value="${valor}" ${selected}>${nombre}</option>`;
-        });
-        selectorMes.innerHTML = html;
-    }
-    
-    // Configurar selector de año
-    const selectorAno = document.getElementById('selectorAno');
-    if (selectorAno) {
-        const anoActual = new Date().getFullYear();
-        let html = '';
-        for (let ano = anoActual - 2; ano <= anoActual; ano++) {
-            const selected = ano === anoActual ? 'selected' : '';
-            html += `<option value="${ano}" ${selected}>${ano}</option>`;
-        }
-        selectorAno.innerHTML = html;
-    }
-}
