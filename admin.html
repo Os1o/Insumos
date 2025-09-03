@@ -252,7 +252,36 @@
         </div>
     </div>
 
+    <!-- Modal de Reporte Mensual -->
+    <div id="reporteModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content reporte-modal">
+            <div class="modal-header">
+                <h3>📊 Reporte Mensual de Solicitudes</h3>
+                <button class="modal-close" onclick="cerrarReporteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Selector de período -->
+                <div class="periodo-selector">
+                    <select id="selectorMes"></select>
+                    <select id="selectorAno"></select>
+                    <button class="btn-admin-primary" onclick="generarReporteMes()">
+                        Generar Reporte
+                    </button>
+                </div>
 
+                <!-- Loading del reporte -->
+                <div id="reporteLoading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Generando reporte...</p>
+                </div>
+
+                <!-- Contenido del reporte -->
+                <div id="reporteContent" style="display: none;">
+                    <!-- Se genera dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <!-- Scripts necesarios -->
@@ -266,6 +295,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/script.js"></script>
     <script src="js/admin.js"></script>
 </body>

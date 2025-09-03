@@ -548,6 +548,708 @@ function showNotificationAdmin(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
+
+/* ===================================
+   EXPORTACIÓN Y REPORTES DE SOLICITUDES
+   Adaptado de tu función de inventario
+   =================================== */
+
+// ===================================
+// EXPORTACIÓN DE SOLICITUDES
+// ===================================
+
+async function exportarDatos() {
+    try {
+        const solicitudesParaExportar = solicitudesFiltradas.length > 0 ? solicitudesFiltradas : todasLasSolicitudes;
+        
+        if (!solicitudesParaExportar || solicitudesParaExportar.length === 0) {
+            showNotificationAdmin('No hay solicitudes para exportar', 'warning');
+            return;
+        }
+
+        // Mostrar loading
+        const btnExportar = document.querySelector('[onclick="exportarDatos()"]');
+        if (btnExportar) {
+            btnExportar.innerHTML = '⏳ Exportando...';
+            btnExportar.disabled = true;
+        }
+
+        // Obtener datos completos con detalles
+        const solicitudesCompletas = await obtenerSolicitudesCompletas(solicitudesParaExportar);
+        
+        // Preparar datos para exportación
+        const data = solicitudesCompletas.map(solicitud => ({
+            'ID Solicitud': solicitud.id,
+            'Fecha Solicitud': new Date(solicitud.fecha_solicitud).toLocaleDateString(),
+            'Usuario': solicitud.usuarios?.nombre || 'N/A',
+            'Área/Departamento': solicitud.usuarios?.departamento || 'N/A',
+            'Tipo Solicitud': solicitud.tipo === 'juntas' ? 'Para Juntas' : 'Ordinaria',
+            'Estado': getEstadoLabel(solicitud.estado),
+            'Total Items': solicitud.solicitud_detalles?.length || 0,
+            'Items Detallados': obtenerItemsDetallados(solicitud.solicitud_detalles),
+            'Token Usado': solicitud.token_usado ? 'Sí' : 'No',
+            'Fecha Revisión': solicitud.fecha_revision ? new Date(solicitud.fecha_revision).toLocaleDateString() : '',
+            'Fecha Cerrado': solicitud.fecha_cerrado ? new Date(solicitud.fecha_cerrado).toLocaleDateString() : '',
+            'Evento (si aplica)': solicitud.datos_junta ? `${solicitud.datos_junta.fecha_evento} - ${solicitud.datos_junta.descripcion || 'Sin descripción'}` : '',
+            'Participantes': solicitud.datos_junta?.num_participantes || '',
+            'Ubicación': solicitud.datos_junta?.sala_ubicacion || ''
+        }));
+        
+        // Convertir a CSV usando tu función existente
+        const csvContent = convertirACSV(data);
+        
+        // Agregar BOM para UTF-8 (como en tu función)
+        const BOM = '\uFEFF';
+        const contentWithBOM = BOM + csvContent;
+        
+        // Crear blob y descargar
+        const blob = new Blob([contentWithBOM], { 
+            type: 'text/csv;charset=utf-8;' 
+        });
+        
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        const fechaExportacion = new Date().toISOString().split('T')[0];
+        const filtroActivo = obtenerDescripcionFiltros();
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `solicitudes_${filtroActivo}_${fechaExportacion}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Liberar memoria
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        
+        showNotificationAdmin(`${data.length} solicitudes exportadas exitosamente`, 'success');
+        
+    } catch (error) {
+        console.error('Error exportando solicitudes:', error);
+        showNotificationAdmin('Error al exportar los datos', 'error');
+    } finally {
+        // Restaurar botón
+        const btnExportar = document.querySelector('[onclick="exportarDatos()"]');
+        if (btnExportar) {
+            btnExportar.innerHTML = '📊 Exportar Datos';
+            btnExportar.disabled = false;
+        }
+    }
+}
+
+async function obtenerSolicitudesCompletas(solicitudes) {
+    try {
+        const ids = solicitudes.map(s => s.id);
+        
+        const { data, error } = await supabaseAdmin
+            .from('solicitudes')
+            .select(`
+                *,
+                usuarios:usuario_id(nombre, departamento),
+                solicitud_detalles(
+                    cantidad_solicitada,
+                    cantidad_aprobada,
+                    insumos(nombre, unidad_medida)
+                )
+            `)
+            .in('id', ids);
+            
+        if (error) throw error;
+        return data || [];
+        
+    } catch (error) {
+        console.error('Error obteniendo solicitudes completas:', error);
+        return solicitudes; // Devolver datos básicos si falla
+    }
+}
+
+function obtenerItemsDetallados(detalles) {
+    if (!detalles || detalles.length === 0) return '';
+    
+    return detalles.map(detalle => 
+        `${detalle.insumos?.nombre || 'N/A'}: ${detalle.cantidad_solicitada} ${detalle.insumos?.unidad_medida || ''}`
+    ).join(' | ');
+}
+
+function obtenerDescripcionFiltros() {
+    const filtroEstado = document.getElementById('filtroEstadoAdmin')?.value || '';
+    const filtroTipo = document.getElementById('filtroTipoAdmin')?.value || '';
+    
+    let descripcion = 'todas';
+    
+    if (filtroEstado && filtroTipo) {
+        descripcion = `${filtroEstado}_${filtroTipo}`;
+    } else if (filtroEstado) {
+        descripcion = filtroEstado;
+    } else if (filtroTipo) {
+        descripcion = filtroTipo;
+    }
+    
+    return descripcion;
+}
+
+function getEstadoLabel(estado) {
+    const labels = {
+        'pendiente': 'Pendiente',
+        'en_revision': 'En Revisión',
+        'cerrado': 'Cerrado',
+        'cancelado': 'Cancelado'
+    };
+    return labels[estado] || estado;
+}
+
+// ===================================
+// REPORTE MENSUAL CON GRÁFICOS
+// ===================================
+
+let reporteData = null;
+let mesActualReporte = new Date().getMonth() + 1;
+let anoActualReporte = new Date().getFullYear();
+
+function generarReporte() {
+    // Mostrar modal de reporte
+    document.getElementById('reporteModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Configurar selector de mes/año
+    configurarSelectorFecha();
+    
+    // Generar reporte del mes actual
+    generarReporteMes();
+}
+
+function configurarSelectorFecha() {
+    const mesSelect = document.getElementById('selectorMes');
+    const anoSelect = document.getElementById('selectorAno');
+    
+    if (mesSelect) {
+        const meses = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        
+        let htmlMeses = '';
+        meses.forEach((mes, index) => {
+            const selected = (index + 1) === mesActualReporte ? 'selected' : '';
+            htmlMeses += `<option value="${index + 1}" ${selected}>${mes}</option>`;
+        });
+        mesSelect.innerHTML = htmlMeses;
+    }
+    
+    if (anoSelect) {
+        const anoActual = new Date().getFullYear();
+        let htmlAnos = '';
+        for (let ano = anoActual - 2; ano <= anoActual; ano++) {
+            const selected = ano === anoActualReporte ? 'selected' : '';
+            htmlAnos += `<option value="${ano}" ${selected}>${ano}</option>`;
+        }
+        anoSelect.innerHTML = htmlAnos;
+    }
+}
+
+async function generarReporteMes() {
+    try {
+        // Mostrar loading
+        document.getElementById('reporteLoading').style.display = 'block';
+        document.getElementById('reporteContent').style.display = 'none';
+        
+        mesActualReporte = parseInt(document.getElementById('selectorMes').value);
+        anoActualReporte = parseInt(document.getElementById('selectorAno').value);
+        
+        // Obtener datos del mes seleccionado
+        const datosReporte = await obtenerDatosReporte(mesActualReporte, anoActualReporte);
+        
+        // Obtener datos del mes anterior para comparación
+        let mesAnterior = mesActualReporte - 1;
+        let anoAnterior = anoActualReporte;
+        if (mesAnterior === 0) {
+            mesAnterior = 12;
+            anoAnterior = anoActualReporte - 1;
+        }
+        
+        const datosComparacion = await obtenerDatosReporte(mesAnterior, anoAnterior);
+        
+        reporteData = {
+            actual: datosReporte,
+            anterior: datosComparacion,
+            mes: mesActualReporte,
+            ano: anoActualReporte
+        };
+        
+        // Renderizar reporte
+        await renderizarReporteCompleto();
+        
+        document.getElementById('reporteLoading').style.display = 'none';
+        document.getElementById('reporteContent').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error generando reporte:', error);
+        showNotificationAdmin('Error generando reporte mensual', 'error');
+    }
+}
+
+async function obtenerDatosReporte(mes, ano) {
+    try {
+        // Fechas del mes
+        const fechaInicio = `${ano}-${mes.toString().padStart(2, '0')}-01`;
+        const fechaFin = new Date(ano, mes, 0).toISOString().split('T')[0];
+        
+        // Solicitudes del mes
+        const { data: solicitudes, error } = await supabaseAdmin
+            .from('solicitudes')
+            .select(`
+                *,
+                usuarios:usuario_id(departamento),
+                solicitud_detalles(
+                    cantidad_solicitada,
+                    insumos(nombre, categoria_id, categorias_insumos(nombre))
+                )
+            `)
+            .gte('fecha_solicitud', fechaInicio + 'T00:00:00')
+            .lte('fecha_solicitud', fechaFin + 'T23:59:59');
+        
+        if (error) throw error;
+        
+        return procesarDatosReporte(solicitudes || []);
+        
+    } catch (error) {
+        console.error('Error obteniendo datos de reporte:', error);
+        return {
+            totalSolicitudes: 0,
+            solicitudesPorArea: {},
+            solicitudesPorTipo: {},
+            insumosMasSolicitados: {},
+            estadisticas: {}
+        };
+    }
+}
+
+function procesarDatosReporte(solicitudes) {
+    const reporte = {
+        totalSolicitudes: solicitudes.length,
+        solicitudesPorArea: {},
+        solicitudesPorTipo: {
+            'ordinaria': 0,
+            'juntas': 0
+        },
+        solicitudesPorEstado: {
+            'pendiente': 0,
+            'en_revision': 0,
+            'cerrado': 0,
+            'cancelado': 0
+        },
+        insumosMasSolicitados: {},
+        categoriasMasSolicitadas: {}
+    };
+    
+    solicitudes.forEach(solicitud => {
+        // Por área
+        const area = solicitud.usuarios?.departamento || 'Sin área';
+        reporte.solicitudesPorArea[area] = (reporte.solicitudesPorArea[area] || 0) + 1;
+        
+        // Por tipo
+        reporte.solicitudesPorTipo[solicitud.tipo] = (reporte.solicitudesPorTipo[solicitud.tipo] || 0) + 1;
+        
+        // Por estado
+        reporte.solicitudesPorEstado[solicitud.estado] = (reporte.solicitudesPorEstado[solicitud.estado] || 0) + 1;
+        
+        // Insumos más solicitados
+        if (solicitud.solicitud_detalles) {
+            solicitud.solicitud_detalles.forEach(detalle => {
+                const insumo = detalle.insumos?.nombre || 'N/A';
+                const cantidad = detalle.cantidad_solicitada || 0;
+                reporte.insumosMasSolicitados[insumo] = (reporte.insumosMasSolicitados[insumo] || 0) + cantidad;
+                
+                // Por categoría
+                const categoria = detalle.insumos?.categorias_insumos?.nombre || 'Sin categoría';
+                reporte.categoriasMasSolicitadas[categoria] = (reporte.categoriasMasSolicitadas[categoria] || 0) + cantidad;
+            });
+        }
+    });
+    
+    return reporte;
+}
+
+async function renderizarReporteCompleto() {
+    const container = document.getElementById('reporteContent');
+    if (!container || !reporteData) return;
+    
+    const mesNombre = obtenerNombreMes(reporteData.mes);
+    const mesAnteriorNombre = obtenerNombreMes(reporteData.mes === 1 ? 12 : reporteData.mes - 1);
+    
+    let html = `
+        <div class="reporte-header">
+            <h3>📊 Reporte de ${mesNombre} ${reporteData.ano}</h3>
+            <p>Comparación con ${mesAnteriorNombre}</p>
+        </div>
+        
+        <!-- Resumen Ejecutivo -->
+        <div class="reporte-seccion">
+            <h4>📈 Resumen Ejecutivo</h4>
+            <div class="stats-comparison">
+                <div class="stat-comparison">
+                    <span class="stat-label">Total Solicitudes</span>
+                    <span class="stat-actual">${reporteData.actual.totalSolicitudes}</span>
+                    <span class="stat-change">${calcularCambio(reporteData.actual.totalSolicitudes, reporteData.anterior.totalSolicitudes)}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Solicitudes por Área -->
+        <div class="reporte-seccion">
+            <h4>🏢 Solicitudes por Área</h4>
+            <div class="reporte-tabla-container">
+                <canvas id="graficoAreas" width="400" height="200"></canvas>
+                ${renderizarTablaPorArea()}
+            </div>
+        </div>
+        
+        <!-- Insumos Más Solicitados -->
+        <div class="reporte-seccion">
+            <h4>📦 Insumos Más Solicitados</h4>
+            <div class="reporte-tabla-container">
+                <canvas id="graficoInsumos" width="400" height="200"></canvas>
+                ${renderizarTablaInsumos()}
+            </div>
+        </div>
+        
+        <!-- Análisis por Tipo -->
+        <div class="reporte-seccion">
+            <h4>📋 Análisis por Tipo de Solicitud</h4>
+            ${renderizarTablaTipos()}
+        </div>
+        
+        <!-- Acciones del Reporte -->
+        <div class="reporte-acciones">
+            <button class="btn-admin-primary" onclick="exportarReporte()">
+                📊 Exportar Reporte Completo
+            </button>
+            <button class="btn-admin-secondary" onclick="generarReporteMes()">
+                🔄 Actualizar Datos
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    // Generar gráficos después de que el HTML esté renderizado
+    setTimeout(() => {
+        generarGraficoAreas();
+        generarGraficoInsumos();
+    }, 100);
+}
+
+function renderizarTablaPorArea() {
+    const areas = Object.entries(reporteData.actual.solicitudesPorArea)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // Top 10 áreas
+    
+    let html = `
+        <div class="reporte-tabla">
+            <div class="tabla-header">
+                <div>Área/Departamento</div>
+                <div>Solicitudes</div>
+                <div>Cambio vs Mes Anterior</div>
+            </div>
+    `;
+    
+    areas.forEach(([area, cantidad]) => {
+        const cantidadAnterior = reporteData.anterior.solicitudesPorArea[area] || 0;
+        const cambio = calcularCambio(cantidad, cantidadAnterior);
+        
+        html += `
+            <div class="tabla-row">
+                <div class="area-nombre">${area}</div>
+                <div class="area-cantidad">${cantidad}</div>
+                <div class="area-cambio ${cambio.startsWith('+') ? 'positivo' : cambio.startsWith('-') ? 'negativo' : 'neutral'}">${cambio}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+function renderizarTablaInsumos() {
+    const insumos = Object.entries(reporteData.actual.insumosMasSolicitados)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15); // Top 15 insumos
+    
+    let html = `
+        <div class="reporte-tabla">
+            <div class="tabla-header">
+                <div>Insumo</div>
+                <div>Cantidad Total</div>
+                <div>Cambio vs Mes Anterior</div>
+            </div>
+    `;
+    
+    insumos.forEach(([insumo, cantidad]) => {
+        const cantidadAnterior = reporteData.anterior.insumosMasSolicitados[insumo] || 0;
+        const cambio = calcularCambio(cantidad, cantidadAnterior);
+        
+        html += `
+            <div class="tabla-row">
+                <div class="insumo-nombre">${insumo}</div>
+                <div class="insumo-cantidad">${cantidad}</div>
+                <div class="insumo-cambio ${cambio.startsWith('+') ? 'positivo' : cambio.startsWith('-') ? 'negativo' : 'neutral'}">${cambio}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    return html;
+}
+
+function renderizarTablaTipos() {
+    const tipoActual = reporteData.actual.solicitudesPorTipo;
+    const tipoAnterior = reporteData.anterior.solicitudesPorTipo;
+    
+    return `
+        <div class="reporte-tabla">
+            <div class="tabla-header">
+                <div>Tipo de Solicitud</div>
+                <div>Cantidad</div>
+                <div>Porcentaje</div>
+                <div>Cambio vs Mes Anterior</div>
+            </div>
+            <div class="tabla-row">
+                <div>📅 Ordinarias</div>
+                <div>${tipoActual.ordinaria}</div>
+                <div>${((tipoActual.ordinaria / reporteData.actual.totalSolicitudes) * 100).toFixed(1)}%</div>
+                <div class="cambio">${calcularCambio(tipoActual.ordinaria, tipoAnterior.ordinaria || 0)}</div>
+            </div>
+            <div class="tabla-row">
+                <div>👥 Para Juntas</div>
+                <div>${tipoActual.juntas}</div>
+                <div>${((tipoActual.juntas / reporteData.actual.totalSolicitudes) * 100).toFixed(1)}%</div>
+                <div class="cambio">${calcularCambio(tipoActual.juntas, tipoAnterior.juntas || 0)}</div>
+            </div>
+        </div>
+    `;
+}
+
+function calcularCambio(actual, anterior) {
+    if (anterior === 0) {
+        return actual > 0 ? `+${actual} (nuevo)` : '0';
+    }
+    
+    const diferencia = actual - anterior;
+    const porcentaje = ((diferencia / anterior) * 100).toFixed(1);
+    
+    if (diferencia > 0) {
+        return `+${diferencia} (+${porcentaje}%)`;
+    } else if (diferencia < 0) {
+        return `${diferencia} (${porcentaje}%)`;
+    } else {
+        return '0 (=)';
+    }
+}
+
+function obtenerNombreMes(numeroMes) {
+    const meses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return meses[numeroMes - 1] || 'Mes inválido';
+}
+
+// ===================================
+// GRÁFICOS CON CHART.JS
+// ===================================
+
+function generarGraficoAreas() {
+    const canvas = document.getElementById('graficoAreas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const areas = Object.entries(reporteData.actual.solicitudesPorArea)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8); // Top 8 áreas
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: areas.map(([area]) => area),
+            datasets: [{
+                label: 'Solicitudes',
+                data: areas.map(([, cantidad]) => cantidad),
+                backgroundColor: 'rgba(101, 113, 83, 0.7)',
+                borderColor: 'rgba(101, 113, 83, 1)',
+                borderWidth: 2,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Solicitudes por Área'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generarGraficoInsumos() {
+    const canvas = document.getElementById('graficoInsumos');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const insumos = Object.entries(reporteData.actual.insumosMasSolicitados)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // Top 10 insumos
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: insumos.map(([insumo]) => insumo.length > 20 ? insumo.substring(0, 17) + '...' : insumo),
+            datasets: [{
+                data: insumos.map(([, cantidad]) => cantidad),
+                backgroundColor: [
+                    'rgba(101, 113, 83, 0.8)',
+                    'rgba(138, 170, 121, 0.8)',
+                    'rgba(177, 182, 194, 0.8)',
+                    'rgba(131, 117, 105, 0.8)',
+                    'rgba(52, 152, 219, 0.8)',
+                    'rgba(155, 89, 182, 0.8)',
+                    'rgba(241, 196, 15, 0.8)',
+                    'rgba(230, 126, 34, 0.8)',
+                    'rgba(231, 76, 60, 0.8)',
+                    'rgba(46, 204, 113, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Insumos Más Solicitados'
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// ===================================
+// EXPORTACIÓN DEL REPORTE
+// ===================================
+
+function exportarReporte() {
+    if (!reporteData) {
+        showNotificationAdmin('No hay datos de reporte para exportar', 'warning');
+        return;
+    }
+    
+    // Preparar datos del reporte para exportación
+    const dataExportacion = [];
+    
+    // Resumen
+    dataExportacion.push({
+        'Sección': 'RESUMEN',
+        'Concepto': 'Total Solicitudes',
+        'Valor': reporteData.actual.totalSolicitudes,
+        'Mes Anterior': reporteData.anterior.totalSolicitudes,
+        'Cambio': calcularCambio(reporteData.actual.totalSolicitudes, reporteData.anterior.totalSolicitudes)
+    });
+    
+    dataExportacion.push({}); // Fila vacía
+    
+    // Solicitudes por área
+    dataExportacion.push({
+        'Sección': 'POR ÁREA',
+        'Concepto': '',
+        'Valor': '',
+        'Mes Anterior': '',
+        'Cambio': ''
+    });
+    
+    Object.entries(reporteData.actual.solicitudesPorArea)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([area, cantidad]) => {
+            const anterior = reporteData.anterior.solicitudesPorArea[area] || 0;
+            dataExportacion.push({
+                'Sección': '',
+                'Concepto': area,
+                'Valor': cantidad,
+                'Mes Anterior': anterior,
+                'Cambio': calcularCambio(cantidad, anterior)
+            });
+        });
+    
+    dataExportacion.push({}); // Fila vacía
+    
+    // Insumos más solicitados
+    dataExportacion.push({
+        'Sección': 'INSUMOS MÁS SOLICITADOS',
+        'Concepto': '',
+        'Valor': '',
+        'Mes Anterior': '',
+        'Cambio': ''
+    });
+    
+    Object.entries(reporteData.actual.insumosMasSolicitados)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15)
+        .forEach(([insumo, cantidad]) => {
+            const anterior = reporteData.anterior.insumosMasSolicitados[insumo] || 0;
+            dataExportacion.push({
+                'Sección': '',
+                'Concepto': insumo,
+                'Valor': cantidad,
+                'Mes Anterior': anterior,
+                'Cambio': calcularCambio(cantidad, anterior)
+            });
+        });
+    
+    // Usar tu función de exportación
+    const csvContent = convertirACSV(dataExportacion);
+    const BOM = '\uFEFF';
+    const contentWithBOM = BOM + csvContent;
+    
+    const blob = new Blob([contentWithBOM], { 
+        type: 'text/csv;charset=utf-8;' 
+    });
+    
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const mesNombre = obtenerNombreMes(reporteData.mes);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reporte_${mesNombre}_${reporteData.ano}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    
+    showNotificationAdmin('Reporte exportado exitosamente', 'success');
+}
+
+function cerrarReporteModal() {
+    document.getElementById('reporteModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
 // ===================================
 // MANEJO DE ERRORES GLOBALES
 // ===================================
