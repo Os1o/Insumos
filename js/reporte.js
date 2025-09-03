@@ -566,6 +566,41 @@ function crearGraficoInsumos() {
     });
 }
 
+
+
+// Función mejorada para calcular cambios (más clara)
+function calcularCambioMejorado(actual, anterior) {
+    // Si no hay datos anteriores
+    if (!anterior || anterior === 0) {
+        if (!actual || actual === 0) {
+            return '0';
+        }
+        return `+${actual} (nuevo)`;
+    }
+    
+    // Si no hay datos actuales pero sí anteriores
+    if (!actual || actual === 0) {
+        return `-${anterior} (0 este mes)`;
+    }
+    
+    const diferencia = actual - anterior;
+    
+    // Sin cambios
+    if (diferencia === 0) {
+        return '0 (igual)';
+    }
+    
+    // Calcular porcentaje de forma más clara
+    const porcentaje = Math.abs((diferencia / anterior) * 100);
+    
+    if (diferencia > 0) {
+        return `+${diferencia} (${porcentaje.toFixed(0)}% más)`;
+    } else {
+        return `${diferencia} (${porcentaje.toFixed(0)}% menos)`;
+    }
+}
+
+
 // ===================================
 // EXPORTACIÓN
 // ===================================
