@@ -1106,6 +1106,7 @@ function actualizarInventario() {
     return csvContent;
 }*/
 
+
 function exportarInventario() {
     // Preparar datos para exportación
     const data = inventarioData.map(item => ({
@@ -1119,23 +1120,23 @@ function exportarInventario() {
         'Activo': item.activo ? 'Sí' : 'No'
     }));
     
-    // Convertir a CSV con BOM para Excel
+    // Convertir a CSV
     const csvContent = convertirACSV(data);
     
-    // Agregar BOM (Byte Order Mark) para que Excel abra correctamente con UTF-8
+    // Agregar BOM (Byte Order Mark) para UTF-8 - ¡ESTO ES CLAVE!
     const BOM = '\uFEFF';
     const contentWithBOM = BOM + csvContent;
     
-    // Crear blob con tipo que Excel reconoce
+    // Usar tipo MIME específico para CSV UTF-8
     const blob = new Blob([contentWithBOM], { 
-        type: 'application/vnd.ms-excel;charset=utf-8' 
+        type: 'text/csv;charset=utf-8;' 
     });
     
-    // Descargar archivo
+    // Descargar como CSV (Excel lo abre perfectamente)
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `inventario_${new Date().toISOString().split('T')[0]}.xls`);
+    link.setAttribute('download', `inventario_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -1155,18 +1156,18 @@ function convertirACSV(data) {
         headers.join(','),
         ...data.map(row => headers.map(header => {
             const value = row[header];
-            // Escapar comillas y agregar comillas si contiene caracteres problemáticos
             if (value === null || value === undefined) {
                 return '';
             }
             
             const stringValue = value.toString();
+            // Escapar comillas y caracteres problemáticos
             if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
                 return `"${stringValue.replace(/"/g, '""')}"`;
             }
             return stringValue;
         }).join(','))
-    ].join('\r\n'); // Usar \r\n para compatibilidad con Excel
+    ].join('\r\n'); // \r\n para compatibilidad con Windows/Excel
     
     return csvContent;
 }
