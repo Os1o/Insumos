@@ -262,39 +262,10 @@
             </div>
             <div class="modal-body">
                 <!-- Selector de período -->
-                <!-- Nuevo HTML para el periodo-selector -->
                 <div class="periodo-selector">
-                    <!-- Selector principal de tipo de período -->
-                    <select id="selectorPeriodo" onchange="cambiarTipoPeriodo()">
-                        <option value="mes">Un mes específico</option>
-                        <option value="trimestre">Trimestre completo</option>
-                        <option value="semestre">Semestre completo</option>
-                        <option value="anual">Año completo</option>
-                        <option value="personalizado">Rango personalizado</option>
-                    </select>
-
-                    <!-- Año (siempre visible) -->
+                    <select id="selectorMes"></select>
                     <select id="selectorAno"></select>
-
-                    <!-- Controles específicos por mes -->
-                    <div id="mes-container" style="display: flex; gap: 1rem;">
-                        <select id="selectorMes"></select>
-                    </div>
-
-                    <!-- Controles para trimestre -->
-                    <div id="trimestre-container" style="display: none; gap: 1rem;">
-                        <select id="selectorTrimestre"></select>
-                    </div>
-
-                    <!-- Controles para rango personalizado -->
-                    <div id="personalizado-container" style="display: none; gap: 1rem;">
-                        <input type="date" id="fechaDesde">
-                        <input type="date" id="fechaHasta">
-                    </div>
-
-                    <!-- Filtro de área -->
                     <select id="selectorArea"></select>
-
                     <button class="btn-reporte-generar" onclick="ejecutarReporte()">
                         Generar Reporte
                     </button>
