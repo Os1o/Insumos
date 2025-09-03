@@ -616,6 +616,32 @@ function exportarCSV(data, nombreArchivo) {
     }
 }
 
+
+// Función faltante para convertir datos a CSV
+function convertirACSV(data) {
+    if (!data || data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+        headers.join(','),
+        ...data.map(row => headers.map(header => {
+            const value = row[header];
+            if (value === null || value === undefined) {
+                return '';
+            }
+            
+            const stringValue = value.toString();
+            // Escapar comillas y caracteres problemáticos
+            if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
+                return `"${stringValue.replace(/"/g, '""')}"`;
+            }
+            return stringValue;
+        }).join(','))
+    ].join('\r\n'); // \r\n para compatibilidad con Windows/Excel
+    
+    return csvContent;
+}
+
 // ===================================
 // UTILIDADES
 // ===================================
