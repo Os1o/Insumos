@@ -1119,13 +1119,19 @@ function exportarInventario() {
         'Activo': item.activo ? 'Sí' : 'No'
     }));
     
-    // Convertir a HTML table (compatible con Excel)
-    const htmlContent = convertirAHTML(data);
+    // Convertir a CSV con BOM para Excel
+    const csvContent = convertirACSV(data);
+    
+    // Agregar BOM (Byte Order Mark) para que Excel abra correctamente con UTF-8
+    const BOM = '\uFEFF';
+    const contentWithBOM = BOM + csvContent;
+    
+    // Crear blob con tipo que Excel reconoce
+    const blob = new Blob([contentWithBOM], { 
+        type: 'application/vnd.ms-excel;charset=utf-8' 
+    });
     
     // Descargar archivo
-    const blob = new Blob([htmlContent], { 
-        type: 'application/vnd.ms-excel' 
-    });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -1135,37 +1141,34 @@ function exportarInventario() {
     link.click();
     document.body.removeChild(link);
     
+    // Liberar memoria
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    
     showNotificationInventario('Inventario exportado exitosamente', 'success');
 }
 
-function convertirAHTML(data) {
-    if (!data || data.length === 0) {
-        return '<table></table>';
-    }
+function convertirACSV(data) {
+    if (!data || data.length === 0) return '';
     
     const headers = Object.keys(data[0]);
+    const csvContent = [
+        headers.join(','),
+        ...data.map(row => headers.map(header => {
+            const value = row[header];
+            // Escapar comillas y agregar comillas si contiene caracteres problemáticos
+            if (value === null || value === undefined) {
+                return '';
+            }
+            
+            const stringValue = value.toString();
+            if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
+                return `"${stringValue.replace(/"/g, '""')}"`;
+            }
+            return stringValue;
+        }).join(','))
+    ].join('\r\n'); // Usar \r\n para compatibilidad con Excel
     
-    let html = '<table border="1">';
-    
-    // Encabezados con estilo
-    html += '<tr style="font-weight: bold; background-color: #f2f2f2;">';
-    headers.forEach(header => {
-        html += `<th>${header}</th>`;
-    });
-    html += '</tr>';
-    
-    // Datos
-    data.forEach((row, index) => {
-        const bgColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9';
-        html += `<tr style="background-color: ${bgColor}">`;
-        headers.forEach(header => {
-            html += `<td>${row[header]}</td>`;
-        });
-        html += '</tr>';
-    });
-    
-    html += '</table>';
-    return html;
+    return csvContent;
 }
 
 function ocultarAlertas() {
