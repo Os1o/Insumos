@@ -888,85 +888,71 @@
 }
 
 /* ===================================
-   CORRECCIONES ESPECÍFICAS PARA INVENTARIO
-   Agregar al final de css/inventario.css
+   CORRECCIONES CSS INVENTARIO - VERSIÓN CORRECTA
+   Basadas en la estructura HTML real
    =================================== */
 
-/* 🎯 CORRECCIÓN 1: TABLA DESCUADRADA - ANCHOS FIJOS */
+/* 🎯 CORRECCIÓN 1: TABLA DE INVENTARIO - ANCHOS FIJOS */
 .inventario-table {
-    table-layout: fixed; /* CRÍTICO: Fuerza anchos fijos */
     width: 100%;
+    table-layout: fixed; /* Fuerza anchos fijos */
     border-collapse: collapse;
-    font-size: 0.95rem;
 }
 
-/* Anchos específicos optimizados según contenido */
-.inventario-table th:nth-child(1) { width: 22%; }  /* Insumo - Más espacio para nombres largos */
-.inventario-table th:nth-child(2) { width: 14%; }  /* Categoría - Ajustado */
-.inventario-table th:nth-child(3) { width: 8%; }   /* Stock Actual - Números */
-.inventario-table th:nth-child(4) { width: 8%; }   /* Stock Mínimo - Números */
-.inventario-table th:nth-child(5) { width: 10%; }  /* Estado - Badge */
-.inventario-table th:nth-child(6) { width: 8%; }   /* Unidad - Texto corto */
-.inventario-table th:nth-child(7) { width: 12%; }  /* Visibilidad - Badge */
-.inventario-table th:nth-child(8) { width: 18%; }  /* Acciones - 3 botones + espacio */
+/* Anchos específicos optimizados */
+.inventario-table th:nth-child(1) { width: 22%; }  /* INSUMO */
+.inventario-table th:nth-child(2) { width: 15%; }  /* CATEGORÍA */
+.inventario-table th:nth-child(3) { width: 10%; }  /* STOCK ACTUAL */
+.inventario-table th:nth-child(4) { width: 10%; }  /* STOCK MÍNIMO */
+.inventario-table th:nth-child(5) { width: 10%; }  /* ESTADO */
+.inventario-table th:nth-child(6) { width: 8%; }   /* UNIDAD */
+.inventario-table th:nth-child(7) { width: 12%; }  /* VISIBILIDAD */
+.inventario-table th:nth-child(8) { width: 13%; }  /* ACCIONES */
 
-/* Alineación correcta por tipo de contenido */
+/* Alineación correcta */
 .inventario-table th:nth-child(3),
 .inventario-table th:nth-child(4),
-.inventario-table th:nth-child(6) {
+.inventario-table th:nth-child(5),
+.inventario-table th:nth-child(6),
+.inventario-table th:nth-child(7),
+.inventario-table th:nth-child(8) {
     text-align: center;
 }
 
 .inventario-table td:nth-child(3),
 .inventario-table td:nth-child(4),
-.inventario-table td:nth-child(6) {
-    text-align: center;
-}
-
-/* Centrar estados y badges */
 .inventario-table td:nth-child(5),
-.inventario-table td:nth-child(7) {
+.inventario-table td:nth-child(6),
+.inventario-table td:nth-child(7),
+.inventario-table td:nth-child(8) {
     text-align: center;
 }
 
-/* Mejor padding para celdas */
+/* Mejor padding para que no se vea apretado */
 .inventario-table th,
 .inventario-table td {
-    padding: 1rem 0.75rem; /* Más espacio vertical, menos horizontal */
+    padding: 1rem 0.5rem;
+    vertical-align: middle;
     word-wrap: break-word;
-    overflow: hidden;
 }
 
-/* Ajustar botones de acciones para que quepan bien */
-.acciones-inventario {
-    display: flex;
-    gap: 0.4rem; /* Menos gap */
-    justify-content: center;
-}
+/* 🎯 CORRECCIÓN 2: MODAL HISTORIAL MÁS AMPLIO */
 
-.btn-inventario-action {
-    width: 32px;  /* Botones más pequeños */
-    height: 32px;
-    font-size: 1rem;
-    padding: 0;
-}
-
-/* 🎯 CORRECCIÓN 2: MODAL HISTORIAL MUY AJUSTADO */
-
-/* Aumentar ancho del modal significativamente */
-.historial-modal .modal-content {
-    max-width: 1200px; /* Aumentado de 950px a 1200px */
-    width: 95vw; /* Usa 95% del viewport */
-    max-height: 90vh; /* Más altura disponible */
+/* Aumentar tamaño del modal sin romper estructura existente */
+.historial-modal.modal-content {
+    max-width: 1000px !important; /* Más ancho */
+    width: 90vw !important;        /* 90% del viewport */
+    max-height: 85vh !important;   /* Más altura */
 }
 
 /* Mejor espaciado en filtros */
 .historial-filtros {
     display: flex;
-    gap: 1.5rem; /* Más espacio entre filtros */
+    gap: 1.5rem;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
     padding: 1rem 0;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .historial-filtros select,
@@ -974,242 +960,92 @@
     padding: 0.75rem 1rem;
     border: 2px solid var(--color-border);
     border-radius: 6px;
-    background: var(--color-white);
-    font-size: 1rem; /* Font-size más grande */
-    min-width: 180px; /* Más ancho */
+    font-size: 1rem;
+    min-width: 160px;
+    background: white;
 }
 
-/* Grid del historial más espacioso */
-.historial-tabla {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    font-size: 0.95rem; /* Texto más grande */
-}
-
-.historial-header-row {
-    display: grid;
-    grid-template-columns: 
-        120px    /* Fecha - fijo */
-        1fr      /* Insumo - flexible */
-        140px    /* Tipo - fijo */
-        100px    /* Cantidad - fijo */
-        140px    /* Stock - fijo */
-        120px;   /* Admin - fijo */
-    gap: 1.5rem; /* Más gap */
-    padding: 1.2rem; /* Más padding */
-    background: var(--color-primary);
-    color: var(--color-white);
-    font-weight: 600;
-    border-radius: 8px 8px 0 0;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-}
-
-.historial-row {
-    display: grid;
-    grid-template-columns: 
-        120px    /* Fecha */
-        1fr      /* Insumo */
-        140px    /* Tipo */
-        100px    /* Cantidad */
-        140px    /* Stock */
-        120px;   /* Admin */
-    gap: 1.5rem; /* Más gap */
-    padding: 1.2rem; /* Más padding */
-    border-bottom: 1px solid var(--color-border);
-    align-items: center;
-    font-size: 0.9rem; /* Texto más legible */
-}
-
-/* Contenedor del historial con mejor scroll */
+/* Contenedor del historial más espacioso */
 .historial-completo {
-    max-height: 55vh; /* Más altura */
+    max-height: 50vh;
     overflow-y: auto;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+    padding: 0.5rem 0;
 }
 
-/* Mejor padding en contenido del modal */
-.historial-modal .modal-body {
-    padding: 2rem; /* Más espacio interno */
+/* 🎯 CORRECCIÓN 3: MEJORAR ESTRUCTURA EXISTENTE DEL HISTORIAL */
+
+/* Si usas .historial-tabla (generado por JS) */
+.historial-tabla {
+    width: 100%;
+    font-size: 0.95rem;
 }
 
-/* Mejorar legibilidad de los campos */
+/* Header del historial más visible */
+.historial-header-row {
+    background: var(--color-primary) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 1rem !important;
+    border-radius: 6px 6px 0 0;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.2fr 1fr 1.5fr 1fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Filas del historial más legibles */
+.historial-row {
+    padding: 1rem !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1.2fr 1fr 1.5fr 1fr;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.historial-row:hover {
+    background: var(--color-bg-light) !important;
+}
+
+.historial-row:last-child {
+    border-bottom: none !important;
+}
+
+/* Mejor legibilidad de campos específicos */
 .historial-fecha {
     font-size: 0.85rem;
     color: var(--color-text-secondary);
-    font-weight: 500;
 }
 
 .historial-insumo {
     font-weight: 600;
     color: var(--color-primary);
-    font-size: 0.9rem;
 }
 
 .historial-tipo {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
 }
 
-.historial-cantidad {
+.historial-cantidad.positivo {
+    color: var(--color-success);
     font-weight: 700;
-    font-size: 0.95rem;
-    text-align: center;
+}
+
+.historial-cantidad.negativo {
+    color: var(--color-danger);
+    font-weight: 700;
 }
 
 .historial-stock {
+    font-family: monospace;
     font-size: 0.85rem;
     color: var(--color-text-secondary);
-    text-align: center;
-    font-family: monospace; /* Mejor para números */
 }
 
-.historial-admin {
-    font-size: 0.8rem;
-    color: var(--color-text-secondary);
-    font-weight: 500;
-}
-
-/* 🎯 CORRECCIÓN 3: RESPONSIVE MEJORADO */
-
-@media (max-width: 1400px) {
-    .historial-modal .modal-content {
-        max-width: 1100px;
-        width: 92vw;
-    }
-}
-
-@media (max-width: 1200px) {
-    /* Tabla responsiva manteniendo proporciones */
-    .inventario-table th:nth-child(1) { width: 20%; }
-    .inventario-table th:nth-child(2) { width: 12%; }
-    .inventario-table th:nth-child(7) { width: 10%; }
-    .inventario-table th:nth-child(8) { width: 16%; }
-}
-
-@media (max-width: 1024px) {
-    /* Modal historial en tablets */
-    .historial-modal .modal-content {
-        max-width: 95vw;
-        width: 95vw;
-    }
-    
-    .historial-header-row,
-    .historial-row {
-        grid-template-columns: 
-            100px    /* Fecha */
-            1fr      /* Insumo */
-            120px    /* Tipo */
-            80px     /* Cantidad */
-            120px    /* Stock */
-            100px;   /* Admin */
-        gap: 1rem;
-        padding: 1rem;
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 768px) {
-    /* Tabla inventario en móvil - scroll horizontal */
-    .inventario-table-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .inventario-table {
-        min-width: 900px; /* Ancho mínimo para mantener legibilidad */
-    }
-    
-    /* Modal historial apilado en móvil */
-    .historial-header-row,
-    .historial-row {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-        text-align: left;
-    }
-    
-    /* Etiquetas para cada campo en móvil */
-    .historial-row > div::before {
-        font-weight: 600;
-        color: var(--color-primary);
-        display: inline-block;
-        min-width: 80px;
-    }
-    
-    .historial-row > div:nth-child(1)::before { content: "Fecha: "; }
-    .historial-row > div:nth-child(2)::before { content: "Insumo: "; }
-    .historial-row > div:nth-child(3)::before { content: "Tipo: "; }
-    .historial-row > div:nth-child(4)::before { content: "Cantidad: "; }
-    .historial-row > div:nth-child(5)::before { content: "Stock: "; }
-    .historial-row > div:nth-child(6)::before { content: "Admin: "; }
-    
-    /* Ocultar header en móvil */
-    .historial-header-row {
-        display: none;
-    }
-    
-    .historial-row {
-        border: 1px solid var(--color-border);
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        background: var(--color-bg-white);
-    }
-}
-
-/* 🎯 CORRECCIÓN 4: MEJORAS VISUALES ADICIONALES */
-
-/* Mejor separación visual en la tabla */
-.inventario-table tbody tr:nth-child(even) {
-    background: rgba(101, 113, 83, 0.02);
-}
-
-.inventario-table tbody tr:hover {
-    background: rgba(101, 113, 83, 0.05);
-    transform: none; /* Quitar transform para evitar saltos */
-}
-
-/* Indicadores visuales mejorados */
-.stock-numero.stock-bajo {
-    background: rgba(245, 124, 0, 0.1);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    border: 1px solid rgba(245, 124, 0, 0.3);
-}
-
-/* Tooltips para botones de acción */
-.btn-inventario-action[title] {
-    position: relative;
-}
-
-.btn-inventario-action:hover::after {
-    content: attr(title);
-    position: absolute;
-    bottom: -35px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(44, 62, 80, 0.9);
-    color: white;
-    padding: 0.5rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    z-index: 1000;
-    pointer-events: none;
-}
-
-/* Mejor contraste para visibilidad */
-.visibilidad-badge {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-}
-
-/* Scroll personalizado para modal historial */
+/* 🎯 CORRECCIÓN 4: SCROLL PERSONALIZADO */
 .historial-completo::-webkit-scrollbar {
     width: 8px;
 }
@@ -1226,4 +1062,128 @@
 
 .historial-completo::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent);
+}
+
+/* 🎯 CORRECCIÓN 5: RESPONSIVE SIN ROMPER DISEÑO */
+
+@media (max-width: 1200px) {
+    .historial-modal.modal-content {
+        max-width: 95vw !important;
+        width: 95vw !important;
+    }
+    
+    .historial-header-row,
+    .historial-row {
+        grid-template-columns: 0.8fr 2fr 1fr 0.8fr 1.2fr 0.8fr;
+        gap: 0.75rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .historial-filtros {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .historial-filtros select,
+    .historial-filtros input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    /* En móvil, cambiar a layout vertical */
+    .historial-header-row {
+        display: none; /* Ocultar header en móvil */
+    }
+    
+    .historial-row {
+        display: block !important;
+        padding: 1rem !important;
+        margin-bottom: 1rem;
+        border: 1px solid var(--color-border) !important;
+        border-radius: 8px;
+        background: white;
+    }
+    
+    /* Etiquetas para cada campo en móvil */
+    .historial-row > div {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .historial-row > div:last-child {
+        border-bottom: none;
+    }
+    
+    .historial-row > div::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+}
+
+/* 🎯 CORRECCIÓN 6: MEJORAS VISUALES SUTILES */
+
+/* Mejor contraste en tabla hover */
+.inventario-table tbody tr:hover {
+    background: rgba(101, 113, 83, 0.04);
+}
+
+/* Indicador visual para stock bajo */
+.stock-numero.stock-bajo {
+    background: rgba(245, 124, 0, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    animation: pulseWarning 2s infinite;
+}
+
+@keyframes pulseWarning {
+    0%, 100% { 
+        background: rgba(245, 124, 0, 0.1);
+    }
+    50% { 
+        background: rgba(245, 124, 0, 0.2);
+    }
+}
+
+/* Botones de acción más compactos pero funcionales */
+.btn-inventario-action {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    margin: 0 2px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-inventario-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Estados de carga mejorados */
+.loading-inventario {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.1rem;
+    color: var(--color-text-secondary);
+}
+
+.no-movimientos {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* Mejor feedback visual para filtros activos */
+.historial-filtros select:not([value=""]),
+.historial-filtros input:not([value=""]) {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(101, 113, 83, 0.1);
 }
