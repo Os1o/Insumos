@@ -267,19 +267,6 @@ function renderizarReporte() {
             ${crearTarjetaEstadistica('Solicitudes Cerradas', datosReporte.actual.porEstado.cerrado, datosReporte.anterior.porEstado.cerrado)}
         </div>
         
-        <!-- Análisis por tipo -->
-        <div class="seccion-reporte">
-            <h4>Análisis por Tipo</h4>
-            <div class="contenido-mixto">
-                <div class="tabla-datos">
-                    ${crearTablaAnalisisTipo()}
-                </div>
-                <div class="grafico-container">
-                    <canvas id="graficoTipos"></canvas>
-                </div>
-            </div>
-        </div>
-        
         <!-- Solo mostrar por área si no hay filtro específico -->
         ${!datosReporte.periodo.area ? `
         <div class="seccion-reporte">
@@ -674,6 +661,10 @@ function mostrarErrorReporte(mensaje) {
     }
 }
 
+function cerrarReporteModal() {
+    document.getElementById('reporteModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
 // Función para abrir el modal (llamar desde admin.html)
 function abrirReportes() {
     document.getElementById('reporteModal').style.display = 'flex';
