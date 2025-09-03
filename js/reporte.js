@@ -21,10 +21,7 @@ const supabaseReportes = window.supabase.createClient(
 // ===================================
 
 function inicializarReportes() {
-    console.log('Inicializando sistema de reportes...');
-    
-    // Configurar selectores iniciales
-    configurarSelectores();
+    console.log('Inicializando sistema de reportes...');    
     
     // Cargar áreas disponibles
     cargarAreas();
@@ -821,3 +818,34 @@ function cerrarReportes() {
 }
 
 console.log('Sistema de reportes cargado correctamente');
+
+
+// Función faltante para configurar los selectores
+function configurarSelectores() {
+    // Configurar selector de mes
+    const selectorMes = document.getElementById('selectorMes');
+    if (selectorMes) {
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        
+        let html = '';
+        meses.forEach((nombre, index) => {
+            const valor = index + 1;
+            const selected = valor === new Date().getMonth() + 1 ? 'selected' : '';
+            html += `<option value="${valor}" ${selected}>${nombre}</option>`;
+        });
+        selectorMes.innerHTML = html;
+    }
+    
+    // Configurar selector de año
+    const selectorAno = document.getElementById('selectorAno');
+    if (selectorAno) {
+        const anoActual = new Date().getFullYear();
+        let html = '';
+        for (let ano = anoActual - 2; ano <= anoActual; ano++) {
+            const selected = ano === anoActual ? 'selected' : '';
+            html += `<option value="${ano}" ${selected}>${ano}</option>`;
+        }
+        selectorAno.innerHTML = html;
+    }
+}
