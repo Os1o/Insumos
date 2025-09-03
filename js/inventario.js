@@ -1087,7 +1087,7 @@ function actualizarInventario() {
     showNotificationInventario('Inventario exportado exitosamente', 'success');
 }*/
 
-function exportarInventarioExcelSinLib() {
+function exportarInventario() {
     let rows = inventarioData.map(item => `
         <Row>
             <Cell><Data ss:Type="String">${item.nombre}</Data></Cell>
