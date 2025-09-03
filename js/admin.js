@@ -1030,20 +1030,17 @@ function renderizarTablaTipos() {
 }
 
 function calcularCambio(actual, anterior) {
-    if (anterior === 0) {
+    if (anterior === 0 || anterior === undefined) {
         return actual > 0 ? `+${actual} (nuevo)` : '0';
     }
     
     const diferencia = actual - anterior;
-    const porcentaje = ((diferencia / anterior) * 100).toFixed(1);
-    
-    if (diferencia > 0) {
-        return `+${diferencia} (+${porcentaje}%)`;
-    } else if (diferencia < 0) {
-        return `${diferencia} (${porcentaje}%)`;
-    } else {
+    if (diferencia === 0) {
         return '0 (=)';
     }
+    
+    const porcentaje = Math.abs((diferencia / anterior) * 100).toFixed(1);
+    return diferencia > 0 ? `+${diferencia} (+${porcentaje}%)` : `${diferencia} (-${porcentaje}%)`;
 }
 
 function obtenerNombreMes(numeroMes) {

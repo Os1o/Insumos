@@ -1998,7 +1998,12 @@
     font-size: 1.1rem;
 }
 
-
+.tabla-header,
+.tabla-row {
+    display: grid;
+    grid-template-columns: 2fr 120px 120px; /* Anchos fijos para columnas numéricas */
+    gap: 1rem;
+}
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */
