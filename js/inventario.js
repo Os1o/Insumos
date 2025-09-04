@@ -1284,6 +1284,11 @@ function configurarEventListeners() {
     }
 }
 
+
+
+
+
+
 // ===================================
 // MANEJO DE ERRORES GLOBALES
 // ===================================

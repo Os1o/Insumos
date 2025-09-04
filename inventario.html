@@ -35,7 +35,7 @@
 
 <body>
     <!-- Header Admin se carga aquí -->
-    <div id="header-container"></div>
+    <div id="header-contain"></div>
 
     <main class="main-content admin-content">
 
@@ -423,7 +423,7 @@
 
                     <!-- Control de visibilidad -->
                     <div class="form-group">
-                        <label for="editarVisibilidad">Visibilidad para usuarios *</label>
+                        <label for="editarVisibilidad">Visibilidad para usuarios</label>
                         <select id="editarVisibilidad" required>
                             <option value="todos">👥 Visible para todos los usuarios</option>
                             <option value="solo_direccion">🏢 Solo visible para Dirección Jurídica</option>
@@ -501,6 +501,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
     <script src="js/inventario.js"></script>
+    <script>
+        fetch('includes/headerAdmin.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-contain').innerHTML = html;
+            });
+        fetch('includes/foot.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('footer-container').innerHTML = html;
+            });
+    </script>
 
 </body>
 

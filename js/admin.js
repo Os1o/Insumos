@@ -555,52 +555,157 @@ function showNotificationAdmin(message, type = 'info', duration = 3000) {
 
 
 
-// Funciones para el header administrativo
+
+// ===================================
+// FUNCIONES DEL HEADER ADMINISTRATIVO
+// ===================================
+
+// Toggle del menú de usuario
 function toggleUserMenu() {
     const dropdown = document.getElementById('userDropdown');
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    if (dropdown) {
+        const isVisible = dropdown.style.display !== 'none';
+        dropdown.style.display = isVisible ? 'none' : 'block';
+    }
 }
 
+// Cerrar sesión
 function logout() {
     sessionStorage.clear();
     window.location.href = 'login.html';
 }
 
-// Inicializar el header después de verificar autenticación
-function inicializarHeader() {
+// Inicializar el header después de cargarse
+function inicializarHeaderAdmin() {
     const session = sessionStorage.getItem('currentUser');
     if (session) {
-        const user = JSON.parse(session);
-        
-        // Actualizar nombre de usuario
-        const userNameElement = document.getElementById('userName');
-        if (userNameElement) {
-            userNameElement.textContent = user.nombre;
-        }
-        
-        // Solo super_admin ve inventario
-        if (user.rol !== 'super_admin') {
-            const inventarioLink = document.getElementById('inventarioLink');
-            if (inventarioLink) {
-                inventarioLink.style.display = 'none';
+        try {
+            const user = JSON.parse(session);
+
+            // Actualizar nombre de usuario
+            const userNameElement = document.getElementById('userName');
+            if (userNameElement) {
+                userNameElement.textContent = user.nombre;
             }
+
+            // Solo super_admin ve inventario
+            if (user.rol !== 'super_admin') {
+                const inventarioLink = document.getElementById('inventarioLink');
+                if (inventarioLink) {
+                    inventarioLink.style.display = 'none';
+                }
+            }
+
+            console.log('Header administrativo inicializado para:', user.nombre);
+
+        } catch (error) {
+            console.error('Error inicializando header admin:', error);
         }
     }
 }
 
-// Llamar a inicializarHeader después de que el header se cargue
-// Puedes poner esto al final de tu función de verificación de autenticación
-// o usar un event listener para cuando el DOM esté listo
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Tu código existente de verificación de autenticación...
-    
-    // Después de verificar el usuario, inicializar el header
-    inicializarHeader();
+// Cerrar dropdown al hacer click fuera
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.user-menu') && !e.target.closest('.user-dropdown')) {
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown) {
+            dropdown.style.display = 'none';
+        }
+    }
 });
 
-// También agregar un timeout por si el header se carga dinámicamente
-setTimeout(inicializarHeader, 300);
+// ===================================
+// CARGA DEL HEADER DINÁMICO
+// ===================================
+
+// Función para cargar el header
+async function cargarHeaderAdmin() {
+    try {
+        const response = await fetch('includes/headerAdmin.html');
+        if (!response.ok) throw new Error('Error cargando header');
+
+        const html = await response.text();
+        const headerContainer = document.getElementById('header-contain');
+
+        if (headerContainer) {
+            headerContainer.innerHTML = html;
+            console.log('Header administrativo cargado');
+
+            // Inicializar después de cargar el HTML
+            setTimeout(inicializarHeaderAdmin, 100);
+        }
+    } catch (error) {
+        console.error('Error cargando header administrativo:', error);
+        // Fallback básico
+        const headerContainer = document.getElementById('header-contain');
+        if (headerContainer) {
+            headerContainer.innerHTML = `
+                <header class="header">
+                    <div class="container">
+                        <div class="header-content">
+                            <div class="logo-section">
+                                <h1>Panel de Administración</h1>
+                            </div>
+                            <div class="user-section">
+                                <span class="user-name">Usuario</span>
+                                <a href="login.html" style="margin-left: 1rem;">Cerrar Sesión</a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            `;
+        }
+    }
+}
+
+// ===================================
+// INICIALIZACIÓN DEL ADMIN
+// ===================================
+
+// Modificar tu función de inicialización existente para incluir el header
+document.addEventListener('DOMContentLoaded', function () {
+    // Tu código existente de verificación de autenticación...
+    // Inicializar el header después de verificar autenticación
+    function inicializarHeader() {
+        const session = sessionStorage.getItem('currentUser');
+        if (session) {
+            const user = JSON.parse(session);
+
+            // Actualizar nombre de usuario
+            const userNameElement = document.getElementById('userName');
+            if (userNameElement) {
+                userNameElement.textContent = user.nombre;
+            }
+
+            // Solo super_admin ve inventario
+            if (user.rol !== 'super_admin') {
+                const inventarioLink = document.getElementById('inventarioLink');
+                if (inventarioLink) {
+                    inventarioLink.style.display = 'none';
+                }
+            }
+        }
+    }
+    // Después de verificar autenticación, cargar el header
+    cargarHeaderAdmin();
+
+    // Llamar a inicializarHeader después de que el header se cargue
+    // Puedes poner esto al final de tu función de verificación de autenticación
+    // o usar un event listener para cuando el DOM esté listo
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tu código existente de verificación de autenticación...
+
+        // Después de verificar el usuario, inicializar el header
+        inicializarHeader();
+        loadComponent('footer-container', 'includes/foot.html');
+    });
+
+    // También agregar un timeout por si el header se carga dinámicamente
+    setTimeout(inicializarHeader, 300);
+});
+
+
 
 
 
