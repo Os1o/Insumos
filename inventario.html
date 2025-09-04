@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/inventario.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/supadmin.css">
+    <link rel="stylesheet" href="css/header.css">
     <meta name="description" content="Sistema de gestión de inventario de insumos">
     <script>
         (function () {
@@ -34,7 +35,7 @@
 
 <body>
     <!-- Header Admin se carga aquí -->
-    <div id="header-container"></div>
+    <div id="header-contain"></div>
 
     <main class="main-content admin-content">
 
@@ -500,6 +501,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
     <script src="js/inventario.js"></script>
+    <script>
+        fetch('includes/headerAdmin.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-contain').innerHTML = html;
+            });
+    </script>
 
 </body>
 
