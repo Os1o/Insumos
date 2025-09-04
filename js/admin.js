@@ -658,53 +658,91 @@ async function cargarHeaderAdmin() {
     }
 }
 
+
+// ===================================
+// CARGA DEL FOOTER ADMIN
+// ===================================
+
+async function cargarFooterAdmin() {
+    try {
+        const response = await fetch('includes/footerAdmin.html');
+        if (!response.ok) throw new Error('Error cargando footer');
+        
+        const html = await response.text();
+        const footerContainer = document.getElementById('footer-container');
+        
+        if (footerContainer) {
+            footerContainer.innerHTML = html;
+            console.log('Footer administrativo cargado');
+        }
+    } catch (error) {
+        console.error('Error cargando footer administrativo:', error);
+        // Fallback básico si hay error
+        const footerContainer = document.getElementById('footer-container');
+        if (footerContainer) {
+            footerContainer.innerHTML = `
+                <footer class="footer">
+                    <div class="container">
+                        <p>&copy; ${new Date().getFullYear()} Sistema de Administración</p>
+                    </div>
+                </footer>
+            `;
+        }
+    }
+}
+
+// ===================================
+// INICIALIZACIÓN SIMPLIFICADA
+// ===================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Iniciando panel de administración...');
+    
+    // Verificar autenticación primero
+    verificarAutenticacionAdmin();
+    
+    // Cargar header y footer
+    cargarHeaderAdmin();
+    cargarFooterAdmin(); // ← SOLO ESTA LÍNEA PARA EL FOOTER
+    
+    // Inicializar después de un breve delay
+    setTimeout(() => {
+        inicializarHeaderAdmin();
+        cargarSolicitudesAdmin();
+        actualizarEstadisticasAdmin();
+        verificarSuperAdmin();
+    }, 500);
+});
+
 // ===================================
 // INICIALIZACIÓN DEL ADMIN
 // ===================================
 
-// Modificar tu función de inicialización existente para incluir el header
-document.addEventListener('DOMContentLoaded', function () {
-    // Tu código existente de verificación de autenticación...
-    // Inicializar el header después de verificar autenticación
-    function inicializarHeader() {
-        const session = sessionStorage.getItem('currentUser');
-        if (session) {
-            const user = JSON.parse(session);
-
-            // Actualizar nombre de usuario
-            const userNameElement = document.getElementById('userName');
-            if (userNameElement) {
-                userNameElement.textContent = user.nombre;
-            }
-
-            // Solo super_admin ve inventario
-            if (user.rol !== 'super_admin') {
-                const inventarioLink = document.getElementById('inventarioLink');
-                if (inventarioLink) {
-                    inventarioLink.style.display = 'none';
-                }
-            }
-        }
+function verificarAutenticacionAdmin() {
+    const session = sessionStorage.getItem('currentUser');
+    
+    if (!session) {
+        window.location.href = 'login.html';
+        return;
     }
-    // Después de verificar autenticación, cargar el header
-    cargarHeaderAdmin();
-
-    // Llamar a inicializarHeader después de que el header se cargue
-    // Puedes poner esto al final de tu función de verificación de autenticación
-    // o usar un event listener para cuando el DOM esté listo
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // Tu código existente de verificación de autenticación...
-
-        // Después de verificar el usuario, inicializar el header
-        inicializarHeader();
-        loadComponent('footer-contain', 'includes/footerAdmin.html');
-    });
-
-    // También agregar un timeout por si el header se carga dinámicamente
-    setTimeout(inicializarHeader, 300);
-});
-
+    
+    try {
+        const user = JSON.parse(session);
+        
+        // Verificar si es administrador
+        if (user.rol !== 'admin' && user.rol !== 'super_admin') {
+            showNotificationAdmin('No tienes permisos de administrador', 'error');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+        
+        console.log('Usuario admin autenticado:', user.nombre);
+        
+    } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        window.location.href = 'login.html';
+    }
+}
 
 
 
