@@ -402,6 +402,465 @@ function abrirModalFormUsuario(usuario = null) {
     alert(`🚧 Próximamente: ${esEdicion ? 'Editar' : 'Crear'} usuario\n\nDatos: ${esEdicion ? usuario.nombre : 'Nuevo usuario'}`);
 }
 
+
+
+
+
+
+
+
+
+// ===================================
+// FUNCIONES FALTANTES PARA USUARIOS.JS
+// Agregar al final del archivo usuarios.js
+// ===================================
+
+// ===================================
+// CERRAR MODAL PRINCIPAL
+// ===================================
+function cerrarModalUsuarios() {
+    const modal = document.getElementById('modalUsuarios');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    
+    // Cerrar también modal de formulario si está abierto
+    const modalForm = document.getElementById('modalFormUsuario');
+    if (modalForm) {
+        modalForm.style.display = 'none';
+    }
+}
+
+// ===================================
+// RECARGAR USUARIOS
+// ===================================
+function recargarUsuarios() {
+    cargarTodosLosUsuarios();
+}
+
+// ===================================
+// LOADING USUARIOS
+// ===================================
+function mostrarLoadingUsuarios(mostrar) {
+    const loading = document.getElementById('usuariosLoading');
+    const lista = document.getElementById('usuariosLista');
+    
+    if (loading) loading.style.display = mostrar ? 'block' : 'none';
+    if (lista) lista.style.display = mostrar ? 'none' : 'block';
+}
+
+// ===================================
+// MODAL DE FORMULARIO CREAR/EDITAR USUARIO
+// ===================================
+function abrirModalFormUsuario(usuario = null) {
+    const esEdicion = usuario !== null;
+    
+    // Crear modal de formulario si no existe
+    if (!document.getElementById('modalFormUsuario')) {
+        crearModalFormularioUsuario();
+    }
+    
+    // Cargar roles disponibles
+    cargarRolesEnSelect();
+    
+    // Si es edición, llenar campos
+    if (esEdicion) {
+        document.getElementById('formUsuarioId').value = usuario.id;
+        document.getElementById('formUsername').value = usuario.username;
+        document.getElementById('formNombre').value = usuario.nombre;
+        document.getElementById('formDepartamento').value = usuario.departamento;
+        document.getElementById('formRol').value = usuario.rol_id;
+        document.getElementById('formActivo').checked = usuario.activo;
+        document.getElementById('formToken').checked = usuario.token_disponible;
+        
+        // Título del modal
+        document.getElementById('tituloFormUsuario').textContent = '✏️ Editar Usuario';
+        document.getElementById('btnGuardarUsuario').textContent = '💾 Actualizar';
+        
+        // Password opcional en edición
+        document.getElementById('formPassword').required = false;
+        document.querySelector('label[for="formPassword"]').textContent = 'Nueva Contraseña (opcional)';
+    } else {
+        // Limpiar formulario para nuevo usuario
+        document.getElementById('formUsuario').reset();
+        document.getElementById('formUsuarioId').value = '';
+        
+        // Título del modal
+        document.getElementById('tituloFormUsuario').textContent = '➕ Nuevo Usuario';
+        document.getElementById('btnGuardarUsuario').textContent = '💾 Crear Usuario';
+        
+        // Password requerido en creación
+        document.getElementById('formPassword').required = true;
+        document.querySelector('label[for="formPassword"]').textContent = 'Contraseña *';
+        
+        // Valores por defecto
+        document.getElementById('formActivo').checked = true;
+        document.getElementById('formToken').checked = true;
+    }
+    
+    // Mostrar modal
+    document.getElementById('modalFormUsuario').style.display = 'flex';
+}
+
+// ===================================
+// CREAR MODAL DE FORMULARIO
+// ===================================
+function crearModalFormularioUsuario() {
+    const modalHTML = `
+        <div class="modal-overlay" id="modalFormUsuario" style="display: none;">
+            <div class="modal-content modal-form-usuario">
+                
+                <!-- Header -->
+                <div class="modal-header">
+                    <h3 id="tituloFormUsuario">➕ Nuevo Usuario</h3>
+                    <button class="modal-close" onclick="cerrarModalFormUsuario()">×</button>
+                </div>
+                
+                <!-- Formulario -->
+                <div class="modal-body">
+                    <form id="formUsuario" onsubmit="guardarUsuario(event)">
+                        
+                        <!-- ID oculto para edición -->
+                        <input type="hidden" id="formUsuarioId">
+                        
+                        <!-- Username -->
+                        <div class="form-group">
+                            <label for="formUsername">Username (Usuario) *</label>
+                            <input type="text" id="formUsername" required 
+                                   pattern="[a-zA-Z0-9_]+" 
+                                   title="Solo letras, números y guión bajo"
+                                   placeholder="ej: JURD01">
+                            <small>Solo letras, números y guión bajo. Se usará para login.</small>
+                        </div>
+                        
+                        <!-- Nombre completo -->
+                        <div class="form-group">
+                            <label for="formNombre">Nombre Completo *</label>
+                            <input type="text" id="formNombre" required 
+                                   placeholder="ej: Juan Pérez López">
+                        </div>
+                        
+                        <!-- Departamento -->
+                        <div class="form-group">
+                            <label for="formDepartamento">Departamento/Área *</label>
+                            <select id="formDepartamento" required>
+                                <option value="">Seleccionar departamento...</option>
+                                <option value="Dirección Jurídica">Dirección Jurídica</option>
+                                <option value="Coordinación Administrativa">Coordinación Administrativa</option>
+                                <option value="Coordinación de Sistemas">Coordinación de Sistemas</option>
+                                <option value="Administración General">Administración General</option>
+                                <option value="Recursos Humanos">Recursos Humanos</option>
+                                <option value="Contabilidad">Contabilidad</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Contraseña -->
+                        <div class="form-group">
+                            <label for="formPassword">Contraseña *</label>
+                            <input type="password" id="formPassword" required 
+                                   minlength="3" placeholder="Mínimo 3 caracteres">
+                            <small>La contraseña debe tener al menos 3 caracteres</small>
+                        </div>
+                        
+                        <!-- Rol -->
+                        <div class="form-group">
+                            <label for="formRol">Rol del Sistema *</label>
+                            <select id="formRol" required>
+                                <option value="">Cargando roles...</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Estado activo -->
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="formActivo" checked>
+                                <span class="checkmark"></span>
+                                Usuario Activo
+                            </label>
+                            <small>Si está desactivado, no podrá iniciar sesión</small>
+                        </div>
+                        
+                        <!-- Token disponible -->
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="formToken" checked>
+                                <span class="checkmark"></span>
+                                Token Mensual Disponible
+                            </label>
+                            <small>Define si puede hacer solicitudes ordinarias este mes</small>
+                        </div>
+                        
+                    </form>
+                </div>
+                
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn-usuarios-secondary" onclick="cerrarModalFormUsuario()">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-usuarios-primary" id="btnGuardarUsuario" 
+                            onclick="document.getElementById('formUsuario').requestSubmit()">
+                        💾 Crear Usuario
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Agregar estilos específicos del formulario
+    agregarEstilosFormUsuario();
+}
+
+// ===================================
+// CERRAR MODAL FORMULARIO
+// ===================================
+function cerrarModalFormUsuario() {
+    const modal = document.getElementById('modalFormUsuario');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// ===================================
+// CARGAR ROLES EN SELECT
+// ===================================
+async function cargarRolesEnSelect() {
+    try {
+        const { data: roles, error } = await supabaseUsuarios
+            .from('roles')
+            .select('id, nombre, descripcion')
+            .order('nombre');
+        
+        if (error) throw error;
+        
+        const select = document.getElementById('formRol');
+        if (select && roles) {
+            select.innerHTML = '<option value="">Seleccionar rol...</option>';
+            
+            roles.forEach(rol => {
+                const option = document.createElement('option');
+                option.value = rol.id;
+                option.textContent = `${rol.nombre}${rol.descripcion ? ' - ' + rol.descripcion : ''}`;
+                select.appendChild(option);
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error cargando roles:', error);
+        const select = document.getElementById('formRol');
+        if (select) {
+            select.innerHTML = '<option value="">Error cargando roles</option>';
+        }
+    }
+}
+
+// ===================================
+// GUARDAR USUARIO (CREAR/EDITAR)
+// ===================================
+async function guardarUsuario(event) {
+    event.preventDefault();
+    
+    const btn = document.getElementById('btnGuardarUsuario');
+    const originalText = btn.textContent;
+    
+    try {
+        btn.disabled = true;
+        btn.textContent = '⏳ Guardando...';
+        
+        // Obtener datos del formulario
+        const usuarioId = document.getElementById('formUsuarioId').value;
+        const username = document.getElementById('formUsername').value.trim();
+        const nombre = document.getElementById('formNombre').value.trim();
+        const departamento = document.getElementById('formDepartamento').value;
+        const password = document.getElementById('formPassword').value;
+        const rolId = document.getElementById('formRol').value;
+        const activo = document.getElementById('formActivo').checked;
+        const tokenDisponible = document.getElementById('formToken').checked;
+        
+        // Validaciones
+        if (!username || !nombre || !departamento || !rolId) {
+            throw new Error('Todos los campos obligatorios deben estar llenos');
+        }
+        
+        if (!usuarioId && !password) {
+            throw new Error('La contraseña es requerida para nuevos usuarios');
+        }
+        
+        // Preparar datos
+        const userData = {
+            username: username.toUpperCase(),
+            nombre,
+            departamento,
+            rol_id: parseInt(rolId),
+            activo,
+            token_disponible: tokenDisponible
+        };
+        
+        // Agregar password solo si se proporcionó
+        if (password && password.trim()) {
+            userData.password = password;
+        }
+        
+        let result;
+        
+        if (usuarioId) {
+            // EDITAR usuario existente
+            result = await supabaseUsuarios
+                .from('usuarios')
+                .update(userData)
+                .eq('id', usuarioId);
+        } else {
+            // CREAR nuevo usuario
+            result = await supabaseUsuarios
+                .from('usuarios')
+                .insert([userData]);
+        }
+        
+        if (result.error) throw result.error;
+        
+        // Éxito
+        showNotificationUsuarios(
+            `Usuario ${usuarioId ? 'actualizado' : 'creado'} exitosamente`, 
+            'success'
+        );
+        
+        // Cerrar modal y recargar lista
+        cerrarModalFormUsuario();
+        await cargarTodosLosUsuarios();
+        
+    } catch (error) {
+        console.error('Error guardando usuario:', error);
+        showNotificationUsuarios(`Error: ${error.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+// ===================================
+// RESETEAR TOKEN DE USUARIO
+// ===================================
+async function resetearToken(usuarioId) {
+    try {
+        const usuario = todosLosUsuarios.find(u => u.id === usuarioId);
+        if (!usuario) return;
+        
+        const confirmacion = confirm(
+            `¿Resetear token mensual de ${usuario.nombre}?\n\nEsto le permitirá hacer una nueva solicitud ordinaria.`
+        );
+        
+        if (!confirmacion) return;
+        
+        const { error } = await supabaseUsuarios
+            .from('usuarios')
+            .update({ token_disponible: true })
+            .eq('id', usuarioId);
+        
+        if (error) throw error;
+        
+        // Actualizar localmente
+        usuario.token_disponible = true;
+        renderizarUsuarios(todosLosUsuarios);
+        
+        showNotificationUsuarios(`Token reseteado para ${usuario.nombre}`, 'success');
+        
+    } catch (error) {
+        console.error('Error reseteando token:', error);
+        showNotificationUsuarios(`Error reseteando token: ${error.message}`, 'error');
+    }
+}
+
+// ===================================
+// ESTILOS ADICIONALES PARA FORMULARIO
+// ===================================
+function agregarEstilosFormUsuario() {
+    if (document.getElementById('estilos-form-usuario')) return;
+    
+    const estilos = document.createElement('style');
+    estilos.id = 'estilos-form-usuario';
+    estilos.textContent = `
+        .modal-form-usuario {
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .checkbox-group {
+            position: relative;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: normal !important;
+            margin-bottom: 0 !important;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin-right: 0.75rem;
+            transform: scale(1.2);
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+    `;
+    
+    document.head.appendChild(estilos);
+}
+
+// Alias para compatibilidad con el botón en admin.html
+function gestionarUsuarios() {
+    abrirModalUsuarios();
+}
+
+
 // ===================================
 // ESTILOS CSS PARA LOS MODALES
 // ===================================
