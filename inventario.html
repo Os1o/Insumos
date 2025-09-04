@@ -75,6 +75,10 @@
                     <div class="alert-content" id="listaAlertas">
                         <!-- Se cargan dinámicamente -->
                     </div>
+                    <div class="alertas-list" id="listaAlertas">
+                        <!-- Los botones de acción de alertas también deben controlarse -->
+                        <!-- Modificar en el JS cuando se generen -->
+                    </div>
                 </div>
             </div>
         </section>
@@ -82,44 +86,42 @@
         <!-- Controles de Inventario -->
         <section class="inventario-controls">
             <div class="container">
-                <div class="controls-wrapper">
+                <div class="filtros-inventario">
+                    <!-- Filtros - ESTOS SÍ están disponibles para admin -->
+                    <select id="filtroCategoria" onchange="filtrarInventario()">
+                        <option value="">📂 Todas las categorías</option>
+                    </select>
 
-                    <!-- Filtros -->
-                    <div class="filtros-inventario">
-                        <select id="filtroCategoria" onchange="filtrarInventario()">
-                            <option value="">📂 Todas las categorías</option>
-                            <!-- Se cargan dinámicamente -->
-                        </select>
+                    <select id="filtroEstadoStock" onchange="filtrarInventario()">
+                        <option value="">📊 Todos los estados</option>
+                        <option value="critico">🔴 Stock Crítico</option>
+                        <option value="bajo">🟡 Stock Bajo</option>
+                        <option value="normal">🟢 Stock Normal</option>
+                    </select>
 
-                        <select id="filtroEstadoStock" onchange="filtrarInventario()">
-                            <option value="">📊 Todos los estados</option>
-                            <option value="critico">🔴 Stock Crítico</option>
-                            <option value="bajo">🟡 Stock Bajo</option>
-                            <option value="normal">🟢 Stock Normal</option>
-                            <option value="alto">🔵 Stock Alto</option>
-                        </select>
+                    <select id="filtroVisibilidad" onchange="filtrarInventario()">
+                        <option value="">👁️ Todas las visibilidades</option>
+                        <option value="todos">👥 Todos los usuarios</option>
+                        <option value="solo_direccion">🏢 Solo Dirección</option>
+                    </select>
+                </div>
 
-                        <select id="filtroVisibilidad" onchange="filtrarInventario()">
-                            <option value="">👁️ Todos</option>
-                            <option value="todos">👥 Todos los usuarios</option>
-                            <option value="solo_direccion">🏢 Solo Dirección</option>
-                            <option value="ninguno">🚫 No visible</option>
-                        </select>
-                    </div>
+                <div class="acciones-inventario">
+                    <!-- BOTÓN RESTRINGIDO - Se deshabilitará para admin -->
+                    <button class="btn-admin-primary admin-restricted" onclick="abrirModalNuevoInsumo()"
+                        id="btnNuevoInsumo">
+                        ➕ Nuevo Insumo
+                    </button>
 
-                    <!-- Acciones -->
-                    <div class="acciones-inventario">
-                        <button class="btn-admin-primary" onclick="abrirModalNuevoInsumo()">
-                            🆕 Nuevo Insumo
-                        </button>
-                        <button class="btn-admin-secondary" onclick="actualizarInventario()">
-                            🔄 Actualizar
-                        </button>
-                        <button class="btn-admin-secondary" onclick="exportarInventario()">
-                            📊 Exportar
-                        </button>
-                    </div>
+                    <!-- BOTÓN PERMITIDO - Disponible para admin -->
+                    <button class="btn-admin-secondary" onclick="actualizarInventario()">
+                        🔄 Actualizar
+                    </button>
 
+                    <!-- BOTÓN PERMITIDO - Disponible para admin -->
+                    <button class="btn-admin-secondary" onclick="exportarInventario()">
+                        📊 Exportar
+                    </button>
                 </div>
             </div>
         </section>

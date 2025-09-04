@@ -1278,6 +1278,112 @@
     color: var(--color-text-secondary);
 }
 
+
+
+
+/* Estilos adicionales para permisos */
+.admin-restricted.disabled {
+    background: #cccccc !important;
+    color: #666666 !important;
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+    pointer-events: none;
+}
+
+.admin-restricted.disabled:hover {
+    background: #cccccc !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.permission-message {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    animation: slideInPermission 0.5s ease;
+}
+
+@keyframes slideInPermission {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.permission-message .icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.permission-message .content {
+    flex: 1;
+}
+
+.permission-message .content strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+}
+
+.permission-message .content small {
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+/* Tooltips para botones deshabilitados */
+.btn-disabled-tooltip {
+    position: relative;
+}
+
+.btn-disabled-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+}
+
+.btn-disabled-tooltip:hover::after {
+    opacity: 1;
+}
+
+/* Indicador visual en tabla para acciones restringidas */
+.acciones-inventario .btn-inventario-action.restricted {
+    background: #f5f5f5 !important;
+    color: #999 !important;
+    cursor: not-allowed !important;
+    border-color: #ddd !important;
+}
+
+.acciones-inventario .btn-inventario-action.restricted:hover {
+    background: #f5f5f5 !important;
+    transform: none !important;
+}
+
+
+
+
+
 /* 🎯 RESPONSIVE: Mantener alineación en pantallas menores */
 @media (max-width: 1200px) {
     .historial-header-row,
