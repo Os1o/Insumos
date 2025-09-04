@@ -315,7 +315,7 @@
             .then(html => {
                 document.getElementById('header-contain').innerHTML = html;
             });
-        fetch('js/script.js')
+        fetch('includes/foot.html')
             .then(response => response.text())
             .then(html => {
                 document.getElementById('footer-container').innerHTML = html;
