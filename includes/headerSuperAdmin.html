@@ -166,174 +166,192 @@
 <!-- Estilos específicos del Super Admin -->
 <style>
 /* ===================================
-   HEADER SUPER ADMINISTRADOR
+   HEADER SUPER ADMINISTRADOR - PROFESIONAL
    =================================== */
 
 .super-admin-header-nav {
-    background: linear-gradient(135deg, #8e44ad, #9b59b6);
-    border-bottom: 3px solid #732d91;
-    box-shadow: 0 4px 20px rgba(142, 68, 173, 0.3);
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border-bottom: 2px solid #1a252f;
+    box-shadow: 0 2px 10px rgba(44, 62, 80, 0.15);
     position: relative;
-    overflow: hidden;
-}
-
-.super-admin-header-nav::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    animation: shimmer 3s infinite;
 }
 
 .super-admin-logo {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
+    background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    box-shadow: 0 2px 10px rgba(243, 156, 18, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.25);
 }
 
 .super-admin-badge {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ecf0f1;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-top: 2px;
+    margin-top: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-text h1 {
+    color: #ecf0f1;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
 }
 
 .super-admin-nav-link {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ecf0f1;
     text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .super-admin-nav-link:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-1px);
 }
 
 .super-admin-nav-link:active,
 .super-admin-nav-link.active {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(52, 152, 219, 0.2);
+    border-color: rgba(52, 152, 219, 0.3);
+    color: #3498db;
 }
 
-/* Quick Actions */
+/* Acciones del Super Admin */
 .super-admin-actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 20px;
 }
 
-.quick-actions {
+.action-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
-.quick-action-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.action-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ecf0f1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 
-.quick-action-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
 }
 
 /* Usuario Super Admin */
 .super-admin-user .user-info {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 8px;
 }
 
 .super-admin-user .user-info:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .super-admin-avatar {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
     color: white;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-size: 0.8rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .super-admin-user .user-name {
-    color: white;
-    font-weight: 600;
-    font-size: 0.95rem;
+    color: #ecf0f1;
+    font-weight: 500;
+    font-size: 0.9rem;
 }
 
-.super-admin-user .user-role {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.dropdown-arrow {
+    color: #bdc3c7;
+    transition: transform 0.2s ease;
+}
+
+.user-info:hover .dropdown-arrow {
+    transform: translateY(1px);
 }
 
 .super-admin-dropdown {
-    background: linear-gradient(135deg, #8e44ad, #9b59b6);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    color: #ecf0f1;
 }
 
-.super-admin-role-badge {
-    background: linear-gradient(135deg, #f39c12, #e67e22);
+.dropdown-header {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-email {
+    color: #95a5a6;
+}
+
+.dropdown-item {
+    color: #ecf0f1;
+    padding: 10px 16px;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1);
     color: white;
 }
 
-/* Animaciones */
-@keyframes shimmer {
-    0% { left: -100%; }
-    100% { left: 100%; }
+.logout-item:hover {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .quick-actions {
+    .action-buttons {
         display: none;
     }
     
@@ -344,9 +362,11 @@
     .super-admin-nav {
         display: none;
     }
+    
+    .logo-text h1 {
+        font-size: 1.2rem;
+    }
 }
-
-/* Funciones JavaScript para Super Admin */
 </style>
 
 <script>
