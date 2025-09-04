@@ -959,10 +959,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     console.log('Header container:', headerContainer ? '✅ Encontrado' : '❌ No encontrado');
     console.log('Footer container:', footerContainer ? '✅ Encontrado' : '❌ No encontrado');
 
-    if (!headerContainer) {
+    /*if (!headerContainer) {
         console.error('❌ Header container faltante. Verificar HTML.');
         return;
-    }
+    }*/
 
     // Footer es opcional
     if (!footerContainer) {
