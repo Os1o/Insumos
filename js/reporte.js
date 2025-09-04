@@ -9,6 +9,8 @@ let mesSeleccionado = new Date().getMonth() + 1;
 let anoSeleccionado = new Date().getFullYear();
 let areaSeleccionada = '';
 let areasDisponibles = [];
+let tipoPeriodoSeleccionado = 'mes';
+
 
 // Configuración Supabase (reutilizar conexión)
 const supabaseReportes = window.supabase.createClient(
@@ -31,7 +33,16 @@ function inicializarReportes() {
 }
 
 function configurarSelectores() {
-    // Configurar selector de mes
+    // Configurar selector de tipo de período
+    const selectorTipoPeriodo = document.getElementById('tipoPeriodo');
+    if (selectorTipoPeriodo) {
+        selectorTipoPeriodo.innerHTML = `
+            <option value="mes">Un mes específico</option>
+            <option value="anual">Año completo</option>
+        `;
+    }
+    
+    // Configurar selector de mes (mantener igual)
     const selectorMes = document.getElementById('selectorMes');
     if (selectorMes) {
         const meses = [
@@ -49,7 +60,7 @@ function configurarSelectores() {
         selectorMes.innerHTML = html;
     }
     
-    // Configurar selector de año
+    // Configurar selector de año (mantener igual)
     const selectorAno = document.getElementById('selectorAno');
     if (selectorAno) {
         const anoActual = new Date().getFullYear();
@@ -63,6 +74,16 @@ function configurarSelectores() {
         selectorAno.innerHTML = html;
     }
 }
+
+function cambiarTipoPeriodo() {
+    tipoPeriodoSeleccionado = document.getElementById('tipoPeriodo').value;
+    const mesContainer = document.getElementById('mes-container');
+    
+    if (mesContainer) {
+        mesContainer.style.display = tipoPeriodoSeleccionado === 'mes' ? 'block' : 'none';
+    }
+}
+
 
 async function cargarAreas() {
     try {
@@ -94,7 +115,7 @@ async function cargarAreas() {
 // GENERACIÓN DEL REPORTE
 // ===================================
 
-async function ejecutarReporte() {
+/*async function ejecutarReporte() {
     try {
         // Obtener valores de los selectores
         mesSeleccionado = parseInt(document.getElementById('selectorMes').value);
@@ -143,6 +164,112 @@ async function ejecutarReporte() {
         console.error('Error ejecutando reporte:', error);
         mostrarErrorReporte('Error generando el reporte');
         mostrarLoadingReporte(false);
+    }
+}*/
+
+async function ejecutarReporte() {
+    try {
+        // Obtener valores de los selectores
+        tipoPeriodoSeleccionado = document.getElementById('tipoPeriodo').value;
+        anoSeleccionado = parseInt(document.getElementById('selectorAno').value);
+        areaSeleccionada = document.getElementById('selectorArea').value;
+        
+        // Mostrar loading
+        mostrarLoadingReporte(true);
+        
+        let datosActual, datosAnterior;
+        
+        if (tipoPeriodoSeleccionado === 'mes') {
+            // Lógica mensual (mantener como está)
+            mesSeleccionado = parseInt(document.getElementById('selectorMes').value);
+            datosActual = await consultarSolicitudesPeriodo(mesSeleccionado, anoSeleccionado, areaSeleccionada);
+            
+            let mesAnterior = mesSeleccionado - 1;
+            let anoAnterior = anoSeleccionado;
+            if (mesAnterior === 0) {
+                mesAnterior = 12;
+                anoAnterior = anoAnterior - 1;
+            }
+            datosAnterior = await consultarSolicitudesPeriodo(mesAnterior, anoAnterior, areaSeleccionada);
+            
+        } else if (tipoPeriodoSeleccionado === 'anual') {
+            // Nueva lógica anual
+            datosActual = await consultarSolicitudesAnual(anoSeleccionado, areaSeleccionada);
+            datosAnterior = await consultarSolicitudesAnual(anoSeleccionado - 1, areaSeleccionada);
+        }
+        
+        // Procesar datos para el reporte
+        datosReporte = {
+            periodo: {
+                tipo: tipoPeriodoSeleccionado,
+                mes: tipoPeriodoSeleccionado === 'mes' ? mesSeleccionado : null,
+                ano: anoSeleccionado,
+                area: areaSeleccionada
+            },
+            actual: datosActual,
+            anterior: datosAnterior
+        };
+        
+        // Renderizar el reporte
+        renderizarReporte();
+        
+        // Generar gráficos
+        setTimeout(() => {
+            crearGraficos();
+        }, 200);
+        
+        mostrarLoadingReporte(false);
+        
+    } catch (error) {
+        console.error('Error ejecutando reporte:', error);
+        mostrarErrorReporte('Error generando el reporte');
+        mostrarLoadingReporte(false);
+    }
+}
+
+
+
+// AGREGAR esta nueva función para consulta anual
+async function consultarSolicitudesAnual(ano, area) {
+    try {
+        // Fechas para todo el año
+        const fechaInicio = `${ano}-01-01T00:00:00`;
+        const fechaFin = `${ano}-12-31T23:59:59`;
+        
+        // Consulta a Supabase (igual que la mensual pero con fechas de todo el año)
+        const { data: solicitudes, error } = await supabaseReportes
+            .from('solicitudes')
+            .select(`
+                id,
+                tipo,
+                estado,
+                fecha_solicitud,
+                token_usado,
+                usuarios:usuario_id(departamento),
+                solicitud_detalles(
+                    cantidad_solicitada,
+                    cantidad_aprobada,
+                    insumos(nombre)
+                )
+            `)
+            .gte('fecha_solicitud', fechaInicio)
+            .lte('fecha_solicitud', fechaFin);
+        
+        if (error) throw error;
+        
+        // Filtrar por área si está seleccionada
+        let solicitudesFiltradas = solicitudes || [];
+        if (area) {
+            solicitudesFiltradas = solicitudesFiltradas.filter(s => 
+                s.usuarios && s.usuarios.departamento === area
+            );
+        }
+        
+        return procesarSolicitudes(solicitudesFiltradas);
+        
+    } catch (error) {
+        console.error('Error consultando solicitudes anuales:', error);
+        return getEstadisticasVacias();
     }
 }
 
@@ -533,7 +660,7 @@ function exportarReporteCompleto() {
         return;
     }
     
-    const nombreMes = obtenerNombreMes(datosReporte.periodo.mes);
+    const nombreMes = obtenerTituloReporte();
     const sufijo = datosReporte.periodo.area ? `_${datosReporte.periodo.area}` : '_todas_areas';
     
     // Preparar datos de exportación
@@ -676,6 +803,14 @@ function convertirACSV(data) {
 // ===================================
 // UTILIDADES
 // ===================================
+function obtenerTituloReporte() {
+    if (datosReporte.periodo.tipo === 'anual') {
+        return `Reporte Anual ${datosReporte.periodo.ano}`;
+    } else {
+        const nombreMes = obtenerNombreMes(datosReporte.periodo.mes);
+        return `Reporte de ${nombreMes} ${datosReporte.periodo.ano}`;
+    }
+}
 
 function obtenerNombreMes(numeroMes) {
     const meses = [

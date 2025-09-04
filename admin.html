@@ -267,7 +267,10 @@
                         <option value="mes">Un mes</option>
                         <option value="anual">Año completo</option>
                     </select>
-                    <select id="selectorMes"></select>
+                    <!-- Envolver el selector de mes en un contenedor -->
+                    <div id="mes-container">
+                        <select id="selectorMes"></select>
+                    </div>
                     <select id="selectorAno"></select>
                     <select id="selectorArea"></select>
                     <button class="btn-reporte-generar" onclick="ejecutarReporte()">
