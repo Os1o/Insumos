@@ -57,9 +57,9 @@
                     <button class="btn-super-admin" onclick="gestionarUsuarios()">
                         👥 Gestionar Usuarios
                     </button>
-                    <button class="btn-super-admin" onclick="reportesAvanzados()">
+                    <!--<button class="btn-super-admin" onclick="reportesAvanzados()">
                         📊 Reportes Avanzados
-                    </button>
+                    </button>-->
                     <button class="btn-super-admin" onclick="configurarSistema()">
                         ⚙️ Configuración del Sistema
                     </button>
@@ -308,6 +308,24 @@
     <script src="js/script.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/reporte.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            console.log('🚀 Iniciando admin.html...');
+
+            // 1. Cargar header apropiado
+            await loadAppropriateHeader();
+
+            // 2. Cargar footer si existe
+            const footerContainer = document.getElementById('footer-container');
+            if (footerContainer) {
+                loadComponent('footer-container', 'includes/footer.html')
+                    .catch(() => console.log('Footer no disponible'));
+            }
+
+            // 3. Continuar con inicialización normal de admin
+            // (tu código actual de admin.js se ejecuta automáticamente)
+        });
+    </script>
 </body>
 
 </html>

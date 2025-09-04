@@ -1,0 +1,58 @@
+<!-- Header Super Administrador -->
+<header class="header super-admin-header">
+    <div class="container">
+        <div class="header-content">
+            
+            <!-- Logo Super Admin -->
+            <div class="logo-section">
+                <div class="logo-icon super-admin-logo">
+                    ⚡
+                </div>
+                <div class="logo-text">
+                    <h1>Super Administrador</h1>
+                    <span class="super-admin-badge" data-user-role>Super Admin</span>
+                </div>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="main-nav">
+                <ul class="nav-links">
+                    <li><a href="admin.html" class="nav-link">📊 Panel</a></li>
+                    <li><a href="inventario.html" class="nav-link">📦 Inventario</a></li>
+                    <li><a href="#" class="nav-link" onclick="reportesAvanzados()">📈 Reportes</a></li>
+                    <li><a href="#" class="nav-link" onclick="configurarSistema()">⚙️ Config</a></li>
+                </ul>
+            </nav>
+
+            <!-- Usuario -->
+            <div class="user-section">
+                <span data-user-name>Super Admin</span>
+                <button onclick="logout()">Salir</button>
+            </div>
+
+        </div>
+    </div>
+</header>
+
+<style>
+.super-admin-header {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+}
+.super-admin-logo {
+    background: gold;
+    color: white;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+.super-admin-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+}
+</style>
