@@ -1293,3 +1293,27 @@
         font-size: 0.85rem;
     }
 }
+
+/* Ocultar elementos que se escapan del footer */
+.modal, .dropdown-overlay, .form-overlay {
+    display: none !important;
+}
+
+.modal.show, .dropdown-overlay.show, .form-overlay.show {
+    display: block !important;
+}
+
+/* Footer debe estar al final */
+.footer {
+    position: relative;
+    z-index: 100;
+    margin-top: auto;
+}
+
+/* Cualquier contenido debajo del footer debe estar oculto */
+body::after {
+    content: '';
+    display: block;
+    height: 1px;
+    clear: both;
+}
