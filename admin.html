@@ -13,7 +13,7 @@
 
 <body>
     <!-- Header se carga dinámicamente -->
-    <div id="header-container"></div>
+    <div id="header-contain"></div>
 
     <main class="main-content admin-content">
 
@@ -308,6 +308,13 @@
     <script src="js/script.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/reporte.js"></script>
+    <script>
+        fetch('includes/headerAdmin.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-contain').innerHTML = html;
+            });
+    </script>
 </body>
 
 </html>
