@@ -987,6 +987,11 @@ async function cargarRolesEnSelect() {
 // ===================================
 // GUARDAR USUARIO (CREAR/EDITAR)
 // ===================================
+// ===================================
+// FUNCIÓN GUARDAR USUARIO - VERSION DEBUG
+// REEMPLAZA la función guardarUsuario en usuarios.js
+// ===================================
+
 async function guardarUsuario(event) {
     event.preventDefault();
     
@@ -1007,6 +1012,16 @@ async function guardarUsuario(event) {
         const activo = document.getElementById('formActivo').checked;
         const tokenDisponible = document.getElementById('formToken').checked;
         
+        console.log('=== DEBUG DATOS FORMULARIO ===');
+        console.log('usuarioId:', usuarioId);
+        console.log('username:', username);
+        console.log('nombre:', nombre);
+        console.log('departamento:', departamento);
+        console.log('password:', password ? '***' : 'vacío');
+        console.log('rolId:', rolId);
+        console.log('activo:', activo);
+        console.log('tokenDisponible:', tokenDisponible);
+        
         // Validaciones
         if (!username || !nombre || !departamento || !rolId) {
             throw new Error('Todos los campos obligatorios deben estar llenos');
@@ -1016,37 +1031,62 @@ async function guardarUsuario(event) {
             throw new Error('La contraseña es requerida para nuevos usuarios');
         }
         
-        // Preparar datos
+        // Preparar datos - VERSION SIMPLE Y LIMPIA
         const userData = {
             username: username.toUpperCase(),
-            nombre,
-            departamento,
+            nombre: nombre,
+            departamento: departamento,
             rol_id: parseInt(rolId),
-            activo,
-            token_disponible: tokenDisponible
+            activo: activo,
+            token_disponible: tokenDisponible ? 1 : 0
         };
         
-        // Agregar password solo si se proporcionó
-        if (password && password.trim()) {
-            userData.password = password;
+        // Solo agregar password_hash si hay password Y es creación
+        if (!usuarioId && password && password.trim()) {
+            userData.password_hash = password.trim();
         }
+        
+        // Si es edición Y hay password, agregarlo
+        if (usuarioId && password && password.trim()) {
+            userData.password_hash = password.trim();
+        }
+        
+        console.log('=== DEBUG DATOS A ENVIAR ===');
+        console.log('Es edición:', !!usuarioId);
+        console.log('Datos finales:', userData);
         
         let result;
         
         if (usuarioId) {
-            // EDITAR usuario existente
+            console.log('=== EJECUTANDO UPDATE ===');
             result = await supabaseUsuarios
                 .from('usuarios')
                 .update(userData)
-                .eq('id', usuarioId);
+                .eq('id', usuarioId)
+                .select(); // Agregar select para ver el resultado
+                
+            console.log('Resultado UPDATE:', result);
         } else {
-            // CREAR nuevo usuario
+            console.log('=== EJECUTANDO INSERT ===');
             result = await supabaseUsuarios
                 .from('usuarios')
-                .insert([userData]);
+                .insert([userData])
+                .select(); // Agregar select para ver el resultado
+                
+            console.log('Resultado INSERT:', result);
         }
         
-        if (result.error) throw result.error;
+        if (result.error) {
+            console.error('=== ERROR DE SUPABASE ===');
+            console.error('Error completo:', result.error);
+            console.error('Mensaje:', result.error.message);
+            console.error('Detalles:', result.error.details);
+            console.error('Hint:', result.error.hint);
+            throw result.error;
+        }
+        
+        console.log('=== ÉXITO ===');
+        console.log('Data guardada:', result.data);
         
         // Éxito
         showNotificationUsuarios(
@@ -1059,7 +1099,11 @@ async function guardarUsuario(event) {
         await cargarTodosLosUsuarios();
         
     } catch (error) {
-        console.error('Error guardando usuario:', error);
+        console.error('=== ERROR COMPLETO ===');
+        console.error('Error object:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
         showNotificationUsuarios(`Error: ${error.message}`, 'error');
     } finally {
         btn.disabled = false;
