@@ -40,28 +40,3 @@
         </div>
     </div>
 </header>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const session = sessionStorage.getItem('currentUser');
-    const user = JSON.parse(session);
-    
-    // Actualizar nombre
-    document.getElementById('userName').textContent = user.nombre;
-    
-    // Solo super_admin ve inventario
-    if (user.rol !== 'super_admin') {
-        document.getElementById('inventarioLink').style.display = 'none';
-    }
-});
-
-function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-}
-
-function logout() {
-    sessionStorage.clear();
-    window.location.href = 'login.html';
-}
-</script>
