@@ -5,7 +5,6 @@
 console.log('🛡️ Super Admin JS cargado');
 
 // Variables globales
-let currentSuperAdmin = null;
 
 // ===================================
 // INICIALIZACIÓN

@@ -7,7 +7,7 @@
 let inventarioData = [];
 let categoriasData = [];
 let movimientosData = [];
-//let currentSuperAdmin = null;
+let currentSuperAdmin = null;
 
 // Configuración Supabase - INICIALIZACIÓN INMEDIATA
 const supabaseInventario = window.supabase.createClient(
