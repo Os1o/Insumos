@@ -192,15 +192,34 @@ async function updateAdminStats() {
 
 // Cargar script de Super Admin dinámicamente
 function loadSuperAdminScript() {
+    // Verificar si ya está cargado
+    if (typeof gestionarUsuarios === 'function') {
+        console.log('✅ Super Admin script ya disponible');
+        return;
+    }
+    
     console.log('📦 Cargando superadmin.js...');
     const script = document.createElement('script');
     script.src = 'js/superadmin.js';
+    script.type = 'text/javascript'; // Especificar tipo
     script.onload = () => {
-        console.log('✅ Super Admin script cargado');
+        console.log('✅ Super Admin script cargado exitosamente');
         // Reinicializar funciones si es necesario
     };
-    script.onerror = () => console.log('⚠️ Super Admin script no disponible');
+    script.onerror = () => {
+        console.log('⚠️ Super Admin script no disponible - usando funciones básicas');
+        // Crear funciones básicas inline si el archivo no existe
+        createBasicSuperAdminFunctions();
+    };
     document.head.appendChild(script);
+}
+
+// Crear funciones básicas si superadmin.js no se puede cargar
+function createBasicSuperAdminFunctions() {
+    window.gestionarUsuarios = () => alert('Gestión de usuarios próximamente');
+    window.configurarSistema = () => alert('Configuración del sistema próximamente');
+    window.reportesAvanzados = () => alert('Reportes avanzados próximamente');
+    console.log('✅ Funciones básicas de Super Admin creadas');
 }
 
 // Función global para recargar header (útil para desarrollo)
