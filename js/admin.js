@@ -657,8 +657,6 @@ async function cargarHeaderAdmin() {
         }
     }
 }
-
-
 // ===================================
 // CARGA DEL FOOTER ADMIN
 // ===================================
@@ -691,28 +689,6 @@ async function cargarFooterAdmin() {
     }
 }
 
-// ===================================
-// INICIALIZACIÓN SIMPLIFICADA
-// ===================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Iniciando panel de administración...');
-    
-    // Verificar autenticación primero
-    verificarAutenticacionAdmin();
-    
-    // Cargar header y footer
-    cargarHeaderAdmin();
-    cargarFooterAdmin(); // ← SOLO ESTA LÍNEA PARA EL FOOTER
-    
-    // Inicializar después de un breve delay
-    setTimeout(() => {
-        inicializarHeaderAdmin();
-        cargarSolicitudesAdmin();
-        actualizarEstadisticasAdmin();
-        verificarSuperAdmin();
-    }, 500);
-});
 
 // ===================================
 // INICIALIZACIÓN DEL ADMIN
@@ -744,7 +720,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     // Después de verificar autenticación, cargar el header
     cargarHeaderAdmin();
-    cargarFooterAdmin();
+    cargarFooterAdmin(); 
+
     // Llamar a inicializarHeader después de que el header se cargue
     // Puedes poner esto al final de tu función de verificación de autenticación
     // o usar un event listener para cuando el DOM esté listo
