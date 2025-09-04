@@ -718,31 +718,48 @@ document.addEventListener('DOMContentLoaded', function() {
 // INICIALIZACIÓN DEL ADMIN
 // ===================================
 
-function verificarAutenticacionAdmin() {
-    const session = sessionStorage.getItem('currentUser');
-    
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    try {
-        const user = JSON.parse(session);
-        
-        // Verificar si es administrador
-        if (user.rol !== 'admin' && user.rol !== 'super_admin') {
-            showNotificationAdmin('No tienes permisos de administrador', 'error');
-            setTimeout(() => window.location.href = 'index.html', 2000);
-            return;
+// Modificar tu función de inicialización existente para incluir el header
+document.addEventListener('DOMContentLoaded', function () {
+    // Tu código existente de verificación de autenticación...
+    // Inicializar el header después de verificar autenticación
+    function inicializarHeader() {
+        const session = sessionStorage.getItem('currentUser');
+        if (session) {
+            const user = JSON.parse(session);
+
+            // Actualizar nombre de usuario
+            const userNameElement = document.getElementById('userName');
+            if (userNameElement) {
+                userNameElement.textContent = user.nombre;
+            }
+
+            // Solo super_admin ve inventario
+            if (user.rol !== 'super_admin') {
+                const inventarioLink = document.getElementById('inventarioLink');
+                if (inventarioLink) {
+                    inventarioLink.style.display = 'none';
+                }
+            }
         }
-        
-        console.log('Usuario admin autenticado:', user.nombre);
-        
-    } catch (error) {
-        console.error('Error verificando autenticación:', error);
-        window.location.href = 'login.html';
     }
-}
+    // Después de verificar autenticación, cargar el header
+    cargarHeaderAdmin();
+    cargarFooterAdmin();
+    // Llamar a inicializarHeader después de que el header se cargue
+    // Puedes poner esto al final de tu función de verificación de autenticación
+    // o usar un event listener para cuando el DOM esté listo
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tu código existente de verificación de autenticación...
+
+        // Después de verificar el usuario, inicializar el header
+        inicializarHeader();
+    });
+
+    // También agregar un timeout por si el header se carga dinámicamente
+    setTimeout(inicializarHeader, 300);
+});
+
 
 
 
