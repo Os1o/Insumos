@@ -383,7 +383,7 @@ function renderizarReporte() {
     let html = `
         <!-- Header del reporte -->
         <div class="reporte-titulo">
-            <h3>Reporte de ${nombreMes} ${datosReporte.periodo.ano}${tituloArea}</h3>
+            <h3>${obtenerTituloReporte()}${tituloArea}</h3>
             <p>Comparación con mes anterior</p>
         </div>
         
