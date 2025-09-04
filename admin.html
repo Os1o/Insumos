@@ -160,7 +160,7 @@
     </main>
 
     <!-- Footer se carga dinámicamente -->
-    <div id="footer-container"></div>
+    <div id="footer-contain"></div>
 
     <!-- Modal de confirmación para acciones críticas -->
     <div id="confirmModal" class="modal-overlay" style="display: none;">
@@ -309,18 +309,6 @@
     <script src="js/script.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/reporte.js"></script>
-    <script>
-        fetch('includes/headerAdmin.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('header-contain').innerHTML = html;
-            });
-        fetch('includes/foot.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('footer-container').innerHTML = html;
-            });
-    </script>
 </body>
 
 </html>

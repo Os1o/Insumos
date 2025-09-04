@@ -698,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Después de verificar el usuario, inicializar el header
         inicializarHeader();
-        loadComponent('footer-container', 'includes/foot.html');
+        loadComponent('footer-contain', 'includes/footerAdmin.html');
     });
 
     // También agregar un timeout por si el header se carga dinámicamente
