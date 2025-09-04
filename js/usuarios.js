@@ -402,13 +402,338 @@ function abrirModalFormUsuario(usuario = null) {
     alert(`🚧 Próximamente: ${esEdicion ? 'Editar' : 'Crear'} usuario\n\nDatos: ${esEdicion ? usuario.nombre : 'Nuevo usuario'}`);
 }
 
-
-
-
-
-
-
-
+// ===================================
+// ESTILOS CSS PARA LOS MODALES
+// ===================================
+function agregarEstilosUsuarios() {
+    if (document.getElementById('estilos-usuarios')) return;
+    
+    const estilos = document.createElement('style');
+    estilos.id = 'estilos-usuarios';
+    estilos.textContent = `
+        /* Modal de usuarios */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .modal-usuarios {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .usuarios-controles {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .usuarios-stats {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .stat-item {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .stat-item strong {
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .usuarios-acciones {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-usuarios-primary {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        .btn-usuarios-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-usuarios-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-usuarios-secondary:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .usuarios-lista {
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .usuarios-tabla {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .usuarios-header {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        .usuario-fila {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            transition: all 0.2s;
+            align-items: center;
+        }
+        
+        .usuario-fila:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .usuario-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .usuario-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        
+        .usuario-datos strong {
+            display: block;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        
+        .usuario-datos small {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        .rol-badge, .estado-badge, .token-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .rol-usuario {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .rol-admin {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .rol-super-admin {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+        
+        .estado-activo {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .estado-inactivo {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .token-disponible {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .token-usado {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .usuario-acciones {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .btn-accion-edit, .btn-accion-toggle, .btn-accion-token {
+            background: none;
+            border: 1px solid #dee2e6;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-accion-edit:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .btn-accion-toggle:hover {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .btn-accion-token:hover {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+        
+        .usuarios-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+        
+        .no-usuarios, .error-usuarios {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-usuarios {
+                width: 95%;
+                max-height: 90vh;
+            }
+            
+            .usuarios-controles {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .usuarios-stats {
+                justify-content: space-around;
+            }
+            
+            .usuarios-header {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .usuario-fila {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+    `;
+    
+    document.head.appendChild(estilos);
+}
 
 // ===================================
 // FUNCIONES FALTANTES PARA USUARIOS.JS
@@ -764,7 +1089,7 @@ async function resetearToken(usuarioId) {
         if (error) throw error;
         
         // Actualizar localmente
-        usuario.token_disponible = true;
+        usuario.token_disponible = 1; // Usar 1 en lugar de true
         renderizarUsuarios(todosLosUsuarios);
         
         showNotificationUsuarios(`Token reseteado para ${usuario.nombre}`, 'success');
@@ -858,340 +1183,6 @@ function agregarEstilosFormUsuario() {
 // Alias para compatibilidad con el botón en admin.html
 function gestionarUsuarios() {
     abrirModalUsuarios();
-}
-
-
-// ===================================
-// ESTILOS CSS PARA LOS MODALES
-// ===================================
-function agregarEstilosUsuarios() {
-    if (document.getElementById('estilos-usuarios')) return;
-    
-    const estilos = document.createElement('style');
-    estilos.id = 'estilos-usuarios';
-    estilos.textContent = `
-        /* Modal de usuarios */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        
-        .modal-usuarios {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 1000px;
-            max-height: 80vh;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-        
-        .modal-header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-        
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .usuarios-controles {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .usuarios-stats {
-            display: flex;
-            gap: 2rem;
-        }
-        
-        .stat-item {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
-        .stat-item strong {
-            color: #2c3e50;
-            font-size: 1.2rem;
-        }
-        
-        .usuarios-acciones {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .btn-usuarios-primary {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        
-        .btn-usuarios-primary:hover {
-            background: #2980b9;
-        }
-        
-        .btn-usuarios-secondary {
-            background: #f8f9fa;
-            color: #495057;
-            border: 1px solid #dee2e6;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        
-        .btn-usuarios-secondary:hover {
-            background: #e9ecef;
-            border-color: #adb5bd;
-        }
-        
-        .usuarios-lista {
-            padding: 1rem;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .usuarios-tabla {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .usuarios-header {
-            display: grid;
-            grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
-            gap: 1rem;
-            padding: 1rem;
-            background: #f8f9fa;
-            border-radius: 6px;
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
-        }
-        
-        .usuario-fila {
-            display: grid;
-            grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
-            gap: 1rem;
-            padding: 1rem;
-            background: white;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            transition: all 0.2s;
-            align-items: center;
-        }
-        
-        .usuario-fila:hover {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-        }
-        
-        .usuario-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .usuario-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #3498db;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-        
-        .usuario-datos strong {
-            display: block;
-            color: #2c3e50;
-            font-size: 0.95rem;
-        }
-        
-        .usuario-datos small {
-            color: #6c757d;
-            font-size: 0.8rem;
-        }
-        
-        .rol-badge, .estado-badge, .token-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-        
-        .rol-usuario {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-        
-        .rol-admin {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-        
-        .rol-super-admin {
-            background: #fce4ec;
-            color: #c2185b;
-        }
-        
-        .estado-activo {
-            background: #e8f5e8;
-            color: #2e7d32;
-        }
-        
-        .estado-inactivo {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .token-disponible {
-            background: #e8f5e8;
-            color: #2e7d32;
-        }
-        
-        .token-usado {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-        
-        .usuario-acciones {
-            display: flex;
-            gap: 0.25rem;
-        }
-        
-        .btn-accion-edit, .btn-accion-toggle, .btn-accion-token {
-            background: none;
-            border: 1px solid #dee2e6;
-            padding: 0.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .btn-accion-edit:hover {
-            background: #e3f2fd;
-            border-color: #2196f3;
-        }
-        
-        .btn-accion-toggle:hover {
-            background: #fff3e0;
-            border-color: #ff9800;
-        }
-        
-        .btn-accion-token:hover {
-            background: #e8f5e8;
-            border-color: #4caf50;
-        }
-        
-        .usuarios-loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            color: #6c757d;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .modal-footer {
-            padding: 1.5rem;
-            border-top: 1px solid #eee;
-            text-align: right;
-        }
-        
-        .no-usuarios, .error-usuarios {
-            text-align: center;
-            padding: 3rem;
-            color: #6c757d;
-        }
-        
-        @media (max-width: 768px) {
-            .modal-usuarios {
-                width: 95%;
-                max-height: 90vh;
-            }
-            
-            .usuarios-controles {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .usuarios-stats {
-                justify-content: space-around;
-            }
-            
-            .usuarios-header {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-            
-            .usuario-fila {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-        }
-    `;
-    
-    document.head.appendChild(estilos);
 }
 
 console.log('✅ usuarios.js cargado correctamente');
