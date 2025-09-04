@@ -1,45 +1,195 @@
 <!-- Header Super Administrador -->
-<header class="header super-admin-header">
+<header class="header super-admin-header-nav">
     <div class="container">
         <div class="header-content">
             
             <!-- Logo Super Admin -->
             <div class="logo-section">
                 <div class="logo-icon super-admin-logo">
-                    ⚡
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
                 </div>
                 <div class="logo-text">
-                    <h1>Super Administrador</h1>
-                    <span class="super-admin-badge" data-user-role>Super Admin</span>
+                    <h1>🛡️ Super Administrador</h1>
+                    <span class="super-admin-badge" data-user-role>Control Total</span>
                 </div>
             </div>
 
-            <!-- Navegación -->
-            <nav class="main-nav">
+            <!-- Navegación Super Admin -->
+            <nav class="main-nav super-admin-nav">
                 <ul class="nav-links">
-                    <li><a href="admin.html" class="nav-link">📊 Panel</a></li>
-                    <li><a href="inventario.html" class="nav-link">📦 Inventario</a></li>
-                    <li><a href="#" class="nav-link" onclick="reportesAvanzados()">📈 Reportes</a></li>
-                    <li><a href="#" class="nav-link" onclick="configurarSistema()">⚙️ Config</a></li>
+                    <li>
+                        <a href="admin.html" class="nav-link super-admin-nav-link">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            </svg>
+                            Panel Admin
+                        </a>
+                    </li>
+                    <li>
+                        <a href="inventario.html" class="nav-link super-admin-nav-link">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            </svg>
+                            Inventario
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link super-admin-nav-link" onclick="reportesAvanzados()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10"/>
+                                <line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6" y1="20" x2="6" y2="14"/>
+                            </svg>
+                            Reportes
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link super-admin-nav-link" onclick="configurarSistema()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                            </svg>
+                            Configuración
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
-            <!-- Usuario -->
-            <div class="user-section">
-                <span data-user-name>Super Admin</span>
-                <button onclick="logout()">Salir</button>
+            <!-- Quick Actions + Usuario -->
+            <div class="super-admin-actions">
+                <!-- Botones rápidos -->
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="gestionarUsuarios()" title="Gestionar Usuarios">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </button>
+                    <button class="quick-action-btn" onclick="ejecutarProcesoMensual()" title="Proceso Mensual">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6"/>
+                            <path d="M1 20v-6h6"/>
+                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Información del usuario -->
+                <div class="user-section super-admin-user">
+                    <div class="user-info" onclick="toggleSuperAdminUserMenu()">
+                        <div class="user-details">
+                            <span class="user-name" data-user-name>Super Admin</span>
+                            <span class="user-role">Super Administrador</span>
+                        </div>
+                        <div class="user-avatar super-admin-avatar">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dropdown-arrow">
+                            <polyline points="6,9 12,15 18,9"/>
+                        </svg>
+                    </div>
+
+                    <!-- Dropdown del usuario -->
+                    <div class="user-dropdown super-admin-dropdown" id="superAdminUserDropdown" style="display: none;">
+                        <div class="dropdown-header">
+                            <div class="user-avatar-large super-admin-avatar">SA</div>
+                            <div class="user-details">
+                                <span class="display-name" data-user-name>Super Admin</span>
+                                <span class="user-email">superadmin@empresa.com</span>
+                                <div class="role-badge super-admin-role-badge">Super Administrador</div>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown-divider"></div>
+                        
+                        <div class="dropdown-menu">
+                            <a href="index.html" class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                </svg>
+                                Vista de Usuario
+                            </a>
+                            <a href="#" class="dropdown-item" onclick="mostrarEstadoSistema()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                                Estado del Sistema
+                            </a>
+                            <a href="#" class="dropdown-item logout-item" onclick="logoutAdmin()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16,17 21,12 16,7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
     </div>
+
+    <!-- Menú móvil para Super Admin -->
+    <div class="mobile-menu super-admin-mobile" id="superAdminMobileMenu" style="display: none;">
+        <div class="mobile-header">
+            <h3>🛡️ Super Administrador</h3>
+            <button class="close-mobile-menu" onclick="closeSuperAdminMobileMenus()">×</button>
+        </div>
+        <div class="mobile-nav-links">
+            <a href="admin.html" class="mobile-nav-link">📊 Panel Admin</a>
+            <a href="inventario.html" class="mobile-nav-link">📦 Inventario</a>
+            <a href="#" class="mobile-nav-link" onclick="reportesAvanzados()">📈 Reportes</a>
+            <a href="#" class="mobile-nav-link" onclick="configurarSistema()">⚙️ Configuración</a>
+            <div class="mobile-divider"></div>
+            <a href="#" class="mobile-nav-link" onclick="gestionarUsuarios()">👥 Gestionar Usuarios</a>
+            <a href="#" class="mobile-nav-link" onclick="ejecutarProcesoMensual()">🔄 Proceso Mensual</a>
+            <div class="mobile-divider"></div>
+            <a href="index.html" class="mobile-nav-link">🏠 Vista Usuario</a>
+            <a href="#" class="mobile-nav-link logout" onclick="logoutAdmin()">🚪 Cerrar Sesión</a>
+        </div>
+    </div>
 </header>
 
+<!-- Overlay para menús móviles -->
+<div class="mobile-overlay super-admin-overlay" id="superAdminMobileOverlay" onclick="closeSuperAdminMobileMenus()"></div>
+
+<!-- Estilos específicos del Super Admin -->
 <style>
-.super-admin-header {
+/* ===================================
+   HEADER SUPER ADMINISTRADOR
+   =================================== */
+
+.super-admin-header-nav {
     background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    border-bottom: 3px solid #732d91;
+    box-shadow: 0 4px 20px rgba(142, 68, 173, 0.3);
+    position: relative;
+    overflow: hidden;
 }
+
+.super-admin-header-nav::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
 .super-admin-logo {
-    background: gold;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
     color: white;
     width: 40px;
     height: 40px;
@@ -47,12 +197,232 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    font-size: 1.2rem;
+    box-shadow: 0 2px 10px rgba(243, 156, 18, 0.3);
 }
+
 .super-admin-badge {
-    background: rgba(255,255,255,0.2);
-    padding: 4px 8px;
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
     font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
 }
+
+.super-admin-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+}
+
+.super-admin-nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.super-admin-nav-link:active,
+.super-admin-nav-link.active {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Quick Actions */
+.super-admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.quick-action-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-action-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Usuario Super Admin */
+.super-admin-user .user-info {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.super-admin-user .user-info:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.super-admin-avatar {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.super-admin-user .user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.super-admin-user .user-role {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.super-admin-dropdown {
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.super-admin-role-badge {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+}
+
+/* Animaciones */
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .quick-actions {
+        display: none;
+    }
+    
+    .super-admin-badge {
+        display: none;
+    }
+    
+    .super-admin-nav {
+        display: none;
+    }
+}
+
+/* Funciones JavaScript para Super Admin */
 </style>
+
+<script>
+// Variables específicas del Super Admin
+let currentSuperAdminUser = null;
+
+// Funciones del menú Super Admin
+function toggleSuperAdminUserMenu() {
+    const dropdown = document.getElementById('superAdminUserDropdown');
+    const isVisible = dropdown.style.display !== 'none';
+    
+    if (isVisible) {
+        closeSuperAdminUserDropdown();
+    } else {
+        dropdown.style.display = 'block';
+        dropdown.style.animation = 'fadeIn 0.3s ease';
+    }
+}
+
+function closeSuperAdminUserDropdown() {
+    const dropdown = document.getElementById('superAdminUserDropdown');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+}
+
+function closeSuperAdminMobileMenus() {
+    const mobileMenu = document.getElementById('superAdminMobileMenu');
+    const overlay = document.getElementById('superAdminMobileOverlay');
+    
+    if (mobileMenu) mobileMenu.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function mostrarEstadoSistema() {
+    alert('🟢 Sistema Operativo\n📊 Base de Datos: Conectada\n📦 Inventario: Actualizado\n👥 Usuarios: ' + (Math.floor(Math.random() * 50) + 10) + ' activos');
+}
+
+function logoutAdmin() {
+    sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('userSession');
+    window.location.href = 'login.html';
+}
+
+// Placeholder para funciones que se cargarán desde superadmin.js
+function gestionarUsuarios() {
+    console.log('👥 Gestionar usuarios - función será cargada desde superadmin.js');
+    alert('Funcionalidad de gestión de usuarios próximamente');
+}
+
+function configurarSistema() {
+    console.log('⚙️ Configurar sistema - función será cargada desde superadmin.js');
+    alert('Funcionalidad de configuración próximamente');
+}
+
+function reportesAvanzados() {
+    console.log('📊 Reportes avanzados - función será cargada desde superadmin.js');
+    alert('Funcionalidad de reportes avanzados próximamente');
+}
+
+function ejecutarProcesoMensual() {
+    if (typeof window.ejecutarProcesoMensual === 'function') {
+        window.ejecutarProcesoMensual();
+    } else {
+        console.log('🔄 Proceso mensual - función no disponible');
+        alert('Funcionalidad de proceso mensual próximamente');
+    }
+}
+
+// Cerrar dropdowns al hacer click fuera
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.super-admin-user')) {
+        closeSuperAdminUserDropdown();
+    }
+});
+
+console.log('🛡️ Header Super Admin inicializado');
+</script>
