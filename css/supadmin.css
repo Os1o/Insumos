@@ -1620,6 +1620,23 @@
 }
 
 
+.admin-info {
+    background: #e8f5e8;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.admin-info p {
+    margin: 0.25rem 0;
+    color: #2e7d32;
+}
+
+.admin-info strong {
+    color: #1b5e20;
+}
+
 
 
 /* ===================================

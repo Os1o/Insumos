@@ -87,7 +87,11 @@ async function cargarTodasLasSolicitudes() {
         // Query SUPER simplificada para debug
         const { data: solicitudes, error } = await supabaseAdmin
             .from('solicitudes')
-            .select('*')
+            .select(`
+                *,
+                usuario:usuarios(nombre, departamento),
+                admin:admin_asignado(nombre)  // ← NUEVO: nombre del admin
+            `)
             .order('fecha_solicitud', { ascending: false });
 
         if (error) {
@@ -196,6 +200,14 @@ async function abrirModalRevision(solicitudId) {
                     <p><strong>Fecha:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleDateString()}</p>
                 </div>
 
+                <!-- NUEVO: Información del admin si está cerrada -->
+                ${solicitud.estado === 'cerrado' && solicitud.admin ? `
+                    <div class="admin-info" style="background: #e8f5e8; padding: 0.5rem; border-radius: 6px; margin: 0.5rem 0;">
+                        <p><strong>✅ Cerrada por:</strong> ${solicitud.admin.nombre}</p>
+                        ${solicitud.fecha_cerrado ? `<p><strong>📅 Fecha de cierre:</strong> ${new Date(solicitud.fecha_cerrado).toLocaleDateString()}</p>` : ''}
+                    </div>
+                ` : ''}
+
                 <!-- Detalles del ticket -->
                 <div class="ticket-info">
                     <h4>🎫 Detalles del ticket</h4>
@@ -288,6 +300,7 @@ async function abrirModalRevision(solicitudId) {
                     input.style.backgroundColor = '#f5f5f5';
                     input.title = 'No se pueden modificar cantidades de tickets cerrados';
                 });
+                document.getElementById('nuevoEstado').disabled = true;
             }, 100);
         }
 
@@ -317,7 +330,8 @@ function renderizarSolicitudesSimples(solicitudes) {
     solicitudes.forEach(s => {
         const fecha = s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : 'N/A';
         const tipo = s.tipo === 'juntas' ? '👥 Juntas' : '📅 Ordinaria';
-
+        const adminInfo = s.estado === 'cerrado' && s.admin ?
+            `<br><small style="color: #666;">Por: ${s.admin.nombre}</small>` : '';
         html += `
             <div class="solicitud-simple-card" onclick="abrirModalRevision('${s.id}')">
                 <div class="solicitud-header">
@@ -361,7 +375,11 @@ async function guardarCambiosCompletos(solicitudId) {
         const ahoraSeraCerrado = nuevoEstado === 'cerrado';
 
         // 1. Siempre actualizar el estado (sin restricciones)
-        const updateData = { estado: nuevoEstado };
+        const updateData = {
+            estado: nuevoEstado,
+            // NUEVO: Asignar el admin actual cuando se cierra
+            admin_asignado: ahoraSeraCerrado ? currentAdmin.id : null
+        };
 
         if (nuevoEstado === 'en_revision') {
             updateData.fecha_revision = new Date().toISOString();
@@ -666,10 +684,10 @@ async function cargarFooter() {
     try {
         const response = await fetch('includes/footerAdmin.html');
         if (!response.ok) throw new Error('Error cargando footer');
-        
+
         const html = await response.text();
         const footerContainer = document.getElementById('footer-container');
-        
+
         if (footerContainer) {
             footerContainer.innerHTML = html;
             console.log('Footer cargado correctamente');
@@ -704,14 +722,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
         const user = JSON.parse(session);
-        
+
         // Verificar si es administrador
         if (user.rol !== 'admin' && user.rol !== 'super_admin') {
             showNotificationAdmin('No tienes permisos de administrador', 'error');
             setTimeout(() => window.location.href = 'index.html', 2000);
             return;
         }
-        
+
         console.log('Usuario admin autenticado:', user.nombre);
 
     } catch (error) {
@@ -722,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 2. Cargar header y footer
     cargarHeaderAdmin();
-    cargarFooter(); 
+    cargarFooter();
 
     // 3. Inicializar header después de que se cargue
     // (esto se hace dentro de cargarHeaderAdmin con setTimeout)
