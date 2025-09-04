@@ -644,7 +644,7 @@ async function cargarHeaderAdmin() {
         if (!response.ok) throw new Error('Error cargando header');
 
         const html = await response.text();
-        const headerContainer = document.getElementById('header-contain');
+        const headerContainer = document.getElementById('header-container');
 
         if (headerContainer) {
             headerContainer.innerHTML = html;
@@ -656,7 +656,7 @@ async function cargarHeaderAdmin() {
     } catch (error) {
         console.error('Error cargando header administrativo:', error);
         // Fallback básico
-        const headerContainer = document.getElementById('header-contain');
+        const headerContainer = document.getElementById('header-container');
         if (headerContainer) {
             headerContainer.innerHTML = `
                 <header class="header">
