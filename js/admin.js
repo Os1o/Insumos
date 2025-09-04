@@ -89,8 +89,8 @@ async function cargarTodasLasSolicitudes() {
             .from('solicitudes')
             .select(`
                 *,
-                usuario:usuarios(nombre, departamento),
-                admin:admin_asignado(nombre)  // ← NUEVO: nombre del admin
+                usuario:usuarios!solicitudes_usuario_id_fkey(nombre, departamento),
+                admin:usuarios!solicitudes_admin_asignado_fkey(nombre)
             `)
             .order('fecha_solicitud', { ascending: false });
 
@@ -173,7 +173,8 @@ async function abrirModalRevision(solicitudId) {
             .from('solicitudes')
             .select(`
                 *,
-                usuarios:usuario_id(nombre, departamento),
+                usuarios:usuarios!solicitudes_usuario_id_fkey(nombre, departamento),
+                admin:usuarios!solicitudes_admin_asignado_fkey(nombre),
                 solicitud_detalles(
                     id,
                     cantidad_solicitada,
