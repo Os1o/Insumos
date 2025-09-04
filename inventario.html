@@ -35,7 +35,7 @@
 
 <body>
     <!-- Header Admin se carga aquí -->
-    <div id="header-contain"></div>
+    <div id="header-container"></div>
 
     <main class="main-content admin-content">
 
@@ -501,18 +501,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
     <script src="js/inventario.js"></script>
-    <script>
-        fetch('includes/headerAdmin.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('header-contain').innerHTML = html;
-            });
-        fetch('includes/foot.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('footer-container').innerHTML = html;
-            });
-    </script>
 
 </body>
 
