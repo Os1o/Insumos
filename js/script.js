@@ -336,7 +336,7 @@ function removerDelCarrito(index) {
 }
 
 
-async function enviarSolicitud() {
+/*async function enviarSolicitud() {
     if (carritoItems.length === 0) {
         showNotification('Agrega al menos un insumo al carrito', 'warning');
         return;
@@ -469,9 +469,233 @@ async function enviarSolicitud() {
         console.error('Error enviando solicitud:', error);
         showNotification('Error enviando solicitud. Intenta nuevamente.', 'error');
     }
+}*/
+
+async function enviarSolicitud() {
+    if (carritoItems.length === 0) {
+        showNotification('Agrega al menos un insumo al carrito', 'warning');
+        return;
+    }
+
+    try {
+        const session = sessionStorage.getItem('currentUser');
+        const user = JSON.parse(session);
+
+        // NUEVO: Función para normalizar el tipo de solicitud
+        function normalizarTipoSolicitud(tipo) {
+            if (tipo.includes('ordinaria')) return 'ordinaria';
+            if (tipo.includes('extraordinaria')) return 'extraordinaria';
+            if (tipo.includes('juntas')) return 'juntas';
+            return tipo;
+        }
+
+        // NUEVO: Determinar qué token se usará y actualizará
+        const tipoNormalizado = normalizarTipoSolicitud(currentSolicitudType);
+        let tokenTipoUsado = 'ninguno';
+        let consumeToken = false;
+
+        if (tipoNormalizado === 'ordinaria') {
+            if (recursoActual === 'insumo') {
+                tokenTipoUsado = 'ordinario';
+                consumeToken = true;
+            } else if (recursoActual === 'papeleria') {
+                tokenTipoUsado = 'ordinario';
+                consumeToken = true;
+            }
+        } else if (tipoNormalizado === 'extraordinaria') {
+            tokenTipoUsado = 'extraordinario';
+            consumeToken = true;
+        }
+
+        // Preparar datos de la solicitud
+        let datosJunta = null;
+        let datosExtraordinaria = null;
+
+        // Si es solicitud de juntas, capturar campos específicos
+        if (tipoNormalizado === 'juntas') {
+            const fechaEvento = document.getElementById('fechaEvento').value;
+            const horaEvento = document.getElementById('horaEvento').value;
+            const numParticipantes = document.getElementById('numParticipantes').value;
+            const salaEvento = document.getElementById('salaEvento').value;
+            const descripcionEvento = document.getElementById('descripcionEvento').value;
+
+            // Validar campos requeridos para juntas
+            if (!fechaEvento || !horaEvento || !numParticipantes || !salaEvento) {
+                showNotification('Complete todos los campos obligatorios del evento', 'warning');
+                return;
+            }
+
+            // Validar que la fecha sea futura
+            const fechaEventsDateTime = new Date(`${fechaEvento}T${horaEvento}`);
+            const ahora = new Date();
+            if (fechaEventsDateTime <= ahora) {
+                showNotification('La fecha y hora del evento debe ser futura', 'warning');
+                return;
+            }
+
+            // Preparar objeto JSON para datos_junta
+            datosJunta = {
+                fecha_evento: fechaEvento,
+                hora_evento: horaEvento,
+                num_participantes: parseInt(numParticipantes),
+                sala_ubicacion: salaEvento.trim(),
+                descripcion: descripcionEvento.trim() || null,
+                fecha_captura: new Date().toISOString()
+            };
+        }
+
+        // NUEVO: Si es solicitud extraordinaria, capturar campos específicos
+        if (tipoNormalizado === 'extraordinaria') {
+            const motivoExtraordinaria = document.getElementById('motivo-extraordinaria')?.value;
+            const fechaNecesidad = document.getElementById('fecha-necesidad')?.value;
+            const prioridadExtraordinaria = document.getElementById('prioridad-extraordinaria')?.value;
+
+            // Validar campos requeridos para extraordinaria
+            if (!motivoExtraordinaria || !fechaNecesidad) {
+                showNotification('Complete todos los campos obligatorios para solicitud extraordinaria', 'warning');
+                return;
+            }
+
+            // Validar que la fecha de necesidad sea futura
+            const fechaNecesidadDate = new Date(fechaNecesidad);
+            const ahora = new Date();
+            if (fechaNecesidadDate <= ahora) {
+                showNotification('La fecha de necesidad debe ser futura', 'warning');
+                return;
+            }
+
+            // Preparar objeto JSON para datos extraordinaria
+            datosExtraordinaria = {
+                motivo: motivoExtraordinaria.trim(),
+                fecha_necesidad: fechaNecesidad,
+                prioridad: prioridadExtraordinaria || 'alta',
+                fecha_captura: new Date().toISOString()
+            };
+        }
+
+        // Crear solicitud principal CON todos los nuevos campos
+        const { data: solicitud, error: solError } = await supabase
+            .from('solicitudes')
+            .insert({
+                usuario_id: user.id,
+                tipo: tipoNormalizado, // CAMBIADO: Usar tipo normalizado
+                recurso_tipo: recursoActual, // NUEVO: Tipo de recurso
+                estado: 'pendiente',
+                total_items: carritoItems.length,
+                token_usado: consumeToken, // CAMBIADO: Basado en lógica nueva
+                token_tipo_usado: tokenTipoUsado, // NUEVO: Qué tipo de token se usó
+                datos_junta: datosJunta,
+                // NUEVO: Agregar datos extraordinaria si aplica
+                ...(datosExtraordinaria && { datos_extraordinaria: datosExtraordinaria })
+            })
+            .select()
+            .single();
+
+        if (solError) throw solError;
+
+        // Crear detalles de la solicitud - MODIFICADO para manejar papelería
+        const detalles = carritoItems.map(item => {
+            const detalle = {
+                solicitud_id: solicitud.id,
+                cantidad_solicitada: item.cantidad
+            };
+
+            // Agregar referencia según el tipo de recurso
+            if (recursoActual === 'insumo') {
+                detalle.insumo_id = item.insumo_id;
+            } else if (recursoActual === 'papeleria') {
+                detalle.papeleria_id = item.insumo_id; // Reutilizamos insumo_id para papeleria_id
+            }
+
+            return detalle;
+        });
+
+        const { error: detError } = await supabase
+            .from('solicitud_detalles')
+            .insert(detalles);
+
+        if (detError) throw detError;
+
+        // NUEVO: Actualizar tokens según el tipo de solicitud y recurso
+        if (consumeToken) {
+            const actualizacion = {};
+
+            if (recursoActual === 'insumo' && tipoNormalizado === 'ordinaria') {
+                actualizacion.token_disponible = 0;
+            } else if (recursoActual === 'papeleria') {
+                if (tipoNormalizado === 'ordinaria') {
+                    actualizacion.token_papeleria_ordinario = 0;
+                } else if (tipoNormalizado === 'extraordinaria') {
+                    actualizacion.token_papeleria_extraordinario = 0;
+                }
+            }
+
+            // Actualizar en la base de datos
+            if (Object.keys(actualizacion).length > 0) {
+                await supabase
+                    .from('usuarios')
+                    .update(actualizacion)
+                    .eq('id', user.id);
+
+                // NUEVO: Actualizar sesión local
+                Object.assign(user, actualizacion);
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+
+                // NUEVO: Actualizar visualización de tokens
+                actualizarVisualizacionTokens();
+            }
+        }
+
+        // MODIFICADO: Actualizar dashboard solo para insumos ordinarios (compatibilidad)
+        if (currentSolicitudType === 'ordinaria' && recursoActual === 'insumo') {
+            // Actualizar vista del token en modal
+            const tokenStatus = document.getElementById('tokenStatus');
+            if (tokenStatus) {
+                tokenStatus.textContent = '0';
+                tokenStatus.style.color = '#e74c3c';
+            }
+
+            // Deshabilitar botón de solicitud ordinaria en dashboard
+            setTimeout(() => {
+                const btnOrdinaria = document.querySelector('[data-type="ordinaria"] .btn-solicitar');
+                if (btnOrdinaria) {
+                    btnOrdinaria.textContent = 'Token Agotado';
+                    btnOrdinaria.disabled = true;
+                    btnOrdinaria.style.background = '#ccc';
+                    btnOrdinaria.style.cursor = 'not-allowed';
+                }
+
+                // Agregar mensaje visual en la card
+                const cardOrdinaria = document.querySelector('[data-type="ordinaria"]');
+                if (cardOrdinaria) {
+                    cardOrdinaria.style.opacity = '0.6';
+                    const cardContent = cardOrdinaria.querySelector('.card-content p');
+                    if (cardContent) {
+                        cardContent.textContent = 'Token usado este mes';
+                        cardContent.style.color = '#e74c3c';
+                    }
+                }
+            }, 100);
+        }
+
+        // Mostrar notificación de éxito
+        const tipoRecurso = recursoActual === 'insumo' ? 'insumos' : 'papelería';
+        showNotification(`Solicitud de ${tipoRecurso} enviada exitosamente`, 'success');
+
+        // Limpiar carrito
+        carritoItems = [];
+        if (typeof cantidadesTemp !== 'undefined') {
+            cantidadesTemp = {};
+        }
+        actualizarVistaCarrito();
+
+        setTimeout(() => cerrarModal(), 2000);
+
+    } catch (error) {
+        console.error('Error enviando solicitud:', error);
+        showNotification('Error enviando solicitud. Intenta nuevamente.', 'error');
+    }
 }
-
-
 
 // Función para actualizar estado de dashboard
 function actualizarEstadoDashboard() {
@@ -1696,10 +1920,24 @@ function logout() {
 
 
 
+
+
+
 // ===================================
 // NUEVAS FUNCIONES PARA TOKENS DE PAPELERÍA
 // Agregar estas funciones a tu script.js existente
 // ===================================
+
+
+
+// Función para normalizar el tipo de solicitud antes de enviar
+function normalizarTipoSolicitud(tipo) {
+    if (tipo.includes('ordinaria')) return 'ordinaria';
+    if (tipo.includes('extraordinaria')) return 'extraordinaria';
+    if (tipo.includes('juntas')) return 'juntas';
+    return tipo; // Fallback
+}
+
 
 // Variables globales adicionales
 let recursoActual = 'insumo'; // 'insumo' o 'papeleria'
