@@ -84,27 +84,36 @@ async function cargarTodasLasSolicitudes() {
         console.log('Cargando solicitudes...');
         mostrarLoadingAdmin(true);
 
+        // Query SUPER simplificada para debug
         const { data: solicitudes, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
-                id,
-                tipo,
-                recurso_tipo,
-                estado,
-                fecha_solicitud,
-                total_items,
-                token_usado,
-                usuarios(nombre, departamento),
-                solicitud_detalles(
-                    cantidad_solicitada,
-                    cantidad_aprobada,
-                    insumos(nombre, unidad_medida),
-                    papeleria(nombre, unidad_medida)
-                )
-            `)
+                    id,
+                    tipo,
+                    recurso_tipo,
+                    estado,
+                    fecha_solicitud,
+                    total_items,
+                    token_usado
+                `)
             .order('fecha_solicitud', { ascending: false });
 
-        // resto de tu código...
+        if (error) {
+            console.error('Error de Supabase:', error);
+            throw error;
+        }
+
+        console.log('Solicitudes cargadas:', solicitudes);
+
+        todasLasSolicitudes = solicitudes || [];
+        solicitudesFiltradas = [...todasLasSolicitudes];
+
+        // Renderizar versión simple
+        renderizarSolicitudesSimples(solicitudesFiltradas);
+        actualizarEstadisticasAdmin(todasLasSolicitudes);
+
+        mostrarLoadingAdmin(false);
+
     } catch (error) {
         console.error('Error completo:', error);
         mostrarErrorAdmin('Error al cargar solicitudes');
