@@ -209,10 +209,8 @@ function renderizarSolicitudes(solicitudes) {
                 <div class="solicitud-header">
                     <div class="solicitud-info">
                         <span class="solicitud-id">#${solicitud.id.substring(0, 8)}</span>
-                        <span class="solicitud-tipo tipo-${solicitud.tipo}">${tipoLabel}</span>
-                        <span class="solicitud-tipo tipo-${solicitud.tipo}">${tipoLabel}</span>
                         <span class="recurso-tipo recurso-${solicitud.recurso_tipo || 'insumo'}">${solicitud.recurso_tipo === 'papeleria' ? 'Papelería' : 'Insumos'}</span>
-                        <span class="solicitud-estado estado-${estadoClass}">${getEstadoLabel(solicitud.estado)}</span>
+                        <span class="solicitud-tipo tipo-${solicitud.tipo}">${tipoLabel}</span>                        
                         <span class="solicitud-estado estado-${estadoClass}">${getEstadoLabel(solicitud.estado)}</span>
                     </div>
                     <div class="solicitud-fecha">
