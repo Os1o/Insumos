@@ -92,13 +92,15 @@
                             <option value="extraordinaria">Extraordinaria</option>
                             <option value="juntas">Juntas</option>
                         </select>
+
+                        <select id="filtroRecurso" onchange="filtrarSolicitudesAdmin()">
+                            <option value="todos">Todos los recursos</option>
+                            <option value="insumo">Insumos</option>
+                            <option value="papeleria">Papelería</option>
+                        </select>
                     </div>
 
-                    <select id="filtroRecurso" onchange="filtrarSolicitudesAdmin()">
-                        <option value="todos">Todos los recursos</option>
-                        <option value="insumo">Insumos</option>
-                        <option value="papeleria">Papelería</option>
-                    </select>
+
                     <!-- Acciones principales -->
                     <div class="acciones-admin">
                         <button class="btn-admin-primary" onclick="recargarSolicitudes()" id="btnRecargarAdmin">
