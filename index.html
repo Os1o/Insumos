@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Solicitudes - Insumos y Papelería</title>
+    <title>Solicitudes de Insumos - Sistema de Gestión</title>
     <link rel="stylesheet" href="css/styles.css">
-    <meta name="description" content="Sistema para solicitar insumos y papelería corporativa">
+    <meta name="description"
+        content="Sistema de solicitudes de insumos para necesidades ordinarias y eventos especiales">
     <script>
         (function () {
             const session = sessionStorage.getItem('currentUser');
@@ -16,145 +18,67 @@
         })();
     </script>
 </head>
+
 <body>
     <!-- Header se carga aquí -->
     <div id="header-container"></div>
 
     <main class="main-content">
-        <!-- Hero Section con selector de recursos -->
-        <section class="hero-section">
-            <div class="container">
-                <div class="hero-content">
-                    <h1>Sistema de Solicitudes</h1>
-                    <p>Selecciona el tipo de recurso que necesitas solicitar</p>
-                    
-                    <!-- NUEVO: Selector de tipo de recurso -->
-                    <div class="recurso-selector-main">
-                        <button class="recurso-btn active" data-recurso="insumo" id="btn-insumos">
-                            <div class="recurso-icon">📦</div>
-                            <div class="recurso-info">
-                                <h3>INSUMOS</h3>
-                                <div class="tokens-display">
-                                    <span class="token-item">
-                                        <span class="token-label">Ordinario:</span>
-                                        <span class="token-value" id="token-insumo-ordinario">-</span>
-                                    </span>
-                                </div>
-                                <small>Bebidas, tecnología, limpieza</small>
-                            </div>
-                        </button>
-                        
-                        <button class="recurso-btn" data-recurso="papeleria" id="btn-papeleria">
-                            <div class="recurso-icon">📝</div>
-                            <div class="recurso-info">
-                                <h3>PAPELERÍA</h3>
-                                <div class="tokens-display">
-                                    <span class="token-item">
-                                        <span class="token-label">Ordinario:</span>
-                                        <span class="token-value" id="token-papeleria-ordinario">-</span>
-                                    </span>
-                                    <span class="token-item">
-                                        <span class="token-label">Extraordinario:</span>
-                                        <span class="token-value" id="token-papeleria-extraordinario">-</span>
-                                    </span>
-                                </div>
-                                <small>Hojas, folders, útiles de escritura</small>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Sistema de Solicitudes de Insumos</h1>
+                <p>Gestiona eficientemente tus solicitudes de materiales y recursos</p>
             </div>
         </section>
 
-        <!-- NUEVO: Selector de tipo de solicitud (solo para papelería) -->
-        <section class="tipo-solicitud-section" id="papeleria-tipos" style="display: none;">
+        <!-- Solicitudes Cards -->
+        <section class="solicitudes-section">
             <div class="container">
-                <h2>Tipo de Solicitud de Papelería</h2>
-                <div class="tipo-selector-grid">
-                    <label class="tipo-card">
-                        <input type="radio" name="tipoPapeleria" value="ordinaria" checked>
-                        <div class="tipo-content">
-                            <div class="tipo-icon">📅</div>
-                            <h3>ORDINARIA</h3>
-                            <p>Solicitud mensual regular</p>
-                            <span class="token-required">Requiere: Token Ordinario</span>
-                        </div>
-                    </label>
-                    
-                    <label class="tipo-card">
-                        <input type="radio" name="tipoPapeleria" value="extraordinaria">
-                        <div class="tipo-content">
-                            <div class="tipo-icon">⚡</div>
-                            <h3>EXTRAORDINARIA</h3>
-                            <p>Necesidades urgentes especiales</p>
-                            <span class="token-required">Requiere: Token Extraordinario</span>
-                        </div>
-                    </label>
-                    
-                    <label class="tipo-card">
-                        <input type="radio" name="tipoPapeleria" value="juntas">
-                        <div class="tipo-content">
-                            <div class="tipo-icon">🤝</div>
-                            <h3>JUNTAS</h3>
-                            <p>Para eventos y reuniones</p>
-                            <span class="token-required">Sin token requerido</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-        </section>
+                <div class="solicitudes-grid">
 
-        <!-- Tipos de solicitud para insumos (existente) -->
-        <section class="tipos-solicitud" id="insumos-tipos">
-            <div class="container">
-                <h2>Tipos de Solicitud de Insumos</h2>
-                <div class="tipos-grid">
-                    <div class="tipo-card" data-type="ordinaria">
-                        <div class="card-icon">📋</div>
+                    <!-- Solicitud Mensual/Ordinaria -->
+                    <div class="solicitud-card" data-type="ordinaria">
+                        <div class="card-icon">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                                <path d="M8 14h.01" />
+                                <path d="M12 14h.01" />
+                                <path d="M16 14h.01" />
+                                <path d="M8 18h.01" />
+                                <path d="M12 18h.01" />
+                                <path d="M16 18h.01" />
+                            </svg>
+                        </div>
                         <div class="card-content">
-                            <h3>Solicitud Ordinaria</h3>
-                            <p>Una solicitud mensual regular para tus necesidades básicas</p>
-                            <div class="card-features">
-                                <span>• Límite: 1 por mes</span>
-                                <span>• Requiere token disponible</span>
-                            </div>
+                            <h2>SOLICITUD MENSUAL/ORDINARIA</h2>
+                            <p>Para necesidades regulares del mes, solo se puede realizar una</p>
+                            <button class="btn-solicitar" onclick="abrirSolicitud('ordinaria')">Solicitar</button>
                         </div>
-                        <button class="btn-solicitar" data-type="ordinaria">Solicitar</button>
                     </div>
 
-                    <div class="tipo-card" data-type="juntas">
-                        <div class="card-icon">🤝</div>
+                    <!-- Solicitud para Juntas -->
+                    <div class="solicitud-card" data-type="juntas">
+                        <div class="card-icon">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
                         <div class="card-content">
-                            <h3>Solicitud para Juntas</h3>
-                            <p>Insumos específicos para reuniones y eventos especiales</p>
-                            <div class="card-features">
-                                <span>• Sin límite mensual</span>
-                                <span>• Requiere justificación</span>
-                            </div>
-                        </div>
-                        <button class="btn-solicitar" data-type="juntas">Solicitar</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Catálogo de productos -->
-        <section class="catalogo-section" id="catalogo-section" style="display: none;">
-            <div class="container">
-                <div class="catalogo-header">
-                    <h2 id="catalogo-title">Catálogo de Insumos</h2>
-                    <div class="catalogo-controles">
-                        <div class="carrito-info">
-                            <span>Carrito: </span>
-                            <span id="carrito-contador">0 productos</span>
-                            <button id="ver-carrito-btn" onclick="abrirModal()" disabled>Ver Carrito</button>
+                            <h2>SOLICITUD PARA JUNTAS</h2>
+                            <p>Específicamente para eventos, reuniones y presentaciones</p>
+                            <button class="btn-solicitar" onclick="abrirSolicitud('juntas')">Solicitar</button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Grid de categorías -->
-                <div id="categorias-grid" class="categorias-grid">
-                    <!-- Las categorías se cargan dinámicamente -->
                 </div>
             </div>
         </section>
@@ -165,15 +89,11 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <h3>📋 Proceso Simple</h3>
-                        <p>Selecciona tu recurso, tipo de solicitud y completa tu pedido</p>
+                        <p>Completa tu solicitud en pocos pasos y recibe confirmación inmediata</p>
                     </div>
                     <div class="info-item">
-                        <h3>📊 Control de Tokens</h3>
-                        <p>Tokens independientes para cada tipo de recurso y solicitud</p>
-                    </div>
-                    <div class="info-item">
-                        <h3>🔄 Renovación Mensual</h3>
-                        <p>Marca tus solicitudes como recibidas para renovar tokens</p>
+                        <h3>📊 Seguimiento Total</h3>
+                        <p>Consulta el estado de tus solicitudes en cualquier momento</p>
                     </div>
                 </div>
             </div>
@@ -183,83 +103,92 @@
     <!-- Footer se carga aquí -->
     <div id="footer-container"></div>
 
-    <!-- MODAL DE CARRITO (expandido) -->
+    <!-- NUEVO MODAL DE CARRITO -->
     <div id="solicitud-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content carrito-modal">
             <div class="modal-header">
-                <h3 id="modal-title">Carrito de Solicitud</h3>
+                <h3 id="modal-title">Carrito de Insumos</h3>
                 <button class="modal-close" onclick="cerrarModal()">&times;</button>
             </div>
             <div class="modal-body">
 
-                <!-- Info del usuario y tokens -->
+                <!-- Info del usuario y token -->
                 <div class="usuario-info-card">
                     <div class="usuario-datos">
-                        <span class="usuario-nombre" id="usuario-nombre">Usuario Actual</span>
-                        <span class="usuario-depto" id="usuario-depto">Departamento</span>
+                        <span class="usuario-nombre">Usuario Actual</span>
+                        <span class="usuario-depto">Departamento</span>
                     </div>
-                    <div class="tokens-status-modal">
-                        <div class="token-group">
-                            <span class="token-label">Tipo de recurso:</span>
-                            <span class="recurso-actual" id="recurso-actual">-</span>
-                        </div>
-                        <div class="token-group">
-                            <span class="token-label">Tipo de solicitud:</span>
-                            <span class="tipo-actual" id="tipo-actual">-</span>
-                        </div>
-                        <div class="token-group">
-                            <span class="token-label">Token requerido:</span>
-                            <span class="token-requerido" id="token-requerido">-</span>
-                        </div>
+                    <div class="token-status">
+                        <span class="token-label">Token disponible:</span>
+                        <span class="token-indicator" id="tokenStatus">1</span>
                     </div>
                 </div>
 
-                <!-- Lista de productos en carrito -->
-                <div class="carrito-lista">
-                    <h4>Productos seleccionados:</h4>
-                    <div id="carrito-items">
-                        <!-- Los productos se agregan dinámicamente -->
-                    </div>
-                </div>
 
                 <!-- Campos específicos para juntas -->
-                <div id="campos-junta" style="display: none;">
-                    <h4>Información del Evento:</h4>
-                    <div class="form-group">
-                        <label for="fecha-evento">Fecha del evento:</label>
-                        <input type="datetime-local" id="fecha-evento" required>
+                <div class="campos-junta" id="camposJunta" style="display: none;">
+                    <div class="junta-header">
+                        <h4>Información del Evento</h4>
+                        <p>Complete los datos específicos de la junta o evento</p>
                     </div>
-                    <div class="form-group">
-                        <label for="participantes">Número de participantes:</label>
-                        <input type="number" id="participantes" min="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="sala-evento">Sala o ubicación:</label>
-                        <input type="text" id="sala-evento" placeholder="Ej: Sala de juntas principal" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="proposito-evento">Propósito del evento:</label>
-                        <textarea id="proposito-evento" placeholder="Describe brevemente el evento..." rows="3"></textarea>
+
+                    <div class="junta-fields">
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="fechaEvento">Fecha del evento *</label>
+                                <input type="date" id="fechaEvento" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="horaEvento">Hora del evento *</label>
+                                <input type="time" id="horaEvento" required>
+                            </div>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="numParticipantes">Número de participantes *</label>
+                                <input type="number" id="numParticipantes" min="1" max="100" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="salaEvento">Sala o ubicación *</label>
+                                <input type="text" id="salaEvento" placeholder="Ej: Sala de Juntas A" required>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="descripcionEvento">Descripción del evento</label>
+                            <textarea id="descripcionEvento" rows="3"
+                                placeholder="Breve descripción del tipo de evento o junta"></textarea>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Campos para papelería extraordinaria -->
-                <div id="campos-extraordinaria" style="display: none;">
-                    <h4>Justificación para Solicitud Extraordinaria:</h4>
-                    <div class="form-group">
-                        <label for="motivo-extraordinaria">Motivo de urgencia:</label>
-                        <textarea id="motivo-extraordinaria" placeholder="Explica por qué necesitas una solicitud extraordinaria..." rows="3" required></textarea>
+                <!-- Categorías de insumos -->
+                <div class="categorias-container">
+                    <div class="categorias-tabs" id="categoriasTabsContainer">
+                        <!-- Se cargan dinámicamente -->
                     </div>
-                    <div class="form-group">
-                        <label for="fecha-necesidad">Fecha en que necesitas los materiales:</label>
-                        <input type="date" id="fecha-necesidad" required>
+
+                    <!-- Lista de insumos por categoría -->
+                    <div class="insumos-lista" id="insumosListaContainer">
+                        <!-- Se cargan dinámicamente -->
                     </div>
                 </div>
 
-                <!-- Botones de acción -->
+                <!-- Carrito actual -->
+                <div class="carrito-resumen">
+                    <h4>Carrito Actual</h4>
+                    <div class="carrito-items" id="carritoItems">
+                        <p class="carrito-vacio">Agrega insumos a tu carrito</p>
+                    </div>
+                    <div class="carrito-total">
+                        <span>Total de items: <strong id="carritoCount">0</strong></span>
+                    </div>
+                </div>
+
                 <div class="modal-actions">
-                    <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-                    <button class="btn-enviar" id="btn-enviar" onclick="enviarSolicitud()">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
                         Enviar Solicitud
                     </button>
                 </div>
@@ -267,231 +196,9 @@
         </div>
     </div>
 
-    <!-- Notificaciones -->
-    <div id="notification-container"></div>
 
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
-
-    <style>
-    /* === ESTILOS ADICIONALES PARA NUEVAS FUNCIONALIDADES === */
-    
-    /* Selector de recursos principal */
-    .recurso-selector-main {
-        display: flex;
-        gap: 2rem;
-        justify-content: center;
-        margin-top: 2rem;
-        flex-wrap: wrap;
-    }
-    
-    .recurso-btn {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1.5rem 2rem;
-        background: white;
-        border: 2px solid #ddd;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        min-width: 280px;
-    }
-    
-    .recurso-btn:hover {
-        border-color: #4a90e2;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .recurso-btn.active {
-        border-color: #4a90e2;
-        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-        color: white;
-    }
-    
-    .recurso-icon {
-        font-size: 2.5rem;
-    }
-    
-    .recurso-info h3 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.2rem;
-    }
-    
-    .tokens-display {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        margin: 0.5rem 0;
-    }
-    
-    .token-item {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.9rem;
-    }
-    
-    .token-value {
-        font-weight: bold;
-        color: #27ae60;
-    }
-    
-    .recurso-btn.active .token-value {
-        color: #fff;
-    }
-    
-    .token-value.agotado {
-        color: #e74c3c;
-    }
-    
-    /* Selector de tipo de solicitud para papelería */
-    .tipo-solicitud-section {
-        background: #f8f9fa;
-        padding: 2rem 0;
-    }
-    
-    .tipo-selector-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-    }
-    
-    .tipo-card {
-        background: white;
-        border: 2px solid #ddd;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .tipo-card:hover {
-        border-color: #4a90e2;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .tipo-card input[type="radio"] {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
-    }
-    
-    .tipo-card input[type="radio"]:checked + .tipo-content {
-        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-        color: white;
-    }
-    
-    .tipo-content {
-        padding: 1.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-    
-    .tipo-icon {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-    
-    .tipo-content h3 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.1rem;
-    }
-    
-    .tipo-content p {
-        margin: 0 0 1rem 0;
-        opacity: 0.8;
-    }
-    
-    .token-required {
-        font-size: 0.85rem;
-        padding: 0.25rem 0.5rem;
-        background: rgba(0,0,0,0.1);
-        border-radius: 4px;
-        display: inline-block;
-    }
-    
-    /* Modal expandido */
-    .tokens-status-modal {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-top: 1rem;
-    }
-    
-    .token-group {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .token-group:last-child {
-        border-bottom: none;
-    }
-    
-    .recurso-actual, .tipo-actual, .token-requerido {
-        font-weight: bold;
-        color: #4a90e2;
-    }
-    
-    /* Campos específicos */
-    #campos-junta, #campos-extraordinaria {
-        margin: 1.5rem 0;
-        padding: 1.5rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-    
-    .form-group {
-        margin-bottom: 1rem;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-    
-    .form-group input,
-    .form-group textarea {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
-    
-    .form-group textarea {
-        resize: vertical;
-        min-height: 80px;
-    }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-        .recurso-selector-main {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .recurso-btn {
-            width: 100%;
-            max-width: 350px;
-        }
-        
-        .tipo-selector-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .tokens-display {
-            font-size: 0.85rem;
-        }
-    }
-    </style>
 </body>
+
 </html>
