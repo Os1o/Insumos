@@ -57,7 +57,7 @@ async function cargarComponentesHistorial() {
     try {
         await Promise.all([
             loadComponent('header-container', 'includes/header.html'),
-            loadComponent('footer-container', 'includes/footer.html')
+            loadComponent('footer-container', 'includes/foot.html')
         ]);
 
         setTimeout(() => {
