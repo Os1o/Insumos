@@ -29,41 +29,37 @@
             <div class="hero-content">
                 <h1>Sistema de Solicitudes</h1>
                 <p>Gestiona eficientemente tus solicitudes de insumos y papelería</p>
-
+                
                 <!-- SELECTOR DE TIPO DE RECURSO (NUEVO) -->
                 <div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
-
+                    
                     <!-- Botón INSUMOS -->
-                    <button id="btn-insumos" onclick="seleccionarRecurso('insumo')"
-                        style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: linear-gradient(135deg, #657153, #8aaa79); color: white; border: none; border-radius: 12px; cursor: pointer; min-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                    <button id="btn-insumos" onclick="seleccionarRecurso('insumo')" 
+                            style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: linear-gradient(135deg, #657153, #8aaa79); color: white; border: none; border-radius: 12px; cursor: pointer; min-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s ease;">
                         <span style="font-size: 2rem;">📦</span>
                         <div style="text-align: left;">
                             <h3 style="margin: 0; font-size: 1.2rem;">INSUMOS</h3>
                             <small id="token-insumo-display" style="opacity: 0.9;">Token: -</small>
-                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Bebidas, tecnología,
-                                limpieza</p>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Bebidas, tecnología, limpieza</p>
                         </div>
                     </button>
-
+                    
                     <!-- Botón PAPELERÍA -->
-                    <button id="btn-papeleria" onclick="seleccionarRecurso('papeleria')"
-                        style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: white; color: #657153; border: 2px solid #b7b6c2; border-radius: 12px; cursor: pointer; min-width: 300px; transition: all 0.3s ease;">
+                    <button id="btn-papeleria" onclick="seleccionarRecurso('papeleria')" 
+                            style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: white; color: #657153; border: 2px solid #b7b6c2; border-radius: 12px; cursor: pointer; min-width: 300px; transition: all 0.3s ease;">
                         <span style="font-size: 2rem;">📝</span>
                         <div style="text-align: left;">
                             <h3 style="margin: 0; font-size: 1.2rem;">PAPELERÍA</h3>
                             <div style="margin: 0.25rem 0;">
-                                <small id="token-papeleria-ordinario-display"
-                                    style="opacity: 0.9; display: block; font-size: 0.875rem;">Ordinario: -</small>
-                                <small id="token-papeleria-extraordinario-display"
-                                    style="opacity: 0.9; display: block; font-size: 0.875rem;">Extraordinario: -</small>
+                                <small id="token-papeleria-ordinario-display" style="opacity: 0.9; display: block; font-size: 0.875rem;">Ordinario: -</small>
+                                <small id="token-papeleria-extraordinario-display" style="opacity: 0.9; display: block; font-size: 0.875rem;">Extraordinario: -</small>
                             </div>
-                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Hojas, folders, útiles
-                            </p>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Hojas, folders, útiles</p>
                         </div>
                     </button>
-
+                    
                 </div>
-
+                
             </div>
         </section>
 
@@ -122,8 +118,7 @@
         <!-- Solicitudes Cards de PAPELERÍA (NUEVO) -->
         <section class="solicitudes-section" id="seccion-papeleria" style="display: none;">
             <div class="container">
-                <h2 style="text-align: center; margin-bottom: 2rem; color: #657153;">Tipos de Solicitud de Papelería
-                </h2>
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #657153;">Tipos de Solicitud de Papelería</h2>
                 <div class="solicitudes-grid">
 
                     <!-- Solicitud Ordinaria Papelería -->
@@ -140,8 +135,7 @@
                         <div class="card-content">
                             <h2>SOLICITUD ORDINARIA</h2>
                             <p>Para necesidades regulares del mes, solo se puede realizar una</p>
-                            <button class="btn-solicitar"
-                                onclick="abrirSolicitud('ordinaria-papeleria')">Solicitar</button>
+                            <button class="btn-solicitar" onclick="abrirSolicitud('ordinaria-papeleria')">Solicitar</button>
                         </div>
                     </div>
 
@@ -156,8 +150,7 @@
                         <div class="card-content">
                             <h2>SOLICITUD EXTRAORDINARIA</h2>
                             <p>Para necesidades urgentes especiales, requiere justificación</p>
-                            <button class="btn-solicitar"
-                                onclick="abrirSolicitud('extraordinaria-papeleria')">Solicitar</button>
+                            <button class="btn-solicitar" onclick="abrirSolicitud('extraordinaria-papeleria')">Solicitar</button>
                         </div>
                     </div>
 
@@ -175,8 +168,7 @@
                         <div class="card-content">
                             <h2>SOLICITUD PARA JUNTAS</h2>
                             <p>Específicamente para eventos, reuniones y presentaciones</p>
-                            <button class="btn-solicitar"
-                                onclick="abrirSolicitud('juntas-papeleria')">Solicitar</button>
+                            <button class="btn-solicitar" onclick="abrirSolicitud('juntas-papeleria')">Solicitar</button>
                         </div>
                     </div>
 
@@ -227,25 +219,21 @@
                         <span class="token-label">Token disponible:</span>
                         <span class="token-indicator" id="tokenStatus">1</span>
                     </div>
-
+                    
                     <!-- Info adicional del tipo de solicitud (NUEVO) -->
-                    <div id="info-solicitud-actual"
-                        style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; display: none;">
-                        <div style="margin-bottom: 0.75rem;">
-                            <span
-                                style="color: #6c757d; font-size: 0.9rem; display: block; margin-bottom: 0.25rem;">Tipo
-                                de recurso:</span>
-                            <span id="recurso-actual" style="font-weight: 600; color: #495057;">-</span>
+                    <div id="info-solicitud-actual" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #b7b6c2; display: none;">
+                        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+                            <span style="color: #837569;">Tipo de recurso:</span>
+                            <span id="recurso-actual" style="font-weight: bold; color: #657153;">-</span>
                         </div>
-                        <div>
-                            <span
-                                style="color: #6c757d; font-size: 0.9rem; display: block; margin-bottom: 0.25rem;">Tipo
-                                de solicitud:</span>
-                            <span id="tipo-solicitud-actual" style="font-weight: 600; color: #495057;">-</span>
+                        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
+                            <span style="color: #837569;">Tipo de solicitud:</span>
+                            <span id="tipo-solicitud-actual" style="font-weight: bold; color: #657153;">-</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Campos para solicitud extraordinaria (NUEVO) 
+                <!-- Campos para solicitud extraordinaria (NUEVO) 
                 <div id="campos-extraordinaria" style="display: none; margin: 1.5rem 0; padding: 1.5rem; background: #fafbfc; border: 1px solid #b7b6c2; border-radius: 12px;">
                     <h4 style="color: #657153; margin-bottom: 0.5rem;">Justificación para Solicitud Extraordinaria</h4>
                     <p style="color: #837569; margin-bottom: 1rem; font-size: 0.9rem;">Explique las razones de urgencia para esta solicitud especial</p>
@@ -277,81 +265,81 @@
                     </div>
                 </div>-->
 
-                    <!-- Campos específicos para juntas (tu código original) -->
-                    <div class="campos-junta" id="camposJunta" style="display: none;">
-                        <div class="junta-header">
-                            <h4>Información del Evento</h4>
-                            <p>Complete los datos específicos de la junta o evento</p>
-                        </div>
+                <!-- Campos específicos para juntas (tu código original) -->
+                <div class="campos-junta" id="camposJunta" style="display: none;">
+                    <div class="junta-header">
+                        <h4>Información del Evento</h4>
+                        <p>Complete los datos específicos de la junta o evento</p>
+                    </div>
 
-                        <div class="junta-fields">
-                            <div class="field-row">
-                                <div class="field-group">
-                                    <label for="fechaEvento">Fecha del evento *</label>
-                                    <input type="date" id="fechaEvento" required>
-                                </div>
-                                <div class="field-group">
-                                    <label for="horaEvento">Hora del evento *</label>
-                                    <input type="time" id="horaEvento" required>
-                                </div>
-                            </div>
-
-                            <div class="field-row">
-                                <div class="field-group">
-                                    <label for="numParticipantes">Número de participantes *</label>
-                                    <input type="number" id="numParticipantes" min="1" max="100" required>
-                                </div>
-                                <div class="field-group">
-                                    <label for="salaEvento">Sala o ubicación *</label>
-                                    <input type="text" id="salaEvento" placeholder="Ej: Sala de Juntas A" required>
-                                </div>
-                            </div>
-
+                    <div class="junta-fields">
+                        <div class="field-row">
                             <div class="field-group">
-                                <label for="descripcionEvento">Descripción del evento</label>
-                                <textarea id="descripcionEvento" rows="3"
-                                    placeholder="Breve descripción del tipo de evento o junta"></textarea>
+                                <label for="fechaEvento">Fecha del evento *</label>
+                                <input type="date" id="fechaEvento" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="horaEvento">Hora del evento *</label>
+                                <input type="time" id="horaEvento" required>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Categorías de insumos -->
-                    <div class="categorias-container">
-                        <div class="categorias-tabs" id="categoriasTabsContainer">
-                            <!-- Se cargan dinámicamente -->
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="numParticipantes">Número de participantes *</label>
+                                <input type="number" id="numParticipantes" min="1" max="100" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="salaEvento">Sala o ubicación *</label>
+                                <input type="text" id="salaEvento" placeholder="Ej: Sala de Juntas A" required>
+                            </div>
                         </div>
 
-                        <!-- Lista de insumos por categoría -->
-                        <div class="insumos-lista" id="insumosListaContainer">
-                            <!-- Se cargan dinámicamente -->
+                        <div class="field-group">
+                            <label for="descripcionEvento">Descripción del evento</label>
+                            <textarea id="descripcionEvento" rows="3"
+                                placeholder="Breve descripción del tipo de evento o junta"></textarea>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Categorías de insumos -->
+                <div class="categorias-container">
+                    <div class="categorias-tabs" id="categoriasTabsContainer">
+                        <!-- Se cargan dinámicamente -->
                     </div>
 
-                    <!-- Carrito actual -->
-                    <div class="carrito-resumen">
-                        <h4>Carrito Actual</h4>
-                        <div class="carrito-items" id="carritoItems">
-                            <p class="carrito-vacio">Agrega insumos a tu carrito</p>
-                        </div>
-                        <div class="carrito-total">
-                            <span>Total de items: <strong id="carritoCount">0</strong></span>
-                        </div>
+                    <!-- Lista de insumos por categoría -->
+                    <div class="insumos-lista" id="insumosListaContainer">
+                        <!-- Se cargan dinámicamente -->
                     </div>
+                </div>
 
-                    <div class="modal-actions">
-                        <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                        <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
-                            Enviar Solicitud
-                        </button>
+                <!-- Carrito actual -->
+                <div class="carrito-resumen">
+                    <h4>Carrito Actual</h4>
+                    <div class="carrito-items" id="carritoItems">
+                        <p class="carrito-vacio">Agrega insumos a tu carrito</p>
                     </div>
+                    <div class="carrito-total">
+                        <span>Total de items: <strong id="carritoCount">0</strong></span>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
+                        Enviar Solicitud
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="js/script.js"></script>
-
-        <!-- JavaScript básico para cambiar entre secciones -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/script.js"></script>
+    
+    <!-- JavaScript básico para cambiar entre secciones -->
 </body>
 
 </html>
