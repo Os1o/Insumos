@@ -77,27 +77,28 @@ async function cargarComponentesHistorial() {
 function actualizarEstadoToken() {
     const session = sessionStorage.getItem('currentUser');
     if (!session) return;
-
+    
     const user = JSON.parse(session);
-    const tokenStatus = document.getElementById('userTokenStatus');
-    const tokenMessage = document.getElementById('tokenMessage');
-    const tokenInsumos = user.token_disponible;
-    const tokenPapeleriaOrd = user.token_papeleria_ordinario;
-    const tokenPapeleriaExt = user.token_papeleria_extraordinario;
-
-    if (tokenStatus) {
-        tokenStatus.textContent = user.token_disponible;
-        tokenStatus.className = user.token_disponible === 1 ? 'token-available' : 'token-used';
-    }
-
-    if (tokenMessage) {
-        if (user.token_disponible === 0) {
-            tokenMessage.textContent = 'Marca tus solicitudes cerradas como "recibidas" para reactivar tu token';
-            tokenMessage.style.color = '#e74c3c';
-        } else {
-            tokenMessage.textContent = 'Token disponible para solicitudes ordinarias';
-            tokenMessage.style.color = '#27ae60';
-        }
+    
+    // Actualizar la sección de tokens para mostrar los 3
+    const tokenSection = document.querySelector('.token-status-card');
+    if (tokenSection) {
+        tokenSection.innerHTML = `
+            <div class="tokens-grid">
+                <div class="token-item">
+                    <span class="token-label">Insumos:</span>
+                    <span class="token-value ${user.token_disponible === 1 ? 'token-available' : 'token-used'}">${user.token_disponible}</span>
+                </div>
+                <div class="token-item">
+                    <span class="token-label">Papelería Ordinaria:</span>
+                    <span class="token-value ${user.token_papeleria_ordinario === 1 ? 'token-available' : 'token-used'}">${user.token_papeleria_ordinario}</span>
+                </div>
+                <div class="token-item">
+                    <span class="token-label">Papelería Extraordinaria:</span>
+                    <span class="token-value ${user.token_papeleria_extraordinario === 1 ? 'token-available' : 'token-used'}">${user.token_papeleria_extraordinario}</span>
+                </div>
+            </div>
+        `;
     }
 }
 
@@ -209,6 +210,9 @@ function renderizarSolicitudes(solicitudes) {
                     <div class="solicitud-info">
                         <span class="solicitud-id">#${solicitud.id.substring(0, 8)}</span>
                         <span class="solicitud-tipo tipo-${solicitud.tipo}">${tipoLabel}</span>
+                        <span class="solicitud-tipo tipo-${solicitud.tipo}">${tipoLabel}</span>
+                        <span class="recurso-tipo recurso-${solicitud.recurso_tipo || 'insumo'}">${solicitud.recurso_tipo === 'papeleria' ? 'Papelería' : 'Insumos'}</span>
+                        <span class="solicitud-estado estado-${estadoClass}">${getEstadoLabel(solicitud.estado)}</span>
                         <span class="solicitud-estado estado-${estadoClass}">${getEstadoLabel(solicitud.estado)}</span>
                     </div>
                     <div class="solicitud-fecha">
