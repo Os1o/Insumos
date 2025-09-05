@@ -88,10 +88,16 @@ async function cargarTodasLasSolicitudes() {
         const { data: solicitudes, error } = await supabaseAdmin
             .from('solicitudes')
             .select(`
-                *,
-                usuario:usuarios!solicitudes_usuario_id_fkey(nombre, departamento),
-                admin:usuarios!solicitudes_admin_asignado_fkey(nombre)
-            `)
+                    id,
+                    tipo,
+                    recurso_tipo,  // AGREGAR ESTA LÍNEA
+                    estado,
+                    fecha_solicitud,
+                    total_items,
+                    token_usado,
+                    usuarios(nombre, departamento),
+                    solicitud_detalles(...)
+                `)
             .order('fecha_solicitud', { ascending: false });
 
         if (error) {
@@ -128,9 +134,14 @@ function renderizarSolicitudesSimples(solicitudes) {
 
     let html = '<div class="solicitudes-simples">';
     solicitudes.forEach(s => {
+        // Determinar el tipo de recurso
+        const tipoRecurso = s.recurso_tipo === 'papeleria' ? 'Papelería' : 'Insumos';
+        const claseRecurso = s.recurso_tipo || 'insumo';
+        
         html += `
             <div class="solicitud-simple" onclick="abrirModalRevision('${s.id}')" style="cursor: pointer;">
                 <strong>#${s.id ? s.id.substring(0, 8) : 'N/A'}</strong> - 
+                <span class="recurso-badge recurso-${claseRecurso}">${tipoRecurso}</span> -
                 ${s.tipo || 'N/A'} - 
                 <span class="estado-${s.estado || 'pendiente'}">${s.estado || 'N/A'}</span> -
                 ${s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : 'N/A'}
@@ -492,16 +503,19 @@ function validarStock(input, stockDisponible) {
 function filtrarSolicitudesAdmin() {
     const filtroEstado = document.getElementById('filtroEstadoAdmin');
     const filtroTipo = document.getElementById('filtroTipoAdmin');
+    const filtroRecurso = document.getElementById('filtroRecursoAdmin'); // NUEVO
 
     if (!filtroEstado || !filtroTipo) return;
 
     const estado = filtroEstado.value;
     const tipo = filtroTipo.value;
+    const recurso = filtroRecurso ? filtroRecurso.value : ''; // NUEVO
 
     solicitudesFiltradas = todasLasSolicitudes.filter(s => {
         let match = true;
         if (estado) match = match && s.estado === estado;
         if (tipo) match = match && s.tipo === tipo;
+        if (recurso) match = match && (s.recurso_tipo || 'insumo') === recurso; // NUEVO
         return match;
     });
 

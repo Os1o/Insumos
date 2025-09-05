@@ -1639,6 +1639,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+.recurso-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.recurso-insumo {
+    background: #3498db;
+    color: white;
+}
+
+.recurso-papeleria {
+    background: #e74c3c;
+    color: white;
+}
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */
