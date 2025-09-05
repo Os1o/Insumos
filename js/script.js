@@ -1420,7 +1420,7 @@ function updateFooterStats() {
 // ===================================
 
 // Abrir modal de solicitud
-function abrirSolicitud(tipo) {
+/*function abrirSolicitud(tipo) {
     currentSolicitudType = tipo;
 
     // Verificar token para solicitudes ordinarias
@@ -1466,7 +1466,7 @@ function abrirSolicitud(tipo) {
             camposJunta.style.display = 'none';
         }
     }
-}
+}*/
 
 
 // Cerrar modal
