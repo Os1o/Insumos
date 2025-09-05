@@ -24,7 +24,7 @@
     --color-admin-card: #ffffff;
     --color-admin-header: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     --color-admin-accent: #4a90e2;
-    --color-super-admin: linear-gradient(135deg, #3c6e71, #353535);
+    --color-super-admin: linear-gradient(135deg, #8e44ad, #9b59b6);
 
     /* Sombras */
     --shadow-sm: 0 2px 8px rgba(101, 113, 83, 0.08);
