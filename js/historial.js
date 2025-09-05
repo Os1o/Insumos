@@ -248,20 +248,26 @@ function renderizarSolicitudes(solicitudes) {
                     ` : ''}
                     
                     <div class="solicitud-insumos" style="display: none;">
-                        <h5>Insumos solicitados:</h5>
+                        <h5>Items solicitados:</h5>
                         <ul class="insumos-list">
-                            ${solicitud.solicitud_detalles.map(detalle => `
-                                <li class="insumo-detalle">
-                                    <span class="insumo-nombre">${detalle.insumos.nombre}</span>
-                                    <span class="cantidades">
-                                        Solicitado: ${detalle.cantidad_solicitada} ${detalle.insumos.unidad_medida}
-                                        ${detalle.cantidad_aprobada ?
-                `| Entregado: ${detalle.cantidad_aprobada} ${detalle.insumos.unidad_medida}` :
-                ''
-            }
-                                    </span>
-                                </li>
-                            `).join('')}
+                            ${solicitud.solicitud_detalles.map(detalle => {
+                                const item = detalle.insumos || detalle.papeleria;
+                                const nombreItem = item ? item.nombre : 'Item no encontrado';
+                                const unidadMedida = item ? item.unidad_medida : 'unidad';
+                                
+                                return `
+                                    <li class="insumo-detalle">
+                                        <span class="insumo-nombre">${nombreItem}</span>
+                                        <span class="cantidades">
+                                            Solicitado: ${detalle.cantidad_solicitada} ${unidadMedida}
+                                            ${detalle.cantidad_aprobada ?
+                                                `| Entregado: ${detalle.cantidad_aprobada} ${unidadMedida}` :
+                                                ''
+                                            }
+                                        </span>
+                                    </li>
+                                `;
+                            }).join('')}
                         </ul>
                     </div>
                 </div>
