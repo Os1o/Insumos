@@ -2434,5 +2434,3 @@ function showNotification(message, type = 'info') {
 // ===================================
 
 console.log('Script.js cargado completamente - ' + APP_CONFIG.name);
-console.log('Tipo de solicitud recibido:', tipo);
-console.log('Recurso actual:', recursoActual);
