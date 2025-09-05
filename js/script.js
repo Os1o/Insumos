@@ -1431,6 +1431,8 @@ function abrirSolicitud(tipo) {
 
     const modal = document.getElementById('solicitud-modal');
     const modalTitle = document.getElementById('modal-title');
+    const session = sessionStorage.getItem('currentUser');
+    const user = JSON.parse(session);
 
     if (modal && modalTitle) {
         // Configurar título según el tipo
@@ -1953,7 +1955,7 @@ async function cargarTokensPapeleria() {
         if (!session) return;
 
         const user = JSON.parse(session);
-        
+
         // Obtener tokens actualizados del usuario
         const { data: usuario, error } = await supabase
             .from('usuarios')
@@ -2131,37 +2133,37 @@ function validarTokenParaSolicitud(tipo) {
 // Función para seleccionar tipo de recurso (actualizada)
 function seleccionarRecurso(tipo) {
     recursoActual = tipo;
-    
+
     // Actualizar botones
     const btnInsumos = document.getElementById('btn-insumos');
     const btnPapeleria = document.getElementById('btn-papeleria');
-    
+
     if (tipo === 'insumo') {
         // Activar insumos
         btnInsumos.style.background = 'linear-gradient(135deg, #657153, #8aaa79)';
         btnInsumos.style.color = 'white';
         btnInsumos.style.border = 'none';
-        
+
         // Desactivar papelería
         btnPapeleria.style.background = 'white';
         btnPapeleria.style.color = '#657153';
         btnPapeleria.style.border = '2px solid #b7b6c2';
-        
+
         // Mostrar/ocultar secciones
         document.getElementById('seccion-insumos').style.display = 'block';
         document.getElementById('seccion-papeleria').style.display = 'none';
-        
+
     } else {
         // Activar papelería
         btnPapeleria.style.background = 'linear-gradient(135deg, #657153, #8aaa79)';
         btnPapeleria.style.color = 'white';
         btnPapeleria.style.border = 'none';
-        
+
         // Desactivar insumos
         btnInsumos.style.background = 'white';
         btnInsumos.style.color = '#657153';
         btnInsumos.style.border = '2px solid #b7b6c2';
-        
+
         // Mostrar/ocultar secciones
         document.getElementById('seccion-insumos').style.display = 'none';
         document.getElementById('seccion-papeleria').style.display = 'block';
@@ -2174,34 +2176,34 @@ function seleccionarRecurso(tipo) {
 // Función expandida para abrir solicitud (actualizada)
 function abrirSolicitud(tipo) {
     console.log('Abriendo solicitud:', tipo, 'para recurso:', recursoActual);
-    
+
     // Validar token antes de continuar
     if (!validarTokenParaSolicitud(tipo)) {
         return;
     }
-    
+
     // Actualizar tipo de solicitud actual
     currentSolicitudType = tipo;
-    
+
     // Actualizar info del modal
     const modalTitle = document.getElementById('modal-title');
     const infoSolicitud = document.getElementById('info-solicitud-actual');
     const recursoSpan = document.getElementById('recurso-actual');
     const tipoSpan = document.getElementById('tipo-solicitud-actual');
-    
+
     // Mostrar info adicional si existe
     if (infoSolicitud) {
         infoSolicitud.style.display = 'block';
         if (recursoSpan) recursoSpan.textContent = recursoActual === 'insumo' ? 'Insumos' : 'Papelería';
     }
-    
+
     // Ocultar todos los campos especiales primero
     const camposJunta = document.getElementById('camposJunta');
     const camposExtraordinaria = document.getElementById('campos-extraordinaria');
-    
+
     if (camposJunta) camposJunta.style.display = 'none';
     if (camposExtraordinaria) camposExtraordinaria.style.display = 'none';
-    
+
     // Configurar modal según el tipo de solicitud
     if (tipo.includes('juntas')) {
         if (tipoSpan) tipoSpan.textContent = 'Juntas';
@@ -2215,14 +2217,14 @@ function abrirSolicitud(tipo) {
         if (tipoSpan) tipoSpan.textContent = 'Ordinaria';
         modalTitle.textContent = `Carrito de ${recursoActual === 'insumo' ? 'Insumos' : 'Papelería'} - Ordinaria`;
     }
-    
+
     // Cargar datos del carrito según el tipo de recurso
     if (recursoActual === 'papeleria') {
         cargarDatosPapeleria();
     } else {
         cargarDatosCarrito(); // Tu función existente para insumos
     }
-    
+
     // Abrir modal
     document.getElementById('solicitud-modal').style.display = 'flex';
 }
@@ -2272,7 +2274,7 @@ async function cargarDatosPapeleria() {
         // Renderizar categorías y papelería
         renderizarCategorias();
 
-                if (categorias.length > 0) {
+        if (categorias.length > 0) {
             // Simular clic en la primera categoría
             setTimeout(() => {
                 const primerTab = document.querySelector('.categoria-tab');
@@ -2292,12 +2294,12 @@ async function cargarDatosPapeleria() {
 }
 
 // Modificar el DOMContentLoaded existente para incluir la carga de tokens de papelería
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Tu código DOMContentLoaded existente aquí...
-    
+
     // Agregar carga de tokens de papelería
     cargarTokensPapeleria();
-    
+
     // Configurar selector de recursos por defecto
     seleccionarRecurso('insumo');
 });
@@ -2308,7 +2310,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
-    
+
     // Estilos básicos
     notification.style.cssText = `
         position: fixed;
@@ -2322,7 +2324,7 @@ function showNotification(message, type = 'info') {
         max-width: 400px;
         transition: all 0.3s ease;
     `;
-    
+
     // Color según tipo
     switch (type) {
         case 'error':
@@ -2337,9 +2339,9 @@ function showNotification(message, type = 'info') {
         default:
             notification.style.background = '#3498db';
     }
-    
+
     document.body.appendChild(notification);
-    
+
     // Remover después de 4 segundos
     setTimeout(() => {
         notification.style.opacity = '0';

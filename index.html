@@ -29,37 +29,41 @@
             <div class="hero-content">
                 <h1>Sistema de Solicitudes</h1>
                 <p>Gestiona eficientemente tus solicitudes de insumos y papelería</p>
-                
+
                 <!-- SELECTOR DE TIPO DE RECURSO (NUEVO) -->
                 <div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
-                    
+
                     <!-- Botón INSUMOS -->
-                    <button id="btn-insumos" onclick="seleccionarRecurso('insumo')" 
-                            style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: linear-gradient(135deg, #657153, #8aaa79); color: white; border: none; border-radius: 12px; cursor: pointer; min-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+                    <button id="btn-insumos" onclick="seleccionarRecurso('insumo')"
+                        style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: linear-gradient(135deg, #657153, #8aaa79); color: white; border: none; border-radius: 12px; cursor: pointer; min-width: 250px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s ease;">
                         <span style="font-size: 2rem;">📦</span>
                         <div style="text-align: left;">
                             <h3 style="margin: 0; font-size: 1.2rem;">INSUMOS</h3>
                             <small id="token-insumo-display" style="opacity: 0.9;">Token: -</small>
-                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Bebidas, tecnología, limpieza</p>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Bebidas, tecnología,
+                                limpieza</p>
                         </div>
                     </button>
-                    
+
                     <!-- Botón PAPELERÍA -->
-                    <button id="btn-papeleria" onclick="seleccionarRecurso('papeleria')" 
-                            style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: white; color: #657153; border: 2px solid #b7b6c2; border-radius: 12px; cursor: pointer; min-width: 300px; transition: all 0.3s ease;">
+                    <button id="btn-papeleria" onclick="seleccionarRecurso('papeleria')"
+                        style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; background: white; color: #657153; border: 2px solid #b7b6c2; border-radius: 12px; cursor: pointer; min-width: 300px; transition: all 0.3s ease;">
                         <span style="font-size: 2rem;">📝</span>
                         <div style="text-align: left;">
                             <h3 style="margin: 0; font-size: 1.2rem;">PAPELERÍA</h3>
                             <div style="margin: 0.25rem 0;">
-                                <small id="token-papeleria-ordinario-display" style="opacity: 0.9; display: block; font-size: 0.875rem;">Ordinario: -</small>
-                                <small id="token-papeleria-extraordinario-display" style="opacity: 0.9; display: block; font-size: 0.875rem;">Extraordinario: -</small>
+                                <small id="token-papeleria-ordinario-display"
+                                    style="opacity: 0.9; display: block; font-size: 0.875rem;">Ordinario: -</small>
+                                <small id="token-papeleria-extraordinario-display"
+                                    style="opacity: 0.9; display: block; font-size: 0.875rem;">Extraordinario: -</small>
                             </div>
-                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Hojas, folders, útiles</p>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Hojas, folders, útiles
+                            </p>
                         </div>
                     </button>
-                    
+
                 </div>
-                
+
             </div>
         </section>
 
@@ -118,7 +122,8 @@
         <!-- Solicitudes Cards de PAPELERÍA (NUEVO) -->
         <section class="solicitudes-section" id="seccion-papeleria" style="display: none;">
             <div class="container">
-                <h2 style="text-align: center; margin-bottom: 2rem; color: #657153;">Tipos de Solicitud de Papelería</h2>
+                <h2 style="text-align: center; margin-bottom: 2rem; color: #657153;">Tipos de Solicitud de Papelería
+                </h2>
                 <div class="solicitudes-grid">
 
                     <!-- Solicitud Ordinaria Papelería -->
@@ -135,7 +140,8 @@
                         <div class="card-content">
                             <h2>SOLICITUD ORDINARIA</h2>
                             <p>Para necesidades regulares del mes, solo se puede realizar una</p>
-                            <button class="btn-solicitar" onclick="abrirSolicitud('ordinaria-papeleria')">Solicitar</button>
+                            <button class="btn-solicitar"
+                                onclick="abrirSolicitud('ordinaria-papeleria')">Solicitar</button>
                         </div>
                     </div>
 
@@ -150,7 +156,8 @@
                         <div class="card-content">
                             <h2>SOLICITUD EXTRAORDINARIA</h2>
                             <p>Para necesidades urgentes especiales, requiere justificación</p>
-                            <button class="btn-solicitar" onclick="abrirSolicitud('extraordinaria-papeleria')">Solicitar</button>
+                            <button class="btn-solicitar"
+                                onclick="abrirSolicitud('extraordinaria-papeleria')">Solicitar</button>
                         </div>
                     </div>
 
@@ -168,7 +175,8 @@
                         <div class="card-content">
                             <h2>SOLICITUD PARA JUNTAS</h2>
                             <p>Específicamente para eventos, reuniones y presentaciones</p>
-                            <button class="btn-solicitar" onclick="abrirSolicitud('juntas-papeleria')">Solicitar</button>
+                            <button class="btn-solicitar"
+                                onclick="abrirSolicitud('juntas-papeleria')">Solicitar</button>
                         </div>
                     </div>
 
@@ -211,28 +219,82 @@
 
                 <!-- Info del usuario y token -->
                 <div class="usuario-info-card">
-                    <div class="usuario-datos">
-                        <span class="usuario-nombre">Usuario Actual</span>
-                        <span class="usuario-depto">Departamento</span>
-                    </div>
-                    <div class="token-status">
-                        <span class="token-label">Token disponible:</span>
-                        <span class="token-indicator" id="tokenStatus">1</span>
-                    </div>
-                    
-                    <!-- Info adicional del tipo de solicitud (NUEVO) -->
-                    <div id="info-solicitud-actual" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #b7b6c2; display: none;">
-                        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
-                            <span style="color: #837569;">Tipo de recurso:</span>
-                            <span id="recurso-actual" style="font-weight: bold; color: #657153;">-</span>
+                    <!-- Información básica del usuario -->
+                    <div class="usuario-header">
+                        <div class="usuario-datos">
+                            <h4 class="usuario-nombre" id="usuario-nombre-modal">Usuario Actual</h4>
+                            <span class="usuario-depto" id="usuario-depto-modal">Departamento</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin: 0.5rem 0;">
-                            <span style="color: #837569;">Tipo de solicitud:</span>
-                            <span id="tipo-solicitud-actual" style="font-weight: bold; color: #657153;">-</span>
+                        <div class="usuario-avatar">
+                            <div class="avatar-circle">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de la solicitud actual -->
+                    <div class="solicitud-info-actual">
+                        <div class="info-header">
+                            <h5>Información de la Solicitud</h5>
+                        </div>
+
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Tipo de recurso:</span>
+                                <span class="info-value" id="recurso-actual-display">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Tipo de solicitud:</span>
+                                <span class="info-value" id="tipo-solicitud-display">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Token requerido:</span>
+                                <span class="info-value" id="token-requerido-display">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Estado de tokens -->
+                    <div class="tokens-estado">
+                        <div class="tokens-header">
+                            <h5>Estado de Tokens</h5>
+                        </div>
+
+                        <div class="tokens-grid">
+                            <!-- Token de Insumos -->
+                            <div class="token-card">
+                                <div class="token-icon">📦</div>
+                                <div class="token-info">
+                                    <span class="token-nombre">Insumos</span>
+                                    <span class="token-valor" id="token-insumos-modal">-</span>
+                                </div>
+                            </div>
+
+                            <!-- Tokens de Papelería -->
+                            <div class="token-card">
+                                <div class="token-icon">📝</div>
+                                <div class="token-info">
+                                    <span class="token-nombre">Papelería Ordinaria</span>
+                                    <span class="token-valor" id="token-papeleria-ord-modal">-</span>
+                                </div>
+                            </div>
+
+                            <div class="token-card">
+                                <div class="token-icon">⚡</div>
+                                <div class="token-info">
+                                    <span class="token-nombre">Papelería Extraordinaria</span>
+                                    <span class="token-valor" id="token-papeleria-ext-modal">-</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
                 <!-- Campos para solicitud extraordinaria (NUEVO) 
                 <div id="campos-extraordinaria" style="display: none; margin: 1.5rem 0; padding: 1.5rem; background: #fafbfc; border: 1px solid #b7b6c2; border-radius: 12px;">
                     <h4 style="color: #657153; margin-bottom: 0.5rem;">Justificación para Solicitud Extraordinaria</h4>
@@ -338,7 +400,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/script.js"></script>
-    
+
     <!-- JavaScript básico para cambiar entre secciones -->
 </body>
 

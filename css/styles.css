@@ -1990,3 +1990,175 @@ body {
         gap: 0.5rem;
     }
 }
+
+
+/* Reorganización del modal de usuario */
+.usuario-info-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+/* Header del usuario */
+.usuario-header {
+    background: linear-gradient(135deg, #657153, #8aaa79);
+    color: white;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.usuario-datos h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.usuario-datos span {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.usuario-avatar {
+    display: flex;
+    align-items: center;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+/* Información de la solicitud */
+.solicitud-info-actual {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-header h5 {
+    margin: 0 0 1rem 0;
+    color: #657153;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.info-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 0.9rem;
+    color: #495057;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+/* Estado de tokens */
+.tokens-estado {
+    padding: 1.5rem;
+}
+
+.tokens-header h5 {
+    margin: 0 0 1rem 0;
+    color: #657153;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.tokens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.token-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.token-card:hover {
+    border-color: #657153;
+    box-shadow: 0 2px 4px rgba(101, 113, 83, 0.1);
+}
+
+.token-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.token-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.token-nombre {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.token-valor {
+    display: block;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #28a745;
+    line-height: 1.2;
+}
+
+.token-valor.agotado {
+    color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .usuario-header {
+        padding: 1rem;
+    }
+    
+    .solicitud-info-actual,
+    .tokens-estado {
+        padding: 1rem;
+    }
+    
+    .tokens-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}
