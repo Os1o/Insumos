@@ -351,6 +351,7 @@ function yaEstaRecibido(solicitudId) {
 function filtrarSolicitudes() {
     const filtroTipo = document.getElementById('filtroTipo').value;
     const filtroEstado = document.getElementById('filtroEstado').value;
+    const filtroRecurso = document.getElementById('filtroRecurso')?.value; // Nuevo filtro
 
     let solicitudesFiltradas = [...solicitudesUsuario];
 
@@ -360,6 +361,13 @@ function filtrarSolicitudes() {
 
     if (filtroEstado) {
         solicitudesFiltradas = solicitudesFiltradas.filter(s => s.estado === filtroEstado);
+    }
+
+    // Nuevo: Filtrar por tipo de recurso
+    if (filtroRecurso && filtroRecurso !== 'todos') {
+        solicitudesFiltradas = solicitudesFiltradas.filter(s => 
+            (s.recurso_tipo || 'insumo') === filtroRecurso
+        );
     }
 
     renderizarSolicitudes(solicitudesFiltradas);
