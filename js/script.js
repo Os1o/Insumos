@@ -163,31 +163,33 @@ function actualizarInfoUsuarioModal(tipoSolicitud = null) {
         if (tokenStatus) {
             let tokenValue = 1;
             let tokenLabel = 'Token disponible:';
-            
+
             if (tipoSolicitud) {
-                if (tipoSolicitud.includes('ordinaria') && recursoActual === 'insumo') {
-                    tokenValue = user.token_disponible;
-                    tokenLabel = 'Token insumos:';
-                } else if (tipoSolicitud.includes('ordinaria') && recursoActual === 'papeleria') {
-                    tokenValue = user.token_papeleria_ordinario;
-                    tokenLabel = 'Token ordinario:';
-                } else if (tipoSolicitud.includes('extraordinaria')) {
-                    tokenValue = user.token_papeleria_extraordinario;
-                    tokenLabel = 'Token extraordinario:';
-                } else if (tipoSolicitud.includes('juntas')) {
-                    tokenLabel = 'Sin token requerido';
-                    tokenValue = '✓';
+                if (tipoSolicitud) {
+                    if (tipoSolicitud.includes('extraordinaria')) {
+                        tokenValue = user.token_papeleria_extraordinario;
+                        tokenLabel = 'Token extraordinario:';
+                    } else if (tipoSolicitud.includes('ordinaria') && recursoActual === 'insumo') {
+                        tokenValue = user.token_disponible;
+                        tokenLabel = 'Token insumos:';
+                    } else if (tipoSolicitud.includes('ordinaria') && recursoActual === 'papeleria') {
+                        tokenValue = user.token_papeleria_ordinario;
+                        tokenLabel = 'Token ordinario:';
+                    } else if (tipoSolicitud.includes('juntas')) {
+                        tokenLabel = 'Sin token requerido';
+                        tokenValue = '✓';
+                    }
                 }
             } else {
                 tokenValue = user.token_disponible;
             }
-            
+
             // Actualizar label también
             const tokenLabelElement = document.querySelector('.token-label');
             if (tokenLabelElement) {
                 tokenLabelElement.textContent = tokenLabel;
             }
-            
+
             tokenStatus.textContent = tokenValue;
         }
 
