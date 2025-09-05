@@ -1385,7 +1385,7 @@ body {
 
 /* ===================================
    ESTILOS DEL HISTORIAL
-   =================================== */
+   =================================== 
 
 .page-header {
     background: linear-gradient(135deg, #657153, #8aaa79);
@@ -1444,7 +1444,7 @@ body {
     border-radius: 4px;
 }
 
-/* Solicitudes */
+/* Solicitudes 
 .solicitud-item {
     background: white;
     border: 1px solid #d1d5de;
@@ -1586,7 +1586,7 @@ body {
 }
 
 
-/* Campos específicos de juntas */
+/* Campos específicos de juntas 
 .campos-junta {
     background: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -1647,7 +1647,7 @@ body {
 
 
 
-/* Información de evento en historial */
+/* Información de evento en historial 
 .solicitud-evento {
     background: #e8f4fd;
     border: 1px solid #bee5eb;
@@ -1700,7 +1700,7 @@ body {
    Agregar al final de tu styles.css existente
    =================================== */
 
-/* Selector de recursos en hero section */
+/* Selector de recursos en hero section 
 .recurso-selector {
     display: flex;
     gap: 2rem;
@@ -1805,7 +1805,7 @@ body {
     color: #ffcccb;
 }
 
-/* Sección de tipos de papelería (reutiliza clases existentes) */
+/* Sección de tipos de papelería (reutiliza clases existentes) 
 .tipos-papeleria-section {
     background: var(--color-bg-white);
     padding: var(--spacing-xl) 0;
@@ -1820,7 +1820,7 @@ body {
     font-weight: 600;
 }
 
-/* Token required info en cards */
+/* Token required info en cards 
 .token-required {
     background: var(--color-bg-light);
     color: var(--color-text-secondary);
@@ -1832,7 +1832,7 @@ body {
     border: 1px solid var(--color-border);
 }
 
-/* Campos para solicitud extraordinaria */
+/* Campos para solicitud extraordinaria 
 .campos-extraordinaria {
     margin: 1.5rem 0;
     padding: 1.5rem;
@@ -1851,7 +1851,7 @@ body {
     margin-bottom: 1rem;
 }
 
-/* Info adicional en modal */
+/* Info adicional en modal 
 .solicitud-info {
     margin-top: 1rem;
     padding-top: 1rem;
@@ -1878,7 +1878,7 @@ body {
     font-size: 0.9rem;
 }
 
-/* Mejorar select en campos extraordinaria */
+/* Mejorar select en campos extraordinaria 
 .campos-extraordinaria select {
     width: 100%;
     padding: 0.75rem;
@@ -1896,7 +1896,7 @@ body {
     box-shadow: 0 0 0 2px rgba(101, 113, 83, 0.1);
 }
 
-/* Estados de tokens visuales */
+/* Estados de tokens visuales 
 .token-status-indicators {
     display: flex;
     gap: 0.5rem;
@@ -1921,7 +1921,7 @@ body {
     background: var(--color-danger);
 }
 
-/* Responsive para selector de recursos */
+/* Responsive para selector de recursos 
 @media (max-width: 768px) {
     .recurso-selector {
         flex-direction: column;
@@ -1968,4 +1968,4 @@ body {
         justify-content: center;
         gap: 0.5rem;
     }
-}
+}*/
