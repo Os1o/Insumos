@@ -2272,6 +2272,19 @@ async function cargarDatosPapeleria() {
         // Renderizar categorías y papelería
         renderizarCategorias();
 
+                if (categorias.length > 0) {
+            // Simular clic en la primera categoría
+            setTimeout(() => {
+                const primerTab = document.querySelector('.categoria-tab');
+                if (primerTab) {
+                    primerTab.click();
+                }
+                // O si tienes función para mostrar categoría:
+                // mostrarCategoria(categorias[0].id);
+            }, 100);
+        }
+
+
     } catch (error) {
         console.error('Error cargando datos de papelería:', error);
         showNotification('Error cargando datos de papelería', 'error');
