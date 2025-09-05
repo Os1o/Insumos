@@ -509,7 +509,7 @@ function validarStock(input, stockDisponible) {
 function filtrarSolicitudesAdmin() {
     const filtroEstado = document.getElementById('filtroEstadoAdmin');
     const filtroTipo = document.getElementById('filtroTipoAdmin');
-    const filtroRecurso = document.getElementById('filtroRecursoAdmin'); // NUEVO
+    const filtroRecurso = document.getElementById('filtroRecurso'); // NUEVO
 
     if (!filtroEstado || !filtroTipo) return;
 
