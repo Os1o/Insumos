@@ -509,25 +509,24 @@ function validarStock(input, stockDisponible) {
 function filtrarSolicitudesAdmin() {
     const filtroEstado = document.getElementById('filtroEstadoAdmin');
     const filtroTipo = document.getElementById('filtroTipoAdmin');
-    const filtroRecurso = document.getElementById('filtroRecurso'); // NUEVO
+    const filtroRecurso = document.getElementById('filtroRecurso'); // CAMBIAR: quitar 'Admin'
 
     if (!filtroEstado || !filtroTipo) return;
 
     const estado = filtroEstado.value;
     const tipo = filtroTipo.value;
-    const recurso = filtroRecurso ? filtroRecurso.value : ''; // NUEVO
+    const recurso = filtroRecurso ? filtroRecurso.value : '';
 
     solicitudesFiltradas = todasLasSolicitudes.filter(s => {
         let match = true;
         if (estado) match = match && s.estado === estado;
         if (tipo) match = match && s.tipo === tipo;
-        if (recurso) match = match && (s.recurso_tipo || 'insumo') === recurso; // NUEVO
+        if (recurso && recurso !== 'todos') match = match && (s.recurso_tipo || 'insumo') === recurso; // CAMBIAR: agregar check para 'todos'
         return match;
     });
 
     renderizarSolicitudesSimples(solicitudesFiltradas);
 }
-
 function recargarSolicitudes() {
     cargarTodasLasSolicitudes();
 }
