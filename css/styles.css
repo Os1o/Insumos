@@ -2041,3 +2041,50 @@ body {
     font-weight: 600;
     text-transform: capitalize;
 }
+
+
+
+/* Estilos para el badge de tipo de recurso */
+.recurso-tipo {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Estilo para Insumos */
+.recurso-insumo {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: 1px solid #2980b9;
+}
+
+/* Estilo para Papelería */
+.recurso-papeleria {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: 1px solid #c0392b;
+}
+
+/* Efectos hover */
+.recurso-tipo:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+/* Versión más sutil si prefieres colores menos intensos */
+.recurso-insumo-sutil {
+    background: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+}
+
+.recurso-papeleria-sutil {
+    background: #fdf2e9;
+    color: #d35400;
+    border: 1px solid #f39c12;
+}
