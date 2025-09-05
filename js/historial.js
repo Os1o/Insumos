@@ -128,7 +128,6 @@ async function cargarHistorialSolicitudes() {
                 fecha_cerrado,
                 notas_admin,
                 datos_junta,
-                datos_extraordinaria,
                 solicitud_detalles!inner(
                     cantidad_solicitada,
                     cantidad_aprobada,
