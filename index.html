@@ -219,83 +219,33 @@
 
                 <!-- Info del usuario y token -->
                 <div class="usuario-info-card">
-                    <!-- Información básica del usuario -->
-                    <div class="usuario-header">
-                        <div class="usuario-datos">
-                            <h4 class="usuario-nombre" id="usuario-nombre-modal">Usuario Actual</h4>
-                            <span class="usuario-depto" id="usuario-depto-modal">Departamento</span>
+                    <div class="usuario-datos">
+                        <span class="usuario-nombre">Usuario Actual</span>
+                        <span class="usuario-depto">Departamento</span>
+                    </div>
+                    <div class="token-status">
+                        <span class="token-label">Token disponible:</span>
+                        <span class="token-indicator" id="tokenStatus">1</span>
+                    </div>
+
+                    <!-- Info adicional del tipo de solicitud (NUEVO) -->
+                    <div id="info-solicitud-actual"
+                        style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; display: none;">
+                        <div style="margin-bottom: 0.75rem;">
+                            <span
+                                style="color: #6c757d; font-size: 0.9rem; display: block; margin-bottom: 0.25rem;">Tipo
+                                de recurso:</span>
+                            <span id="recurso-actual" style="font-weight: 600; color: #495057;">-</span>
                         </div>
-                        <div class="usuario-avatar">
-                            <div class="avatar-circle">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                            </div>
+                        <div>
+                            <span
+                                style="color: #6c757d; font-size: 0.9rem; display: block; margin-bottom: 0.25rem;">Tipo
+                                de solicitud:</span>
+                            <span id="tipo-solicitud-actual" style="font-weight: 600; color: #495057;">-</span>
                         </div>
                     </div>
 
-                    <!-- Información de la solicitud actual -->
-                    <div class="solicitud-info-actual">
-                        <div class="info-header">
-                            <h5>Información de la Solicitud</h5>
-                        </div>
-
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">Tipo de recurso:</span>
-                                <span class="info-value" id="recurso-actual-display">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Tipo de solicitud:</span>
-                                <span class="info-value" id="tipo-solicitud-display">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Token requerido:</span>
-                                <span class="info-value" id="token-requerido-display">-</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-
-                    <!-- Estado de tokens -->
-                    <div class="tokens-estado">
-                        <div class="tokens-header">
-                            <h5>Estado de Tokens</h5>
-                        </div>
-
-                        <div class="tokens-grid">
-                            <!-- Token de Insumos -->
-                            <div class="token-card">
-                                <div class="token-icon">📦</div>
-                                <div class="token-info">
-                                    <span class="token-nombre">Insumos</span>
-                                    <span class="token-valor" id="token-insumos-modal">-</span>
-                                </div>
-                            </div>
-
-                            <!-- Tokens de Papelería -->
-                            <div class="token-card">
-                                <div class="token-icon">📝</div>
-                                <div class="token-info">
-                                    <span class="token-nombre">Papelería Ordinaria</span>
-                                    <span class="token-valor" id="token-papeleria-ord-modal">-</span>
-                                </div>
-                            </div>
-
-                            <div class="token-card">
-                                <div class="token-icon">⚡</div>
-                                <div class="token-info">
-                                    <span class="token-nombre">Papelería Extraordinaria</span>
-                                    <span class="token-valor" id="token-papeleria-ext-modal">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Campos para solicitud extraordinaria (NUEVO) 
+                    <!-- Campos para solicitud extraordinaria (NUEVO) 
                 <div id="campos-extraordinaria" style="display: none; margin: 1.5rem 0; padding: 1.5rem; background: #fafbfc; border: 1px solid #b7b6c2; border-radius: 12px;">
                     <h4 style="color: #657153; margin-bottom: 0.5rem;">Justificación para Solicitud Extraordinaria</h4>
                     <p style="color: #837569; margin-bottom: 1rem; font-size: 0.9rem;">Explique las razones de urgencia para esta solicitud especial</p>
@@ -327,81 +277,81 @@
                     </div>
                 </div>-->
 
-                <!-- Campos específicos para juntas (tu código original) -->
-                <div class="campos-junta" id="camposJunta" style="display: none;">
-                    <div class="junta-header">
-                        <h4>Información del Evento</h4>
-                        <p>Complete los datos específicos de la junta o evento</p>
-                    </div>
-
-                    <div class="junta-fields">
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label for="fechaEvento">Fecha del evento *</label>
-                                <input type="date" id="fechaEvento" required>
-                            </div>
-                            <div class="field-group">
-                                <label for="horaEvento">Hora del evento *</label>
-                                <input type="time" id="horaEvento" required>
-                            </div>
+                    <!-- Campos específicos para juntas (tu código original) -->
+                    <div class="campos-junta" id="camposJunta" style="display: none;">
+                        <div class="junta-header">
+                            <h4>Información del Evento</h4>
+                            <p>Complete los datos específicos de la junta o evento</p>
                         </div>
 
-                        <div class="field-row">
-                            <div class="field-group">
-                                <label for="numParticipantes">Número de participantes *</label>
-                                <input type="number" id="numParticipantes" min="1" max="100" required>
+                        <div class="junta-fields">
+                            <div class="field-row">
+                                <div class="field-group">
+                                    <label for="fechaEvento">Fecha del evento *</label>
+                                    <input type="date" id="fechaEvento" required>
+                                </div>
+                                <div class="field-group">
+                                    <label for="horaEvento">Hora del evento *</label>
+                                    <input type="time" id="horaEvento" required>
+                                </div>
                             </div>
+
+                            <div class="field-row">
+                                <div class="field-group">
+                                    <label for="numParticipantes">Número de participantes *</label>
+                                    <input type="number" id="numParticipantes" min="1" max="100" required>
+                                </div>
+                                <div class="field-group">
+                                    <label for="salaEvento">Sala o ubicación *</label>
+                                    <input type="text" id="salaEvento" placeholder="Ej: Sala de Juntas A" required>
+                                </div>
+                            </div>
+
                             <div class="field-group">
-                                <label for="salaEvento">Sala o ubicación *</label>
-                                <input type="text" id="salaEvento" placeholder="Ej: Sala de Juntas A" required>
+                                <label for="descripcionEvento">Descripción del evento</label>
+                                <textarea id="descripcionEvento" rows="3"
+                                    placeholder="Breve descripción del tipo de evento o junta"></textarea>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="field-group">
-                            <label for="descripcionEvento">Descripción del evento</label>
-                            <textarea id="descripcionEvento" rows="3"
-                                placeholder="Breve descripción del tipo de evento o junta"></textarea>
+                    <!-- Categorías de insumos -->
+                    <div class="categorias-container">
+                        <div class="categorias-tabs" id="categoriasTabsContainer">
+                            <!-- Se cargan dinámicamente -->
+                        </div>
+
+                        <!-- Lista de insumos por categoría -->
+                        <div class="insumos-lista" id="insumosListaContainer">
+                            <!-- Se cargan dinámicamente -->
                         </div>
                     </div>
-                </div>
 
-                <!-- Categorías de insumos -->
-                <div class="categorias-container">
-                    <div class="categorias-tabs" id="categoriasTabsContainer">
-                        <!-- Se cargan dinámicamente -->
+                    <!-- Carrito actual -->
+                    <div class="carrito-resumen">
+                        <h4>Carrito Actual</h4>
+                        <div class="carrito-items" id="carritoItems">
+                            <p class="carrito-vacio">Agrega insumos a tu carrito</p>
+                        </div>
+                        <div class="carrito-total">
+                            <span>Total de items: <strong id="carritoCount">0</strong></span>
+                        </div>
                     </div>
 
-                    <!-- Lista de insumos por categoría -->
-                    <div class="insumos-lista" id="insumosListaContainer">
-                        <!-- Se cargan dinámicamente -->
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                        <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
+                            Enviar Solicitud
+                        </button>
                     </div>
-                </div>
-
-                <!-- Carrito actual -->
-                <div class="carrito-resumen">
-                    <h4>Carrito Actual</h4>
-                    <div class="carrito-items" id="carritoItems">
-                        <p class="carrito-vacio">Agrega insumos a tu carrito</p>
-                    </div>
-                    <div class="carrito-total">
-                        <span>Total de items: <strong id="carritoCount">0</strong></span>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                    <button type="button" class="btn-primary" onclick="enviarSolicitud()" id="btnEnviar" disabled>
-                        Enviar Solicitud
-                    </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/script.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="js/script.js"></script>
 
-    <!-- JavaScript básico para cambiar entre secciones -->
+        <!-- JavaScript básico para cambiar entre secciones -->
 </body>
 
 </html>
