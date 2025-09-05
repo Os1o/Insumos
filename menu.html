@@ -50,9 +50,9 @@
                         <span style="font-size: 2rem;">📝</span>
                         <div style="text-align: left;">
                             <h3 style="margin: 0; font-size: 1.2rem;">PAPELERÍA</h3>
-                            <div style="font-size: 0.85rem; margin: 0.25rem 0;">
-                                <div id="token-papeleria-ordinario-display">Ordinario: -</div>
-                                <div id="token-papeleria-extraordinario-display">Extraordinario: -</div>
+                            <div style="margin: 0.25rem 0;">
+                                <small id="token-papeleria-ordinario-display" style="opacity: 0.9; display: block;">Ordinario: -</small>
+                                <small id="token-papeleria-extraordinario-display" style="opacity: 0.9; display: block;">Extraordinario: -</small>
                             </div>
                             <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.8;">Hojas, folders, útiles</p>
                         </div>
@@ -135,6 +135,7 @@
                         <div class="card-content">
                             <h2>SOLICITUD ORDINARIA</h2>
                             <p>Para necesidades regulares del mes, solo se puede realizar una</p>
+                            <small style="color: #837569;">Requiere: Token Ordinario</small>
                             <button class="btn-solicitar" onclick="abrirSolicitud('ordinaria-papeleria')">Solicitar</button>
                         </div>
                     </div>
@@ -149,7 +150,8 @@
                         </div>
                         <div class="card-content">
                             <h2>SOLICITUD EXTRAORDINARIA</h2>
-                            <p>Para necesidades urgentes especiales, requiere justificación</p>                   
+                            <p>Para necesidades urgentes especiales, requiere justificación</p>
+                            <small style="color: #837569;">Requiere: Token Extraordinario</small>
                             <button class="btn-solicitar" onclick="abrirSolicitud('extraordinaria-papeleria')">Solicitar</button>
                         </div>
                     </div>
@@ -168,6 +170,7 @@
                         <div class="card-content">
                             <h2>SOLICITUD PARA JUNTAS</h2>
                             <p>Específicamente para eventos, reuniones y presentaciones</p>
+                            <small style="color: #837569;">Sin token requerido</small>
                             <button class="btn-solicitar" onclick="abrirSolicitud('juntas-papeleria')">Solicitar</button>
                         </div>
                     </div>
