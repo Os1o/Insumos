@@ -87,16 +87,16 @@ async function cargarTodasLasSolicitudes() {
         // Query SUPER simplificada para debug
         const { data: solicitudes, error } = await supabaseAdmin
             .from('solicitudes')
-                .select(`
-                    id,
-                    tipo,
-                    recurso_tipo,
-                    estado,
-                    fecha_solicitud,
-                    total_items,
-                    token_usado,
-                    usuarios(nombre, departamento)
-                `)
+            .select(`
+                id,
+                tipo,
+                recurso_tipo,
+                estado,
+                fecha_solicitud,
+                total_items,
+                token_usado,
+                usuarios!solicitudes_usuario_id_fkey(nombre, departamento)
+            `)
             .order('fecha_solicitud', { ascending: false });
 
         if (error) {
