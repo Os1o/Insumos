@@ -2362,7 +2362,9 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarTokensPapeleria();
 
     // Configurar selector de recursos por defecto
-    seleccionarRecurso('insumo');
+        if (document.getElementById('btn-insumos')) {
+        seleccionarRecurso('insumo');
+    }
 });
 
 // Función para mostrar notificaciones (si no existe)
