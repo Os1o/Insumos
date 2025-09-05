@@ -341,12 +341,19 @@ function renderizarSolicitudesSimples(solicitudes) {
     solicitudes.forEach(s => {
         const fecha = s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : 'N/A';
         const tipo = s.tipo === 'juntas' ? '👥 Juntas' : '📅 Ordinaria';
+        
+        // AGREGAR: Determinar el tipo de recurso
+        const tipoRecurso = s.recurso_tipo === 'papeleria' ? 'Papelería' : 'Insumos';
+        const claseRecurso = s.recurso_tipo || 'insumo';
+        
         const adminInfo = s.estado === 'cerrado' && s.admin ?
             `<br><small style="color: #666;">Por: ${s.admin.nombre}</small>` : '';
+            
         html += `
             <div class="solicitud-simple-card" onclick="abrirModalRevision('${s.id}')">
                 <div class="solicitud-header">
                     <span class="solicitud-id">#${s.id.substring(0, 8)}</span>
+                    <span class="recurso-badge recurso-${claseRecurso}">${tipoRecurso}</span>
                     <span class="solicitud-tipo ${s.tipo}">${tipo}</span>
                 </div>
                 <div class="solicitud-body">
