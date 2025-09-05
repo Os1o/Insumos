@@ -1686,6 +1686,435 @@ function logout() {
     window.location.href = '/login.html';
 }
 
+
+
+
+
+
+
+
+
+
+
+// ===================================
+// NUEVAS FUNCIONES PARA TOKENS DE PAPELERÍA
+// Agregar estas funciones a tu script.js existente
+// ===================================
+
+// Variables globales adicionales
+let recursoActual = 'insumo'; // 'insumo' o 'papeleria'
+let tokensPapeleria = {
+    ordinario: 0,
+    extraordinario: 0
+};
+
+// Función para cargar tokens de papelería desde la base de datos
+async function cargarTokensPapeleria() {
+    try {
+        const session = sessionStorage.getItem('currentUser');
+        if (!session) return;
+
+        const user = JSON.parse(session);
+        
+        // Obtener tokens actualizados del usuario
+        const { data: usuario, error } = await supabase
+            .from('usuarios')
+            .select('token_disponible, token_papeleria_ordinario, token_papeleria_extraordinario')
+            .eq('id', user.id)
+            .single();
+
+        if (error) {
+            console.error('Error cargando tokens de papelería:', error);
+            return;
+        }
+
+        // Actualizar tokens en memoria
+        tokensPapeleria.ordinario = usuario.token_papeleria_ordinario || 0;
+        tokensPapeleria.extraordinario = usuario.token_papeleria_extraordinario || 0;
+
+        // Actualizar la sesión con los nuevos tokens
+        user.token_disponible = usuario.token_disponible;
+        user.token_papeleria_ordinario = usuario.token_papeleria_ordinario;
+        user.token_papeleria_extraordinario = usuario.token_papeleria_extraordinario;
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Actualizar la interfaz
+        actualizarVisualizacionTokens();
+
+        console.log('Tokens cargados:', {
+            insumo: usuario.token_disponible,
+            papeleria_ordinario: tokensPapeleria.ordinario,
+            papeleria_extraordinario: tokensPapeleria.extraordinario
+        });
+
+    } catch (error) {
+        console.error('Error en cargarTokensPapeleria:', error);
+    }
+}
+
+// Función para actualizar la visualización de tokens en la interfaz
+function actualizarVisualizacionTokens() {
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) return;
+
+    const user = JSON.parse(session);
+
+    // Actualizar token de insumos
+    const tokenInsumoDisplay = document.getElementById('token-insumo-display');
+    if (tokenInsumoDisplay) {
+        tokenInsumoDisplay.textContent = `Token: ${user.token_disponible || 0}`;
+    }
+
+    // Actualizar tokens de papelería
+    const tokenPapeleriaOrdinario = document.getElementById('token-papeleria-ordinario-display');
+    const tokenPapeleriaExtraordinario = document.getElementById('token-papeleria-extraordinario-display');
+
+    if (tokenPapeleriaOrdinario) {
+        tokenPapeleriaOrdinario.textContent = `Ordinario: ${user.token_papeleria_ordinario || 0}`;
+        // Agregar clase visual si está agotado
+        if (user.token_papeleria_ordinario === 0) {
+            tokenPapeleriaOrdinario.style.color = '#e74c3c';
+        } else {
+            tokenPapeleriaOrdinario.style.color = '';
+        }
+    }
+
+    if (tokenPapeleriaExtraordinario) {
+        tokenPapeleriaExtraordinario.textContent = `Extraordinario: ${user.token_papeleria_extraordinario || 0}`;
+        // Agregar clase visual si está agotado
+        if (user.token_papeleria_extraordinario === 0) {
+            tokenPapeleriaExtraordinario.style.color = '#e74c3c';
+        } else {
+            tokenPapeleriaExtraordinario.style.color = '';
+        }
+    }
+
+    // Actualizar estado de los botones de solicitud
+    actualizarEstadoBotonesSolicitud();
+}
+
+// Función para actualizar el estado de los botones según los tokens disponibles
+function actualizarEstadoBotonesSolicitud() {
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) return;
+
+    const user = JSON.parse(session);
+
+    // Botones de insumos
+    const btnOrdinaria = document.querySelector('[data-type="ordinaria"] .btn-solicitar');
+    if (btnOrdinaria) {
+        if (user.token_disponible === 0) {
+            btnOrdinaria.textContent = 'Token Agotado';
+            btnOrdinaria.disabled = true;
+            btnOrdinaria.style.background = '#ccc';
+            btnOrdinaria.style.cursor = 'not-allowed';
+        } else {
+            btnOrdinaria.textContent = 'Solicitar';
+            btnOrdinaria.disabled = false;
+            btnOrdinaria.style.background = '';
+            btnOrdinaria.style.cursor = 'pointer';
+        }
+    }
+
+    // Botones de papelería
+    const btnOrdinariaPapeleria = document.querySelector('[data-type="ordinaria-papeleria"] .btn-solicitar');
+    const btnExtraordinariaPapeleria = document.querySelector('[data-type="extraordinaria-papeleria"] .btn-solicitar');
+
+    if (btnOrdinariaPapeleria) {
+        if (user.token_papeleria_ordinario === 0) {
+            btnOrdinariaPapeleria.textContent = 'Token Agotado';
+            btnOrdinariaPapeleria.disabled = true;
+            btnOrdinariaPapeleria.style.background = '#ccc';
+            btnOrdinariaPapeleria.style.cursor = 'not-allowed';
+        } else {
+            btnOrdinariaPapeleria.textContent = 'Solicitar';
+            btnOrdinariaPapeleria.disabled = false;
+            btnOrdinariaPapeleria.style.background = '';
+            btnOrdinariaPapeleria.style.cursor = 'pointer';
+        }
+    }
+
+    if (btnExtraordinariaPapeleria) {
+        if (user.token_papeleria_extraordinario === 0) {
+            btnExtraordinariaPapeleria.textContent = 'Token Agotado';
+            btnExtraordinariaPapeleria.disabled = true;
+            btnExtraordinariaPapeleria.style.background = '#ccc';
+            btnExtraordinariaPapeleria.style.cursor = 'not-allowed';
+        } else {
+            btnExtraordinariaPapeleria.textContent = 'Solicitar';
+            btnExtraordinariaPapeleria.disabled = false;
+            btnExtraordinariaPapeleria.style.background = '';
+            btnExtraordinariaPapeleria.style.cursor = 'pointer';
+        }
+    }
+}
+
+// Función para validar token antes de abrir modal
+function validarTokenParaSolicitud(tipo) {
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) return false;
+
+    const user = JSON.parse(session);
+
+    switch (tipo) {
+        case 'ordinaria':
+            if (user.token_disponible === 0) {
+                showNotification('Token de insumos agotado. Marca tus solicitudes como recibidas para renovarlo.', 'error');
+                return false;
+            }
+            break;
+
+        case 'ordinaria-papeleria':
+            if (user.token_papeleria_ordinario === 0) {
+                showNotification('Token ordinario de papelería agotado. Marca tus solicitudes como recibidas para renovarlo.', 'error');
+                return false;
+            }
+            break;
+
+        case 'extraordinaria-papeleria':
+            if (user.token_papeleria_extraordinario === 0) {
+                showNotification('Token extraordinario de papelería agotado. Se renueva mensualmente.', 'error');
+                return false;
+            }
+            break;
+
+        case 'juntas':
+        case 'juntas-papeleria':
+            // Las solicitudes para juntas no requieren token
+            return true;
+
+        default:
+            return true;
+    }
+
+    return true;
+}
+
+// Función para seleccionar tipo de recurso (actualizada)
+function seleccionarRecurso(tipo) {
+    recursoActual = tipo;
+    
+    // Actualizar botones
+    const btnInsumos = document.getElementById('btn-insumos');
+    const btnPapeleria = document.getElementById('btn-papeleria');
+    
+    if (tipo === 'insumo') {
+        // Activar insumos
+        btnInsumos.style.background = 'linear-gradient(135deg, #657153, #8aaa79)';
+        btnInsumos.style.color = 'white';
+        btnInsumos.style.border = 'none';
+        
+        // Desactivar papelería
+        btnPapeleria.style.background = 'white';
+        btnPapeleria.style.color = '#657153';
+        btnPapeleria.style.border = '2px solid #b7b6c2';
+        
+        // Mostrar/ocultar secciones
+        document.getElementById('seccion-insumos').style.display = 'block';
+        document.getElementById('seccion-papeleria').style.display = 'none';
+        
+    } else {
+        // Activar papelería
+        btnPapeleria.style.background = 'linear-gradient(135deg, #657153, #8aaa79)';
+        btnPapeleria.style.color = 'white';
+        btnPapeleria.style.border = 'none';
+        
+        // Desactivar insumos
+        btnInsumos.style.background = 'white';
+        btnInsumos.style.color = '#657153';
+        btnInsumos.style.border = '2px solid #b7b6c2';
+        
+        // Mostrar/ocultar secciones
+        document.getElementById('seccion-insumos').style.display = 'none';
+        document.getElementById('seccion-papeleria').style.display = 'block';
+    }
+
+    // Actualizar estado de botones según tokens
+    actualizarEstadoBotonesSolicitud();
+}
+
+// Función expandida para abrir solicitud (actualizada)
+function abrirSolicitud(tipo) {
+    console.log('Abriendo solicitud:', tipo, 'para recurso:', recursoActual);
+    
+    // Validar token antes de continuar
+    if (!validarTokenParaSolicitud(tipo)) {
+        return;
+    }
+    
+    // Actualizar tipo de solicitud actual
+    currentSolicitudType = tipo;
+    
+    // Actualizar info del modal
+    const modalTitle = document.getElementById('modal-title');
+    const infoSolicitud = document.getElementById('info-solicitud-actual');
+    const recursoSpan = document.getElementById('recurso-actual');
+    const tipoSpan = document.getElementById('tipo-solicitud-actual');
+    
+    // Mostrar info adicional si existe
+    if (infoSolicitud) {
+        infoSolicitud.style.display = 'block';
+        if (recursoSpan) recursoSpan.textContent = recursoActual === 'insumo' ? 'Insumos' : 'Papelería';
+    }
+    
+    // Ocultar todos los campos especiales primero
+    const camposJunta = document.getElementById('camposJunta');
+    const camposExtraordinaria = document.getElementById('campos-extraordinaria');
+    
+    if (camposJunta) camposJunta.style.display = 'none';
+    if (camposExtraordinaria) camposExtraordinaria.style.display = 'none';
+    
+    // Configurar modal según el tipo de solicitud
+    if (tipo.includes('juntas')) {
+        if (tipoSpan) tipoSpan.textContent = 'Juntas';
+        modalTitle.textContent = `Carrito de ${recursoActual === 'insumo' ? 'Insumos' : 'Papelería'} - Juntas`;
+        if (camposJunta) camposJunta.style.display = 'block';
+    } else if (tipo.includes('extraordinaria')) {
+        if (tipoSpan) tipoSpan.textContent = 'Extraordinaria';
+        modalTitle.textContent = 'Carrito de Papelería - Extraordinaria';
+        if (camposExtraordinaria) camposExtraordinaria.style.display = 'block';
+    } else {
+        if (tipoSpan) tipoSpan.textContent = 'Ordinaria';
+        modalTitle.textContent = `Carrito de ${recursoActual === 'insumo' ? 'Insumos' : 'Papelería'} - Ordinaria`;
+    }
+    
+    // Cargar datos del carrito según el tipo de recurso
+    if (recursoActual === 'papeleria') {
+        cargarDatosPapeleria();
+    } else {
+        cargarDatosCarrito(); // Tu función existente para insumos
+    }
+    
+    // Abrir modal
+    document.getElementById('solicitud-modal').style.display = 'flex';
+}
+
+// Función para cargar datos de papelería (nueva)
+async function cargarDatosPapeleria() {
+    try {
+        console.log('Cargando categorías y papelería...');
+
+        // Cargar categorías de papelería
+        const { data: categoriasFromDB, error: catError } = await supabase
+            .from('categorias_papeleria')
+            .select('*')
+            .eq('activo', true)
+            .order('orden');
+
+        if (catError) throw catError;
+
+        // Determinar qué papelería puede ver el usuario
+        const session = sessionStorage.getItem('currentUser');
+        const user = JSON.parse(session);
+
+        const departamentosConAccesoCompleto = ['Dirección Jurídica', 'Coordinación Administrativa'];
+        const tieneAccesoCompleto = departamentosConAccesoCompleto.includes(user.departamento);
+
+        // Cargar papelería según acceso
+        let query = supabase
+            .from('papeleria')
+            .select('*')
+            .eq('activo', true);
+
+        if (!tieneAccesoCompleto) {
+            query = query.eq('acceso_tipo', 'todos');
+        }
+
+        const { data: papeleriaFromDB, error: papError } = await query.order('nombre');
+
+        if (papError) throw papError;
+
+        // Actualizar variables globales
+        categorias = categoriasFromDB || [];
+        insumos = papeleriaFromDB || []; // Reutilizamos la variable insumos para papelería
+
+        console.log(`Categorías de papelería cargadas: ${categorias.length}`);
+        console.log(`Items de papelería cargados: ${insumos.length}`);
+
+        // Renderizar categorías y papelería
+        renderizarCategorias();
+
+    } catch (error) {
+        console.error('Error cargando datos de papelería:', error);
+        showNotification('Error cargando datos de papelería', 'error');
+    }
+}
+
+// Modificar el DOMContentLoaded existente para incluir la carga de tokens de papelería
+document.addEventListener('DOMContentLoaded', function() {
+    // Tu código DOMContentLoaded existente aquí...
+    
+    // Agregar carga de tokens de papelería
+    cargarTokensPapeleria();
+    
+    // Configurar selector de recursos por defecto
+    seleccionarRecurso('insumo');
+});
+
+// Función para mostrar notificaciones (si no existe)
+function showNotification(message, type = 'info') {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Estilos básicos
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 6px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        max-width: 400px;
+        transition: all 0.3s ease;
+    `;
+    
+    // Color según tipo
+    switch (type) {
+        case 'error':
+            notification.style.background = '#e74c3c';
+            break;
+        case 'success':
+            notification.style.background = '#27ae60';
+            break;
+        case 'warning':
+            notification.style.background = '#f39c12';
+            break;
+        default:
+            notification.style.background = '#3498db';
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Remover después de 4 segundos
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ===================================
 // INICIALIZACIÓN FINAL
 // ===================================
