@@ -19,19 +19,19 @@ const supabaseHistorial = window.supabase.createClient(SUPABASE_CONFIG.url, SUPA
 // INICIALIZACIÓN DE HISTORIAL
 // ===================================
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     console.log('Inicializando página de historial...');
-    
+
     // Verificar autenticación
     const user = verificarSesion();
     if (!user) return;
-    
+
     // Cargar componentes del header/footer
     await cargarComponentesHistorial();
-    
+
     // Cargar estado del token del usuario
     actualizarEstadoToken();
-    
+
     // Cargar historial de solicitudes
     await cargarHistorialSolicitudes();
 });
@@ -43,7 +43,7 @@ function verificarSesion() {
         window.location.replace('/login.html');
         return null;
     }
-    
+
     try {
         return JSON.parse(session);
     } catch (error) {
@@ -59,12 +59,12 @@ async function cargarComponentesHistorial() {
             loadComponent('header-container', 'includes/header.html'),
             loadComponent('footer-container', 'includes/footer.html')
         ]);
-        
+
         setTimeout(() => {
             setupHeaderEvents();
             setupFooterEvents();
         }, 200);
-        
+
     } catch (error) {
         console.error('Error cargando componentes:', error);
     }
@@ -77,16 +77,19 @@ async function cargarComponentesHistorial() {
 function actualizarEstadoToken() {
     const session = sessionStorage.getItem('currentUser');
     if (!session) return;
-    
+
     const user = JSON.parse(session);
     const tokenStatus = document.getElementById('userTokenStatus');
     const tokenMessage = document.getElementById('tokenMessage');
-    
+    const tokenInsumos = user.token_disponible;
+    const tokenPapeleriaOrd = user.token_papeleria_ordinario;
+    const tokenPapeleriaExt = user.token_papeleria_extraordinario;
+
     if (tokenStatus) {
         tokenStatus.textContent = user.token_disponible;
         tokenStatus.className = user.token_disponible === 1 ? 'token-available' : 'token-used';
     }
-    
+
     if (tokenMessage) {
         if (user.token_disponible === 0) {
             tokenMessage.textContent = 'Marca tus solicitudes cerradas como "recibidas" para reactivar tu token';
@@ -105,16 +108,18 @@ function actualizarEstadoToken() {
 async function cargarHistorialSolicitudes() {
     try {
         mostrarLoading(true);
-        
+
         const session = sessionStorage.getItem('currentUser');
         const user = JSON.parse(session);
-        
+
         // Obtener solicitudes del usuario con sus detalles
         const { data: solicitudes, error } = await supabaseHistorial
             .from('solicitudes')
             .select(`
                 id,
                 tipo,
+                recurso_tipo,
+                token_tipo_usado,
                 estado,
                 fecha_solicitud,
                 total_items,
@@ -123,24 +128,26 @@ async function cargarHistorialSolicitudes() {
                 fecha_cerrado,
                 notas_admin,
                 datos_junta,
+                datos_extraordinaria,
                 solicitud_detalles!inner(
                     cantidad_solicitada,
                     cantidad_aprobada,
-                    insumos(nombre, unidad_medida)
+                    insumos(nombre, unidad_medida),
+                    papeleria(nombre, unidad_medida)
                 )
             `)
             .eq('usuario_id', user.id)
             .order('fecha_solicitud', { ascending: false });
-        
+
         if (error) throw error;
-        
+
         solicitudesUsuario = solicitudes || [];
-        
+
         // Renderizar solicitudes
         renderizarSolicitudes(solicitudesUsuario);
-        
+
         mostrarLoading(false);
-        
+
     } catch (error) {
         console.error('Error cargando historial:', error);
         mostrarError('Error al cargar el historial. Intenta nuevamente.');
@@ -152,7 +159,7 @@ function mostrarLoading(show) {
     const loading = document.getElementById('loadingHistorial');
     const lista = document.getElementById('solicitudesLista');
     const vacio = document.getElementById('historialVacio');
-    
+
     if (loading) loading.style.display = show ? 'block' : 'none';
     if (lista) lista.style.display = show ? 'none' : 'block';
     if (vacio) vacio.style.display = 'none';
@@ -177,26 +184,26 @@ function mostrarError(mensaje) {
 function renderizarSolicitudes(solicitudes) {
     const lista = document.getElementById('solicitudesLista');
     const vacio = document.getElementById('historialVacio');
-    
+
     if (!solicitudes || solicitudes.length === 0) {
         lista.style.display = 'none';
         vacio.style.display = 'block';
         return;
     }
-    
+
     lista.style.display = 'block';
     vacio.style.display = 'none';
-    
+
     let html = '';
-    
+
     solicitudes.forEach(solicitud => {
         const estadoClass = getEstadoClass(solicitud.estado);
         const tipoLabel = solicitud.tipo === 'ordinaria' ? 'Ordinaria' : 'Para Juntas';
         const fechaFormatted = new Date(solicitud.fecha_solicitud).toLocaleString('es-ES');
-        
+
         // Verificar si puede marcar como recibido
         const puedeMarcarRecibido = solicitud.estado === 'cerrado' && !yaEstaRecibido(solicitud.id);
-        
+
         html += `
             <div class="solicitud-item" data-solicitud="${solicitud.id}">
                 <div class="solicitud-header">
@@ -249,10 +256,10 @@ function renderizarSolicitudes(solicitudes) {
                                     <span class="insumo-nombre">${detalle.insumos.nombre}</span>
                                     <span class="cantidades">
                                         Solicitado: ${detalle.cantidad_solicitada} ${detalle.insumos.unidad_medida}
-                                        ${detalle.cantidad_aprobada ? 
-                                            `| Entregado: ${detalle.cantidad_aprobada} ${detalle.insumos.unidad_medida}` : 
-                                            ''
-                                        }
+                                        ${detalle.cantidad_aprobada ?
+                `| Entregado: ${detalle.cantidad_aprobada} ${detalle.insumos.unidad_medida}` :
+                ''
+            }
                                     </span>
                                 </li>
                             `).join('')}
@@ -278,7 +285,7 @@ function renderizarSolicitudes(solicitudes) {
             </div>
         `;
     });
-    
+
     lista.innerHTML = html;
 }
 // ===================================
@@ -298,7 +305,7 @@ function getEstadoClass(estado) {
 function getEstadoLabel(estado) {
     const labels = {
         'pendiente': 'Pendiente',
-        'en_revision': 'En Revisión', 
+        'en_revision': 'En Revisión',
         'cerrado': 'Cerrado',
         'cancelado': 'Cancelado'
     };
@@ -335,17 +342,17 @@ function yaEstaRecibido(solicitudId) {
 function filtrarSolicitudes() {
     const filtroTipo = document.getElementById('filtroTipo').value;
     const filtroEstado = document.getElementById('filtroEstado').value;
-    
+
     let solicitudesFiltradas = [...solicitudesUsuario];
-    
+
     if (filtroTipo) {
         solicitudesFiltradas = solicitudesFiltradas.filter(s => s.tipo === filtroTipo);
     }
-    
+
     if (filtroEstado) {
         solicitudesFiltradas = solicitudesFiltradas.filter(s => s.estado === filtroEstado);
     }
-    
+
     renderizarSolicitudes(solicitudesFiltradas);
 }
 
@@ -360,9 +367,9 @@ function recargarHistorial() {
 function abrirModalRecibido(solicitudId) {
     const solicitud = solicitudesUsuario.find(s => s.id === solicitudId);
     if (!solicitud) return;
-    
+
     solicitudSeleccionada = solicitud;
-    
+
     // Actualizar resumen en modal
     const resumen = document.getElementById('resumenSolicitud');
     if (resumen) {
@@ -375,7 +382,7 @@ function abrirModalRecibido(solicitudId) {
             </div>
         `;
     }
-    
+
     // Mostrar modal
     const modal = document.getElementById('recibido-modal');
     if (modal) {
@@ -395,11 +402,11 @@ function cerrarModalRecibido() {
 
 async function confirmarRecibido() {
     if (!solicitudSeleccionada) return;
-    
+
     try {
         const session = sessionStorage.getItem('currentUser');
         const user = JSON.parse(session);
-        
+
         // SOLO registrar como recibido - SIN reactivar token
         const { error: recibidoError } = await supabaseHistorial
             .from('solicitudes_recibidos')
@@ -408,23 +415,23 @@ async function confirmarRecibido() {
                 usuario_id: user.id,
                 fecha_marcado_recibido: new Date().toISOString()
             });
-            
+
         if (recibidoError) throw recibidoError;
-        
+
         // Marcar como recibido localmente
         solicitudesRecibidas.push(solicitudSeleccionada.id);
-        
+
         // Ocultar el botón inmediatamente
         const botonRecibido = document.querySelector(`[data-solicitud="${solicitudSeleccionada.id}"] .btn-recibido`);
         if (botonRecibido) {
             botonRecibido.style.display = 'none';
         }
-        
+
         showNotificationHistorial('Solicitud marcada como recibida. Tu token se renovará el próximo mes si has marcado todas tus solicitudes.', 'success');
-        
+
         // Cerrar modal
         cerrarModalRecibido();
-        
+
     } catch (error) {
         console.error('Error marcando como recibido:', error);
         showNotificationHistorial('Error al marcar como recibido. Intenta nuevamente.', 'error');
@@ -438,10 +445,10 @@ async function confirmarRecibido() {
 function toggleDetalles(solicitudId) {
     const item = document.querySelector(`[data-solicitud="${solicitudId}"]`);
     if (!item) return;
-    
+
     const insumos = item.querySelector('.solicitud-insumos');
     if (!insumos) return;
-    
+
     if (insumos.style.display === 'none' || !insumos.style.display) {
         insumos.style.display = 'block';
     } else {
@@ -466,20 +473,20 @@ function showNotificationHistorial(message, type = 'info', duration = 3000) {
         max-width: 400px;
         animation: slideInRight 0.3s ease;
     `;
-    
+
     const colors = {
         success: { border: '#27ae60', background: '#d4edda', color: '#155724' },
         error: { border: '#e74c3c', background: '#f8d7da', color: '#721c24' },
         warning: { border: '#f39c12', background: '#fff3cd', color: '#856404' },
         info: { border: '#3498db', background: '#d1ecf1', color: '#0c5460' }
     };
-    
+
     const colorScheme = colors[type] || colors.info;
     notification.style.borderLeftColor = colorScheme.border;
     notification.style.backgroundColor = colorScheme.background;
     notification.style.color = colorScheme.color;
     notification.style.borderLeftWidth = '4px';
-    
+
     notification.innerHTML = `
         <div style="display: flex; align-items: center; gap: 0.5rem;">
             <span style="font-size: 1.2rem;">${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
@@ -487,9 +494,9 @@ function showNotificationHistorial(message, type = 'info', duration = 3000) {
             <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; margin-left: auto;">×</button>
         </div>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     if (duration > 0) {
         setTimeout(() => {
             if (notification.parentNode) {
@@ -503,7 +510,7 @@ function showNotificationHistorial(message, type = 'info', duration = 3000) {
 // MANEJO DE ERRORES
 // ===================================
 
-window.addEventListener('error', function(e) {
+window.addEventListener('error', function (e) {
     console.error('Error en historial:', e.error);
 });
 
