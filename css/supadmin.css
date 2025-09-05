@@ -1669,6 +1669,49 @@
     background: #e74c3c;
     color: white;
 }
+
+
+
+/* Estilo para el filtro de recursos */
+#filtroRecursoAdmin {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.9rem;
+    min-width: 150px;
+    cursor: pointer;
+}
+
+#filtroRecursoAdmin:focus {
+    outline: none;
+    border-color: #657153;
+    box-shadow: 0 0 0 2px rgba(101, 113, 83, 0.1);
+}
+
+/* Mejorar los badges de recurso en las tarjetas */
+.recurso-badge {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 0.5rem;
+}
+
+.recurso-insumo {
+    background: #3498db;
+    color: white;
+    border: 1px solid #2980b9;
+}
+
+.recurso-papeleria {
+    background: #e74c3c;
+    color: white;
+    border: 1px solid #c0392b;
+}
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */
