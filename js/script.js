@@ -107,7 +107,7 @@ async function cargarDatosCarrito() {
     }
 }
 
-// Actualizar información del usuario en el modal
+/*// Actualizar información del usuario en el modal
 function actualizarInfoUsuarioModal() {
     const session = sessionStorage.getItem('currentUser');
     if (!session) return;
@@ -131,6 +131,64 @@ function actualizarInfoUsuarioModal() {
         const tokenStatus = document.getElementById('tokenStatus');
         if (tokenStatus) {
             tokenStatus.textContent = user.token_disponible;
+        }
+
+    } catch (error) {
+        console.error('Error actualizando info del usuario:', error);
+    }
+}*/
+
+// Modificar la función para recibir parámetros
+function actualizarInfoUsuarioModal(tipoSolicitud = null) {
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) return;
+
+    try {
+        const user = JSON.parse(session);
+
+        // Actualizar nombre del usuario
+        const usuarioNombre = document.querySelector('.usuario-nombre');
+        if (usuarioNombre) {
+            usuarioNombre.textContent = user.nombre;
+        }
+
+        // Actualizar departamento
+        const usuarioDepto = document.querySelector('.usuario-depto');
+        if (usuarioDepto) {
+            usuarioDepto.textContent = user.departamento;
+        }
+
+        // CAMBIAR: Actualizar token según el tipo de solicitud
+        const tokenStatus = document.getElementById('tokenStatus');
+        if (tokenStatus) {
+            let tokenValue = 1;
+            let tokenLabel = 'Token disponible:';
+            
+            if (tipoSolicitud) {
+                if (tipoSolicitud.includes('ordinaria') && recursoActual === 'insumo') {
+                    tokenValue = user.token_disponible;
+                    tokenLabel = 'Token insumos:';
+                } else if (tipoSolicitud.includes('ordinaria') && recursoActual === 'papeleria') {
+                    tokenValue = user.token_papeleria_ordinario;
+                    tokenLabel = 'Token ordinario:';
+                } else if (tipoSolicitud.includes('extraordinaria')) {
+                    tokenValue = user.token_papeleria_extraordinario;
+                    tokenLabel = 'Token extraordinario:';
+                } else if (tipoSolicitud.includes('juntas')) {
+                    tokenLabel = 'Sin token requerido';
+                    tokenValue = '✓';
+                }
+            } else {
+                tokenValue = user.token_disponible;
+            }
+            
+            // Actualizar label también
+            const tokenLabelElement = document.querySelector('.token-label');
+            if (tokenLabelElement) {
+                tokenLabelElement.textContent = tokenLabel;
+            }
+            
+            tokenStatus.textContent = tokenValue;
         }
 
     } catch (error) {
@@ -2181,6 +2239,7 @@ function abrirSolicitud(tipo) {
     }
 
     actualizarInfoUsuarioModal();
+    actualizarInfoUsuarioModal(tipo);
 
     // Actualizar tipo de solicitud actual
     currentSolicitudType = tipo;
