@@ -1992,3 +1992,52 @@ body {
 }
 
 
+.solicitud-info-separada {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin: 1rem 0;
+    overflow: hidden;
+}
+
+.solicitud-header {
+    background: #657153;
+    color: white;
+    padding: 0.75rem 1rem;
+    margin: 0;
+}
+
+.solicitud-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.solicitud-detalles {
+    padding: 1rem;
+}
+
+.detalle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detalle-item:last-child {
+    border-bottom: none;
+}
+
+.detalle-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.detalle-valor {
+    color: #495057;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
