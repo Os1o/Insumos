@@ -1693,3 +1693,279 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ===================================
+   NUEVAS CLASES PARA SELECTOR DE RECURSOS
+   Agregar al final de tu styles.css existente
+   =================================== */
+
+/* Selector de recursos en hero section */
+.recurso-selector {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.recurso-btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: var(--color-white);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: var(--transition-normal);
+    min-width: 280px;
+    max-width: 350px;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.recurso-btn:hover {
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.recurso-btn.active {
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: var(--color-white);
+}
+
+.recurso-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.recurso-info {
+    flex: 1;
+    text-align: left;
+}
+
+.recurso-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.recurso-info p {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.token-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+}
+
+.tokens-papeleria {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+}
+
+.token-label {
+    font-weight: 500;
+    color: inherit;
+}
+
+.token-value {
+    font-weight: bold;
+    color: var(--color-success);
+    padding: 0.2rem 0.5rem;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 4px;
+    min-width: 20px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.recurso-btn.active .token-value {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--color-white);
+}
+
+.token-value.agotado {
+    color: var(--color-danger);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.recurso-btn.active .token-value.agotado {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffcccb;
+}
+
+/* Sección de tipos de papelería (reutiliza clases existentes) */
+.tipos-papeleria-section {
+    background: var(--color-bg-white);
+    padding: var(--spacing-xl) 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.tipos-papeleria-section h2 {
+    text-align: center;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+/* Token required info en cards */
+.token-required {
+    background: var(--color-bg-light);
+    color: var(--color-text-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin: 0.5rem 0;
+    text-align: center;
+    border: 1px solid var(--color-border);
+}
+
+/* Campos para solicitud extraordinaria */
+.campos-extraordinaria {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: var(--color-bg-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+}
+
+.campos-extraordinaria .junta-header h4 {
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+}
+
+.campos-extraordinaria .junta-header p {
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* Info adicional en modal */
+.solicitud-info {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5rem 0;
+    padding: 0.25rem 0;
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+}
+
+/* Mejorar select en campos extraordinaria */
+.campos-extraordinaria select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-white);
+    font-size: 0.9rem;
+    color: var(--color-text-dark);
+    cursor: pointer;
+}
+
+.campos-extraordinaria select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(101, 113, 83, 0.1);
+}
+
+/* Estados de tokens visuales */
+.token-status-indicators {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.token-indicator-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.token-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-success);
+}
+
+.token-dot.agotado {
+    background: var(--color-danger);
+}
+
+/* Responsive para selector de recursos */
+@media (max-width: 768px) {
+    .recurso-selector {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .recurso-btn {
+        width: 100%;
+        max-width: 100%;
+        min-width: auto;
+    }
+    
+    .recurso-info h3 {
+        font-size: 1.1rem;
+    }
+    
+    .token-display {
+        font-size: 0.8rem;
+    }
+    
+    .tokens-papeleria {
+        gap: 0.15rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recurso-btn {
+        padding: 1rem 1.5rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .recurso-icon {
+        font-size: 2rem;
+    }
+    
+    .recurso-info {
+        text-align: center;
+    }
+    
+    .token-display {
+        justify-content: center;
+        gap: 0.5rem;
+    }
+}
