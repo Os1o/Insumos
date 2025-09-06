@@ -79,7 +79,7 @@ function configurarEventListeners() {
 // CARGA DE DATOS (VERSIÓN SIMPLIFICADA FUNCIONAL)
 // ===================================
 
-async function cargarTodasLasSolicitudes() {
+/*async function cargarTodasLasSolicitudes() {
     try {
         console.log('Cargando solicitudes...');
         mostrarLoadingAdmin(true);
@@ -120,7 +120,103 @@ async function cargarTodasLasSolicitudes() {
         mostrarErrorAdmin('Error al cargar solicitudes');
         mostrarLoadingAdmin(false);
     }
+}*/
+
+async function cargarTodasLasSolicitudes() {
+    try {
+        console.log('Cargando solicitudes...');
+        mostrarLoadingAdmin(true);
+
+        // Query SUPER simplificada para debug
+        const { data: solicitudes, error } = await supabaseAdmin
+            .from('solicitudes')
+            .select(`
+                id,
+                tipo,
+                recurso_tipo,
+                estado,
+                fecha_solicitud,
+                total_items,
+                token_usado,
+                usuarios!solicitudes_usuario_id_fkey(nombre, departamento)
+            `)
+            .order('fecha_solicitud', { ascending: false });
+
+        if (error) {
+            console.error('Error de Supabase:', error);
+            throw error;
+        }
+
+        console.log('Solicitudes cargadas:', solicitudes);
+
+        todasLasSolicitudes = solicitudes || [];
+        solicitudesFiltradas = [...todasLasSolicitudes];
+
+        // Renderizar versión simple
+        renderizarSolicitudesSimples(solicitudesFiltradas);
+        actualizarEstadisticasAdmin(todasLasSolicitudes);
+
+        // AGREGAR: Cargar tokens de papelería también
+        await cargarTokensPapeleriaAdmin();
+
+        mostrarLoadingAdmin(false);
+
+    } catch (error) {
+        console.error('Error completo:', error);
+        mostrarErrorAdmin('Error al cargar solicitudes');
+        mostrarLoadingAdmin(false);
+    }
 }
+
+
+
+
+
+
+async function cargarTokensPapeleriaAdmin() {
+    try {
+        console.log('Cargando tokens de papelería para admin...');
+        
+        // Cargar tokens de papelería de todos los usuarios
+        const { data: usuarios, error } = await supabaseAdmin
+            .from('usuarios')
+            .select('id, nombre, token_disponible, token_papeleria_ordinario, token_papeleria_extraordinario')
+            .eq('activo', true);
+
+        if (error) {
+            console.error('Error cargando tokens de papelería:', error);
+            return;
+        }
+
+        console.log('Tokens de papelería cargados para admin:', usuarios);
+        
+        // Calcular estadísticas de tokens
+        actualizarEstadisticasTokens(usuarios);
+        
+    } catch (error) {
+        console.error('Error en cargarTokensPapeleriaAdmin:', error);
+    }
+}
+
+function actualizarEstadisticasTokens(usuarios) {
+    // Calcular estadísticas de tokens
+    const tokensInsumos = usuarios.filter(u => u.token_disponible === 1).length;
+    const tokensPapeleriaOrd = usuarios.filter(u => u.token_papeleria_ordinario === 1).length;
+    const tokensPapeleriaExt = usuarios.filter(u => u.token_papeleria_extraordinario === 1).length;
+    
+    console.log('Estadísticas de tokens:', {
+        usuarios_total: usuarios.length,
+        insumos_disponibles: tokensInsumos,
+        papeleria_ordinario_disponibles: tokensPapeleriaOrd,
+        papeleria_extraordinario_disponibles: tokensPapeleriaExt
+    });
+    
+    // Aquí puedes agregar código para mostrar estas estadísticas en la UI si quieres
+}
+
+
+
+
 
 function renderizarSolicitudesSimples(solicitudes) {
     const lista = document.getElementById('solicitudesAdminLista');
