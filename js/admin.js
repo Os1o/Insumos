@@ -340,7 +340,7 @@ function renderizarSolicitudesSimples(solicitudes) {
 
     solicitudes.forEach(s => {
         const fecha = s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : 'N/A';
-        const tipo = s.tipo === 'juntas' ? '👥 Juntas' : '📅 Ordinaria';
+        const tipo = s.tipo === 'juntas' ? ' Juntas' : 'Ordinaria';
         
         // AGREGAR: Determinar el tipo de recurso
         const tipoRecurso = s.recurso_tipo === 'papeleria' ? 'Papelería' : 'Insumos';
