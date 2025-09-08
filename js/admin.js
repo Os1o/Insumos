@@ -173,9 +173,9 @@ function mostrarErrorAdmin(mensaje) {
 }
 
 
-
+/*
 //FUNCION PARA ABRIR MODALES
-/*async function abrirModalRevision(solicitudId) {
+async function abrirModalRevision(solicitudId) {
     try {
         console.log('Abriendo modal para solicitud:', solicitudId);
 
@@ -321,6 +321,7 @@ function mostrarErrorAdmin(mensaje) {
     }
 }*/
 
+
 async function abrirModalRevision(solicitudId) {
     try {
         console.log('Abriendo modal para solicitud:', solicitudId);
@@ -349,11 +350,6 @@ async function abrirModalRevision(solicitudId) {
             return;
         }
 
-        // Determinar tipo de recurso y título
-        const tipoRecurso = solicitud.recurso_tipo === 'papeleria' ? 'Papelería' : 'Insumos';
-        const tipoSolicitud = solicitud.tipo === 'juntas' ? 'Juntas' : 
-                             solicitud.tipo === 'extraordinaria' ? 'Extraordinaria' : 'Ordinaria';
-
         const modalContent = `
             <div class="revision-completa">
                 <!-- Información del solicitante -->
@@ -361,22 +357,81 @@ async function abrirModalRevision(solicitudId) {
                     <h4>👤 Solicitud de: ${solicitud.usuarios?.nombre || 'N/A'}</h4>
                     <p><strong>Área:</strong> ${solicitud.usuarios?.departamento || 'N/A'}</p>
                     <p><strong>Fecha:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleDateString()}</p>
-                    <p><strong>Tipo de recurso:</strong> <span class="recurso-badge recurso-${solicitud.recurso_tipo || 'insumo'}">${tipoRecurso}</span></p>
-                    <p><strong>Tipo de solicitud:</strong> ${tipoSolicitud}</p>
                 </div>
 
-                <!-- Información del admin si está cerrada -->
+                <!-- NUEVO: Información del admin si está cerrada -->
                 ${solicitud.estado === 'cerrado' && solicitud.admin ? `
                     <div class="admin-info" style="background: #e8f5e8; padding: 0.5rem; border-radius: 6px; margin: 0.5rem 0;">
                         <p><strong>✅ Cerrada por:</strong> ${solicitud.admin.nombre}</p>
-                        ${solicitud.fecha_cerrado ? 
-                            `<p><strong>Fecha de cierre:</strong> ${new Date(solicitud.fecha_cerrado).toLocaleDateString()}</p>` : 
-                            ''
-                        }
+                        ${solicitud.fecha_cerrado ? `<p><strong>📅 Fecha de cierre:</strong> ${new Date(solicitud.fecha_cerrado).toLocaleDateString()}</p>` : ''}
                     </div>
                 ` : ''}
 
-                <!-- Información específica según el tipo de solicitud -->
+                <!-- Detalles del ticket -->
+                <div class="ticket-info">
+                    <h4>🎫 Detalles del ticket</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div><strong>ID:</strong> ${solicitud.id.substring(0, 8)}</div>
+                        <div><strong>Tipo:</strong> ${solicitud.tipo}</div>
+                        <div><strong>Estado:</strong> 
+                            <select id="nuevoEstado" style="margin-left: 0.5rem;">
+                                <option value="pendiente" ${solicitud.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                                <option value="en_revision" ${solicitud.estado === 'en_revision' ? 'selected' : ''}>👀 En Revisión</option>
+                                <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>                              
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insumos solicitados con tabla como la imagen -->
+                <div class="insumos-solicitados">
+                    <h4>📦 ${solicitud.recurso_tipo === 'papeleria' ? 'Papelería solicitada' : 'Insumos solicitados'}</h4>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                        <thead>
+                            <tr style="background: #f8f9fa; text-align: left;">
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">Nombre del producto</th>
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">Cantidad solicitada</th>
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">En inventario</th>
+                                <th style="padding: 0.5rem; border: 1px solid #ddd;">Cantidad aprobada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${solicitud.solicitud_detalles.map((detalle, index) => {
+                                // CAMBIO: Manejar tanto insumos como papelería
+                                const item = detalle.insumos || detalle.papeleria;
+                                const nombreItem = item?.nombre || 'N/A';
+                                const stockActual = item?.stock_actual || 0;
+                                
+                                return `
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">
+                                        <strong>${nombreItem}</strong>
+                                    </td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">
+                                        ${detalle.cantidad_solicitada}
+                                    </td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd; text-align: center;">
+                                        <span style="color: ${stockActual >= detalle.cantidad_solicitada ? 'green' : 'red'};">
+                                            ${stockActual >= detalle.cantidad_solicitada ? '✓' : '⚠️'}
+                                        </span> ${stockActual}
+                                    </td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">
+                                        <input type="number" 
+                                            id="cantidad-${detalle.id}" 
+                                            value="${detalle.cantidad_aprobada || Math.min(detalle.cantidad_solicitada, stockActual)}" 
+                                            min="0" 
+                                            max="${stockActual}"
+                                            style="width: 80px; padding: 0.25rem; border: 1px solid #ddd; border-radius: 4px;"
+                                            onchange="validarStock(this, ${stockActual})">
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Información de juntas si aplica -->
                 ${solicitud.datos_junta ? `
                     <div class="junta-info">
                         <h4>📅 Información del Evento</h4>
@@ -387,101 +442,15 @@ async function abrirModalRevision(solicitudId) {
                         ${solicitud.datos_junta.descripcion ? `<p><strong>Descripción:</strong> ${solicitud.datos_junta.descripcion}</p>` : ''}
                     </div>
                 ` : ''}
-
-                ${solicitud.datos_extraordinaria ? `
-                    <div class="extraordinaria-info">
-                        <h4>⚡ Información de Solicitud Extraordinaria</h4>
-                        <p><strong>Motivo:</strong> ${solicitud.datos_extraordinaria.motivo}</p>
-                        <p><strong>Fecha necesidad:</strong> ${solicitud.datos_extraordinaria.fecha_necesidad}</p>
-                        <p><strong>Prioridad:</strong> ${solicitud.datos_extraordinaria.prioridad}</p>
-                    </div>
-                ` : ''}
-
-                <!-- Lista de items solicitados -->
-                <div class="items-solicitados">
-                    <h4>📦 Items Solicitados</h4>
-                    <div class="items-lista">
-                        ${solicitud.solicitud_detalles.map(detalle => {
-                            // Determinar si es insumo o papelería
-                            const item = detalle.insumos || detalle.papeleria;
-                            const nombreItem = item ? item.nombre : 'Item no encontrado';
-                            const unidadMedida = item ? item.unidad_medida : 'unidad';
-                            const stockActual = item ? item.stock_actual : 0;
-                            
-                            return `
-                                <div class="item-detalle">
-                                    <div class="item-info">
-                                        <strong>${nombreItem}</strong>
-                                        <span class="stock-info">Stock actual: ${stockActual} ${unidadMedida}</span>
-                                    </div>
-                                    <div class="cantidades-info">
-                                        <div class="cantidad-campo">
-                                            <label>Solicitado:</label>
-                                            <span>${detalle.cantidad_solicitada} ${unidadMedida}</span>
-                                        </div>
-                                        <div class="cantidad-campo">
-                                            <label for="cantidad-${detalle.id}">Entregar:</label>
-                                            <input 
-                                                type="number" 
-                                                id="cantidad-${detalle.id}" 
-                                                value="${detalle.cantidad_aprobada || detalle.cantidad_solicitada}" 
-                                                min="0" 
-                                                max="${stockActual}"
-                                                class="cantidad-input"
-                                                ${solicitud.estado === 'cerrado' ? 'disabled' : ''}
-                                            >
-                                        </div>
-                                    </div>
-                                    ${detalle.notas ? `
-                                        <div class="item-notas">
-                                            <small><strong>Notas:</strong> ${detalle.notas}</small>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-
-                <!-- Control de estado -->
-                <div class="estado-control">
-                    <h4>🔄 Control de Estado</h4>
-                    <div class="estado-actual">
-                        <span>Estado actual: <strong class="estado-${solicitud.estado}">${solicitud.estado}</strong></span>
-                    </div>
-                    
-                    ${solicitud.estado !== 'cerrado' ? `
-                        <div class="cambio-estado">
-                            <label for="nuevoEstado">Cambiar estado a:</label>
-                            <select id="nuevoEstado" class="admin-estado-select">
-                                <option value="pendiente" ${solicitud.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
-                                <option value="en_revision" ${solicitud.estado === 'en_revision' ? 'selected' : ''}>👀 En Revisión</option>
-                                <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>
-                                <option value="cancelado" ${solicitud.estado === 'cancelado' ? 'selected' : ''}>❌ Cancelado</option>
-                            </select>
-                        </div>
-                        
-                        <div class="notas-admin">
-                            <label for="notasAdmin">Notas administrativas:</label>
-                            <textarea id="notasAdmin" rows="3" placeholder="Agregar notas internas (opcional)">${solicitud.notas_admin || ''}</textarea>
-                        </div>
-                    ` : `
-                        <div class="solicitud-cerrada-info">
-                            <p>Esta solicitud ya está cerrada y no se puede modificar.</p>
-                            ${solicitud.notas_admin ? `<p><strong>Notas:</strong> ${solicitud.notas_admin}</p>` : ''}
-                        </div>
-                    `}
-                </div>
+                
 
                 <!-- Acciones -->
                 <div class="acciones-ticket">
-                    ${solicitud.estado !== 'cerrado' ? `
-                        <button class="btn-admin-primary" onclick="guardarCambiosCompletos('${solicitud.id}')">
-                            💾 Guardar Cambios
-                        </button>
-                    ` : ''}
+                    <button class="btn-admin-primary" onclick="guardarCambiosCompletos('${solicitud.id}')">
+                        💾 Guardar Cambios
+                    </button>
                     <button class="btn-admin-secondary" onclick="cerrarModalRevision()">
-                        ${solicitud.estado === 'cerrado' ? '👀 Ver Solamente' : '❌ Cerrar'}
+                        ❌ Cerrar
                     </button>
                 </div>
             </div>
@@ -489,14 +458,16 @@ async function abrirModalRevision(solicitudId) {
 
         document.getElementById('detallesSolicitud').innerHTML = modalContent;
         document.getElementById('modalRevision').style.display = 'flex';
-
-        // Aplicar estilos adicionales si está cerrado
+        // Deshabilitar campos si ya está cerrado
+        // Solo deshabilitar inputs de cantidad si está cerrado
         if (solicitud.estado === 'cerrado') {
             setTimeout(() => {
                 document.querySelectorAll('[id^="cantidad-"]').forEach(input => {
+                    input.disabled = true;
                     input.style.backgroundColor = '#f5f5f5';
                     input.title = 'No se pueden modificar cantidades de tickets cerrados';
                 });
+                document.getElementById('nuevoEstado').disabled = true;
             }, 100);
         }
 
@@ -505,6 +476,8 @@ async function abrirModalRevision(solicitudId) {
         showNotificationAdmin('Error al cargar detalles', 'error');
     }
 }
+
+
 
 function cerrarModalRevision() {
     document.getElementById('modalRevision').style.display = 'none';
