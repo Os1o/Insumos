@@ -439,8 +439,8 @@ function agregarEstilosUsuarios() {
         .modal-usuarios {
             background: white;
             border-radius: 12px;
-            width: 90%;
-            max-width: 1000px;
+            width: 95%;
+            max-width: 1200px;
             max-height: 80vh;
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
