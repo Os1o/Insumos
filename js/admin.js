@@ -646,7 +646,8 @@ async function descontarInventario(solicitudId) {
         console.error('Error descontando inventario:', error);
         throw error;
     }
-}*/
+}
+    */
 
 
 async function guardarCambiosCompletos(solicitudId) {
@@ -718,6 +719,7 @@ async function guardarCambiosCompletos(solicitudId) {
     }
 }
 
+
 // NUEVA FUNCIÓN que maneja tanto insumos como papelería
 async function descontarInventarioCompleto(solicitudId) {
     try {
@@ -742,23 +744,41 @@ async function descontarInventarioCompleto(solicitudId) {
             
             if (cantidadAprobada > 0) {
                 if (solicitud.recurso_tipo === 'papeleria' && detalle.papeleria_id) {
-                    // Descontar de papelería
+                    // Obtener stock actual de papelería
+                    const { data: papeleriaActual, error: getPapeleriaError } = await supabaseAdmin
+                        .from('papeleria')
+                        .select('stock_actual')
+                        .eq('id', detalle.papeleria_id)
+                        .single();
+                    
+                    if (getPapeleriaError) throw getPapeleriaError;
+                    
+                    const nuevoStock = papeleriaActual.stock_actual - cantidadAprobada;
+                    
+                    // Actualizar stock de papelería
                     const { error: papeleriaError } = await supabaseAdmin
                         .from('papeleria')
-                        .update({ 
-                            stock_actual: supabaseAdmin.sql`stock_actual - ${cantidadAprobada}` 
-                        })
+                        .update({ stock_actual: nuevoStock })
                         .eq('id', detalle.papeleria_id);
                         
                     if (papeleriaError) throw papeleriaError;
                     
                 } else if (detalle.insumo_id) {
-                    // Descontar de insumos (tu lógica original)
+                    // Obtener stock actual de insumos
+                    const { data: insumoActual, error: getInsumoError } = await supabaseAdmin
+                        .from('insumos')
+                        .select('stock_actual')
+                        .eq('id', detalle.insumo_id)
+                        .single();
+                    
+                    if (getInsumoError) throw getInsumoError;
+                    
+                    const nuevoStock = insumoActual.stock_actual - cantidadAprobada;
+                    
+                    // Actualizar stock de insumos
                     const { error: insumoError } = await supabaseAdmin
                         .from('insumos')
-                        .update({ 
-                            stock_actual: supabaseAdmin.sql`stock_actual - ${cantidadAprobada}` 
-                        })
+                        .update({ stock_actual: nuevoStock })
                         .eq('id', detalle.insumo_id);
                         
                     if (insumoError) throw insumoError;
@@ -771,6 +791,7 @@ async function descontarInventarioCompleto(solicitudId) {
         throw error;
     }
 }
+
 
 function validarStock(input, stockDisponible) {
     const cantidad = parseInt(input.value) || 0;
