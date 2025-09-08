@@ -174,15 +174,20 @@ async function ejecutarReporte() {
         anoSeleccionado = parseInt(document.getElementById('selectorAno').value);
         areaSeleccionada = document.getElementById('selectorArea').value;
         
+        // ✅ AGREGAR ESTA LÍNEA - Obtener filtro de recursos
+        const recursoSeleccionado = document.getElementById('selectorRecurso')?.value || null;
+        
         // Mostrar loading
         mostrarLoadingReporte(true);
         
         let datosActual, datosAnterior;
         
         if (tipoPeriodoSeleccionado === 'mes') {
-            // Lógica mensual (mantener como está)
+            // Lógica mensual - PASAR el filtro de recursos
             mesSeleccionado = parseInt(document.getElementById('selectorMes').value);
-            datosActual = await consultarSolicitudesPeriodo(mesSeleccionado, anoSeleccionado, areaSeleccionada);
+            
+            // ✅ ESTAS LÍNEAS CORREGIDAS - Agregar parámetro recursoSeleccionado
+            datosActual = await consultarSolicitudesPeriodo(mesSeleccionado, anoSeleccionado, areaSeleccionada, recursoSeleccionado);
             
             let mesAnterior = mesSeleccionado - 1;
             let anoAnterior = anoSeleccionado;
@@ -190,12 +195,14 @@ async function ejecutarReporte() {
                 mesAnterior = 12;
                 anoAnterior = anoAnterior - 1;
             }
-            datosAnterior = await consultarSolicitudesPeriodo(mesAnterior, anoAnterior, areaSeleccionada);
+            datosAnterior = await consultarSolicitudesPeriodo(mesAnterior, anoAnterior, areaSeleccionada, recursoSeleccionado);
             
         } else if (tipoPeriodoSeleccionado === 'anual') {
-            // Nueva lógica anual
-            datosActual = await consultarSolicitudesAnual(anoSeleccionado, areaSeleccionada);
-            datosAnterior = await consultarSolicitudesAnual(anoSeleccionado - 1, areaSeleccionada);
+            // Lógica anual - PASAR el filtro de recursos
+            
+            // ✅ ESTAS LÍNEAS CORREGIDAS - Agregar parámetro recursoSeleccionado
+            datosActual = await consultarSolicitudesAnual(anoSeleccionado, areaSeleccionada, recursoSeleccionado);
+            datosAnterior = await consultarSolicitudesAnual(anoSeleccionado - 1, areaSeleccionada, recursoSeleccionado);
         }
         
         // Procesar datos para el reporte
@@ -204,7 +211,8 @@ async function ejecutarReporte() {
                 tipo: tipoPeriodoSeleccionado,
                 mes: tipoPeriodoSeleccionado === 'mes' ? mesSeleccionado : null,
                 ano: anoSeleccionado,
-                area: areaSeleccionada
+                area: areaSeleccionada,
+                recurso: recursoSeleccionado // ✅ AGREGAR para referencia
             },
             actual: datosActual,
             anterior: datosAnterior
@@ -226,6 +234,7 @@ async function ejecutarReporte() {
         mostrarLoadingReporte(false);
     }
 }
+
 
 
 
@@ -881,12 +890,22 @@ function convertirACSV(data) {
 // UTILIDADES
 // ===================================
 function obtenerTituloReporte() {
+    let titulo = '';
+    
     if (datosReporte.periodo.tipo === 'anual') {
-        return `Reporte Anual ${datosReporte.periodo.ano}`;
+        titulo = `Reporte Anual ${datosReporte.periodo.ano}`;
     } else {
         const nombreMes = obtenerNombreMes(datosReporte.periodo.mes);
-        return `Reporte de ${nombreMes} ${datosReporte.periodo.ano}`;
+        titulo = `Reporte de ${nombreMes} ${datosReporte.periodo.ano}`;
     }
+    
+    // ✅ AGREGAR sufijo del tipo de recurso si está filtrado
+    if (datosReporte.periodo.recurso) {
+        const tipoRecurso = datosReporte.periodo.recurso === 'insumo' ? '📦 Insumos' : '📝 Papelería';
+        titulo += ` - ${tipoRecurso}`;
+    }
+    
+    return titulo;
 }
 
 function obtenerNombreMes(numeroMes) {
@@ -952,3 +971,28 @@ function cambiarPeriodo() {
     mesContainer.style.display = tipo === 'mes' ? 'block' : 'none';
 }
 console.log('Sistema de reportes cargado correctamente');
+
+function debugFiltros() {
+    console.log('🔍 VERIFICANDO FILTROS DE REPORTES:');
+    console.log('- Período:', document.getElementById('tipoPeriodo')?.value);
+    console.log('- Mes:', document.getElementById('selectorMes')?.value);
+    console.log('- Año:', document.getElementById('selectorAno')?.value);
+    console.log('- Área:', document.getElementById('selectorArea')?.value);
+    console.log('- Recurso:', document.getElementById('selectorRecurso')?.value);
+    
+    // Verificar si el selector existe en el DOM
+    const selectorRecurso = document.getElementById('selectorRecurso');
+    if (!selectorRecurso) {
+        console.error('❌ PROBLEMA: El selector #selectorRecurso NO existe en el DOM');
+        console.log('👉 Agregar este HTML en el modal de reportes:');
+        console.log(`
+        <select id="selectorRecurso">
+            <option value="">Todos los recursos</option>
+            <option value="insumo">📦 Solo Insumos</option>
+            <option value="papeleria">📝 Solo Papelería</option>
+        </select>
+        `);
+    } else {
+        console.log('✅ Selector de recursos encontrado');
+    }
+}
