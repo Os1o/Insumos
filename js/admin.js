@@ -79,49 +79,6 @@ function configurarEventListeners() {
 // CARGA DE DATOS (VERSIÓN SIMPLIFICADA FUNCIONAL)
 // ===================================
 
-/*async function cargarTodasLasSolicitudes() {
-    try {
-        console.log('Cargando solicitudes...');
-        mostrarLoadingAdmin(true);
-
-        // Query SUPER simplificada para debug
-        const { data: solicitudes, error } = await supabaseAdmin
-            .from('solicitudes')
-            .select(`
-                id,
-                tipo,
-                recurso_tipo,
-                estado,
-                fecha_solicitud,
-                total_items,
-                token_usado,
-                usuarios!solicitudes_usuario_id_fkey(nombre, departamento)
-            `)
-            .order('fecha_solicitud', { ascending: false });
-
-        if (error) {
-            console.error('Error de Supabase:', error);
-            throw error;
-        }
-
-        console.log('Solicitudes cargadas:', solicitudes);
-
-        todasLasSolicitudes = solicitudes || [];
-        solicitudesFiltradas = [...todasLasSolicitudes];
-
-        // Renderizar versión simple
-        renderizarSolicitudesSimples(solicitudesFiltradas);
-        actualizarEstadisticasAdmin(todasLasSolicitudes);
-
-        mostrarLoadingAdmin(false);
-
-    } catch (error) {
-        console.error('Error completo:', error);
-        mostrarErrorAdmin('Error al cargar solicitudes');
-        mostrarLoadingAdmin(false);
-    }
-}*/
-
 async function cargarTodasLasSolicitudes() {
     try {
         console.log('Cargando solicitudes...');
@@ -156,9 +113,6 @@ async function cargarTodasLasSolicitudes() {
         renderizarSolicitudesSimples(solicitudesFiltradas);
         actualizarEstadisticasAdmin(todasLasSolicitudes);
 
-        // AGREGAR: Cargar tokens de papelería también
-        await cargarTokensPapeleriaAdmin();
-
         mostrarLoadingAdmin(false);
 
     } catch (error) {
@@ -167,56 +121,6 @@ async function cargarTodasLasSolicitudes() {
         mostrarLoadingAdmin(false);
     }
 }
-
-
-
-
-
-
-async function cargarTokensPapeleriaAdmin() {
-    try {
-        console.log('Cargando tokens de papelería para admin...');
-        
-        // Cargar tokens de papelería de todos los usuarios
-        const { data: usuarios, error } = await supabaseAdmin
-            .from('usuarios')
-            .select('id, nombre, token_disponible, token_papeleria_ordinario, token_papeleria_extraordinario')
-            .eq('activo', true);
-
-        if (error) {
-            console.error('Error cargando tokens de papelería:', error);
-            return;
-        }
-
-        console.log('Tokens de papelería cargados para admin:', usuarios);
-        
-        // Calcular estadísticas de tokens
-        actualizarEstadisticasTokens(usuarios);
-        
-    } catch (error) {
-        console.error('Error en cargarTokensPapeleriaAdmin:', error);
-    }
-}
-
-function actualizarEstadisticasTokens(usuarios) {
-    // Calcular estadísticas de tokens
-    const tokensInsumos = usuarios.filter(u => u.token_disponible === 1).length;
-    const tokensPapeleriaOrd = usuarios.filter(u => u.token_papeleria_ordinario === 1).length;
-    const tokensPapeleriaExt = usuarios.filter(u => u.token_papeleria_extraordinario === 1).length;
-    
-    console.log('Estadísticas de tokens:', {
-        usuarios_total: usuarios.length,
-        insumos_disponibles: tokensInsumos,
-        papeleria_ordinario_disponibles: tokensPapeleriaOrd,
-        papeleria_extraordinario_disponibles: tokensPapeleriaExt
-    });
-    
-    // Aquí puedes agregar código para mostrar estas estadísticas en la UI si quieres
-}
-
-
-
-
 
 function renderizarSolicitudesSimples(solicitudes) {
     const lista = document.getElementById('solicitudesAdminLista');
@@ -271,7 +175,7 @@ function mostrarErrorAdmin(mensaje) {
 
 
 //FUNCION PARA ABRIR MODALES
-async function abrirModalRevision(solicitudId) {
+/*async function abrirModalRevision(solicitudId) {
     try {
         console.log('Abriendo modal para solicitud:', solicitudId);
 
@@ -408,6 +312,191 @@ async function abrirModalRevision(solicitudId) {
                     input.title = 'No se pueden modificar cantidades de tickets cerrados';
                 });
                 document.getElementById('nuevoEstado').disabled = true;
+            }, 100);
+        }
+
+    } catch (error) {
+        console.error('Error abriendo modal:', error);
+        showNotificationAdmin('Error al cargar detalles', 'error');
+    }
+}*/
+
+async function abrirModalRevision(solicitudId) {
+    try {
+        console.log('Abriendo modal para solicitud:', solicitudId);
+
+        const { data: solicitud, error } = await supabaseAdmin
+            .from('solicitudes')
+            .select(`
+                *,
+                usuarios:usuarios!solicitudes_usuario_id_fkey(nombre, departamento),
+                admin:usuarios!solicitudes_admin_asignado_fkey(nombre),
+                solicitud_detalles(
+                    id,
+                    cantidad_solicitada,
+                    cantidad_aprobada,
+                    notas,
+                    insumos(id, nombre, unidad_medida, stock_actual),
+                    papeleria(id, nombre, unidad_medida, stock_actual)
+                )
+            `)
+            .eq('id', solicitudId)
+            .single();
+
+        if (error) throw error;
+        if (!solicitud) {
+            showNotificationAdmin('Solicitud no encontrada', 'error');
+            return;
+        }
+
+        // Determinar tipo de recurso y título
+        const tipoRecurso = solicitud.recurso_tipo === 'papeleria' ? 'Papelería' : 'Insumos';
+        const tipoSolicitud = solicitud.tipo === 'juntas' ? 'Juntas' : 
+                             solicitud.tipo === 'extraordinaria' ? 'Extraordinaria' : 'Ordinaria';
+
+        const modalContent = `
+            <div class="revision-completa">
+                <!-- Información del solicitante -->
+                <div class="usuario-info">
+                    <h4>👤 Solicitud de: ${solicitud.usuarios?.nombre || 'N/A'}</h4>
+                    <p><strong>Área:</strong> ${solicitud.usuarios?.departamento || 'N/A'}</p>
+                    <p><strong>Fecha:</strong> ${new Date(solicitud.fecha_solicitud).toLocaleDateString()}</p>
+                    <p><strong>Tipo de recurso:</strong> <span class="recurso-badge recurso-${solicitud.recurso_tipo || 'insumo'}">${tipoRecurso}</span></p>
+                    <p><strong>Tipo de solicitud:</strong> ${tipoSolicitud}</p>
+                </div>
+
+                <!-- Información del admin si está cerrada -->
+                ${solicitud.estado === 'cerrado' && solicitud.admin ? `
+                    <div class="admin-info" style="background: #e8f5e8; padding: 0.5rem; border-radius: 6px; margin: 0.5rem 0;">
+                        <p><strong>✅ Cerrada por:</strong> ${solicitud.admin.nombre}</p>
+                        ${solicitud.fecha_cerrado ? 
+                            `<p><strong>Fecha de cierre:</strong> ${new Date(solicitud.fecha_cerrado).toLocaleDateString()}</p>` : 
+                            ''
+                        }
+                    </div>
+                ` : ''}
+
+                <!-- Información específica según el tipo de solicitud -->
+                ${solicitud.datos_junta ? `
+                    <div class="junta-info">
+                        <h4>📅 Información del Evento</h4>
+                        <p><strong>Fecha:</strong> ${solicitud.datos_junta.fecha_evento}</p>
+                        <p><strong>Hora:</strong> ${solicitud.datos_junta.hora_evento}</p>
+                        <p><strong>Participantes:</strong> ${solicitud.datos_junta.num_participantes}</p>
+                        <p><strong>Ubicación:</strong> ${solicitud.datos_junta.sala_ubicacion}</p>
+                        ${solicitud.datos_junta.descripcion ? `<p><strong>Descripción:</strong> ${solicitud.datos_junta.descripcion}</p>` : ''}
+                    </div>
+                ` : ''}
+
+                ${solicitud.datos_extraordinaria ? `
+                    <div class="extraordinaria-info">
+                        <h4>⚡ Información de Solicitud Extraordinaria</h4>
+                        <p><strong>Motivo:</strong> ${solicitud.datos_extraordinaria.motivo}</p>
+                        <p><strong>Fecha necesidad:</strong> ${solicitud.datos_extraordinaria.fecha_necesidad}</p>
+                        <p><strong>Prioridad:</strong> ${solicitud.datos_extraordinaria.prioridad}</p>
+                    </div>
+                ` : ''}
+
+                <!-- Lista de items solicitados -->
+                <div class="items-solicitados">
+                    <h4>📦 Items Solicitados</h4>
+                    <div class="items-lista">
+                        ${solicitud.solicitud_detalles.map(detalle => {
+                            // Determinar si es insumo o papelería
+                            const item = detalle.insumos || detalle.papeleria;
+                            const nombreItem = item ? item.nombre : 'Item no encontrado';
+                            const unidadMedida = item ? item.unidad_medida : 'unidad';
+                            const stockActual = item ? item.stock_actual : 0;
+                            
+                            return `
+                                <div class="item-detalle">
+                                    <div class="item-info">
+                                        <strong>${nombreItem}</strong>
+                                        <span class="stock-info">Stock actual: ${stockActual} ${unidadMedida}</span>
+                                    </div>
+                                    <div class="cantidades-info">
+                                        <div class="cantidad-campo">
+                                            <label>Solicitado:</label>
+                                            <span>${detalle.cantidad_solicitada} ${unidadMedida}</span>
+                                        </div>
+                                        <div class="cantidad-campo">
+                                            <label for="cantidad-${detalle.id}">Entregar:</label>
+                                            <input 
+                                                type="number" 
+                                                id="cantidad-${detalle.id}" 
+                                                value="${detalle.cantidad_aprobada || detalle.cantidad_solicitada}" 
+                                                min="0" 
+                                                max="${stockActual}"
+                                                class="cantidad-input"
+                                                ${solicitud.estado === 'cerrado' ? 'disabled' : ''}
+                                            >
+                                        </div>
+                                    </div>
+                                    ${detalle.notas ? `
+                                        <div class="item-notas">
+                                            <small><strong>Notas:</strong> ${detalle.notas}</small>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <!-- Control de estado -->
+                <div class="estado-control">
+                    <h4>🔄 Control de Estado</h4>
+                    <div class="estado-actual">
+                        <span>Estado actual: <strong class="estado-${solicitud.estado}">${solicitud.estado}</strong></span>
+                    </div>
+                    
+                    ${solicitud.estado !== 'cerrado' ? `
+                        <div class="cambio-estado">
+                            <label for="nuevoEstado">Cambiar estado a:</label>
+                            <select id="nuevoEstado" class="admin-estado-select">
+                                <option value="pendiente" ${solicitud.estado === 'pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                                <option value="en_revision" ${solicitud.estado === 'en_revision' ? 'selected' : ''}>👀 En Revisión</option>
+                                <option value="cerrado" ${solicitud.estado === 'cerrado' ? 'selected' : ''}>✅ Cerrado</option>
+                                <option value="cancelado" ${solicitud.estado === 'cancelado' ? 'selected' : ''}>❌ Cancelado</option>
+                            </select>
+                        </div>
+                        
+                        <div class="notas-admin">
+                            <label for="notasAdmin">Notas administrativas:</label>
+                            <textarea id="notasAdmin" rows="3" placeholder="Agregar notas internas (opcional)">${solicitud.notas_admin || ''}</textarea>
+                        </div>
+                    ` : `
+                        <div class="solicitud-cerrada-info">
+                            <p>Esta solicitud ya está cerrada y no se puede modificar.</p>
+                            ${solicitud.notas_admin ? `<p><strong>Notas:</strong> ${solicitud.notas_admin}</p>` : ''}
+                        </div>
+                    `}
+                </div>
+
+                <!-- Acciones -->
+                <div class="acciones-ticket">
+                    ${solicitud.estado !== 'cerrado' ? `
+                        <button class="btn-admin-primary" onclick="guardarCambiosCompletos('${solicitud.id}')">
+                            💾 Guardar Cambios
+                        </button>
+                    ` : ''}
+                    <button class="btn-admin-secondary" onclick="cerrarModalRevision()">
+                        ${solicitud.estado === 'cerrado' ? '👀 Ver Solamente' : '❌ Cerrar'}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('detallesSolicitud').innerHTML = modalContent;
+        document.getElementById('modalRevision').style.display = 'flex';
+
+        // Aplicar estilos adicionales si está cerrado
+        if (solicitud.estado === 'cerrado') {
+            setTimeout(() => {
+                document.querySelectorAll('[id^="cantidad-"]').forEach(input => {
+                    input.style.backgroundColor = '#f5f5f5';
+                    input.title = 'No se pueden modificar cantidades de tickets cerrados';
+                });
             }, 100);
         }
 
