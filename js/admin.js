@@ -829,6 +829,8 @@ function filtrarSolicitudesAdmin() {
 
     renderizarSolicitudesSimples(solicitudesFiltradas);
 }
+
+
 function recargarSolicitudes() {
     cargarTodasLasSolicitudes();
 }
