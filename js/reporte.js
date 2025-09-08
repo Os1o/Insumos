@@ -230,14 +230,14 @@ async function ejecutarReporte() {
 
 
 // AGREGAR esta nueva función para consulta anual
-async function consultarSolicitudesAnual(ano, area) {
+async function consultarSolicitudesAnual(ano, area, recursoTipo = null) {
     try {
         // Fechas para todo el año
         const fechaInicio = `${ano}-01-01T00:00:00`;
         const fechaFin = `${ano}-12-31T23:59:59`;
         
-        // Consulta a Supabase (igual que la mensual pero con fechas de todo el año)
-        const { data: solicitudes, error } = await supabaseReportes
+        // Consulta expandida para manejar ambos recursos
+        let query = supabaseReportes
             .from('solicitudes')
             .select(`
                 id,
@@ -245,15 +245,25 @@ async function consultarSolicitudesAnual(ano, area) {
                 estado,
                 fecha_solicitud,
                 token_usado,
+                recurso_tipo,
+                token_tipo_usado,
                 usuarios:usuario_id(departamento),
                 solicitud_detalles(
                     cantidad_solicitada,
                     cantidad_aprobada,
-                    insumos(nombre)
+                    insumos(nombre),
+                    papeleria(nombre)
                 )
             `)
             .gte('fecha_solicitud', fechaInicio)
             .lte('fecha_solicitud', fechaFin);
+        
+        // Filtrar por tipo de recurso si está especificado
+        if (recursoTipo) {
+            query = query.eq('recurso_tipo', recursoTipo);
+        }
+        
+        const { data: solicitudes, error } = await query;
         
         if (error) throw error;
         
@@ -273,7 +283,7 @@ async function consultarSolicitudesAnual(ano, area) {
     }
 }
 
-async function consultarSolicitudesPeriodo(mes, ano, area) {
+async function consultarSolicitudesPeriodo(mes, ano, area, recursoTipo = null) {
     try {
         // Crear fechas del período
         const primerDia = new Date(ano, mes - 1, 1);
@@ -282,8 +292,8 @@ async function consultarSolicitudesPeriodo(mes, ano, area) {
         const fechaInicio = primerDia.toISOString().split('T')[0] + 'T00:00:00';
         const fechaFin = ultimoDia.toISOString().split('T')[0] + 'T23:59:59';
         
-        // Consulta base a Supabase
-        const { data: solicitudes, error } = await supabaseReportes
+        // Consulta base expandida para manejar ambos recursos
+        let query = supabaseReportes
             .from('solicitudes')
             .select(`
                 id,
@@ -291,15 +301,25 @@ async function consultarSolicitudesPeriodo(mes, ano, area) {
                 estado,
                 fecha_solicitud,
                 token_usado,
+                recurso_tipo,
+                token_tipo_usado,
                 usuarios:usuario_id(departamento),
                 solicitud_detalles(
                     cantidad_solicitada,
                     cantidad_aprobada,
-                    insumos(nombre)
+                    insumos(nombre),
+                    papeleria(nombre)
                 )
             `)
             .gte('fecha_solicitud', fechaInicio)
             .lte('fecha_solicitud', fechaFin);
+        
+        // Filtrar por tipo de recurso si está especificado
+        if (recursoTipo) {
+            query = query.eq('recurso_tipo', recursoTipo);
+        }
+        
+        const { data: solicitudes, error } = await query;
         
         if (error) throw error;
         
@@ -314,7 +334,7 @@ async function consultarSolicitudesPeriodo(mes, ano, area) {
         return procesarSolicitudes(solicitudesFiltradas);
         
     } catch (error) {
-        console.error('Error consultando solicitudes:', error);
+        console.error('Error consultando solicitudes del período:', error);
         return getEstadisticasVacias();
     }
 }
@@ -325,8 +345,21 @@ function procesarSolicitudes(solicitudes) {
         porArea: {},
         porTipo: { ordinaria: 0, juntas: 0 },
         porEstado: { pendiente: 0, en_revision: 0, cerrado: 0, cancelado: 0 },
+        porRecurso: { insumo: 0, papeleria: 0 },
+        porTipoToken: { 
+            ordinario: 0, 
+            extraordinario: 0, 
+            juntas: 0 
+        },
         insumosSolicitados: {},
-        tokenUsados: 0
+        papeleriaSolicitada: {},
+        recursosSolicitados: {}, // Combinado de ambos
+        tokenUsados: 0,
+        tokensPorTipo: {
+            insumo_ordinario: 0,
+            papeleria_ordinario: 0,
+            papeleria_extraordinario: 0
+        }
     };
     
     solicitudes.forEach(solicitud => {
@@ -334,23 +367,54 @@ function procesarSolicitudes(solicitudes) {
         const area = solicitud.usuarios?.departamento || 'Sin área';
         estadisticas.porArea[area] = (estadisticas.porArea[area] || 0) + 1;
         
-        // Contar por tipo
+        // Contar por tipo de solicitud
         estadisticas.porTipo[solicitud.tipo] = (estadisticas.porTipo[solicitud.tipo] || 0) + 1;
         
         // Contar por estado
         estadisticas.porEstado[solicitud.estado] = (estadisticas.porEstado[solicitud.estado] || 0) + 1;
         
-        // Contar tokens usados
+        // Contar por tipo de recurso
+        const recursoTipo = solicitud.recurso_tipo || 'insumo'; // Default para compatibilidad
+        estadisticas.porRecurso[recursoTipo] = (estadisticas.porRecurso[recursoTipo] || 0) + 1;
+        
+        // Contar tokens usados por tipo
         if (solicitud.token_usado) {
             estadisticas.tokenUsados++;
+            
+            // Clasificar tokens por tipo específico
+            const tokenTipo = solicitud.token_tipo_usado || 'ordinario';
+            if (solicitud.tipo === 'juntas') {
+                estadisticas.porTipoToken.juntas++;
+            } else if (recursoTipo === 'insumo') {
+                estadisticas.tokensPorTipo.insumo_ordinario++;
+                estadisticas.porTipoToken.ordinario++;
+            } else if (recursoTipo === 'papeleria') {
+                if (tokenTipo === 'extraordinario') {
+                    estadisticas.tokensPorTipo.papeleria_extraordinario++;
+                    estadisticas.porTipoToken.extraordinario++;
+                } else {
+                    estadisticas.tokensPorTipo.papeleria_ordinario++;
+                    estadisticas.porTipoToken.ordinario++;
+                }
+            }
         }
         
-        // Contar insumos solicitados
+        // Procesar items solicitados (polimórfico)
         if (solicitud.solicitud_detalles) {
             solicitud.solicitud_detalles.forEach(detalle => {
-                const insumo = detalle.insumos?.nombre || 'Insumo desconocido';
                 const cantidad = detalle.cantidad_solicitada || 0;
-                estadisticas.insumosSolicitados[insumo] = (estadisticas.insumosSolicitados[insumo] || 0) + cantidad;
+                
+                // Determinar si es insumo o papelería
+                if (detalle.insumos && detalle.insumos.nombre) {
+                    const insumo = detalle.insumos.nombre;
+                    estadisticas.insumosSolicitados[insumo] = (estadisticas.insumosSolicitados[insumo] || 0) + cantidad;
+                    estadisticas.recursosSolicitados[`📦 ${insumo}`] = (estadisticas.recursosSolicitados[`📦 ${insumo}`] || 0) + cantidad;
+                    
+                } else if (detalle.papeleria && detalle.papeleria.nombre) {
+                    const papeleria = detalle.papeleria.nombre;
+                    estadisticas.papeleriaSolicitada[papeleria] = (estadisticas.papeleriaSolicitada[papeleria] || 0) + cantidad;
+                    estadisticas.recursosSolicitados[`📝 ${papeleria}`] = (estadisticas.recursosSolicitados[`📝 ${papeleria}`] || 0) + cantidad;
+                }
             });
         }
     });
@@ -358,17 +422,30 @@ function procesarSolicitudes(solicitudes) {
     return estadisticas;
 }
 
+
 function getEstadisticasVacias() {
     return {
         total: 0,
         porArea: {},
         porTipo: { ordinaria: 0, juntas: 0 },
         porEstado: { pendiente: 0, en_revision: 0, cerrado: 0, cancelado: 0 },
+        porRecurso: { insumo: 0, papeleria: 0 },
+        porTipoToken: { 
+            ordinario: 0, 
+            extraordinario: 0, 
+            juntas: 0 
+        },
         insumosSolicitados: {},
-        tokenUsados: 0
+        papeleriaSolicitada: {},
+        recursosSolicitados: {},
+        tokenUsados: 0,
+        tokensPorTipo: {
+            insumo_ordinario: 0,
+            papeleria_ordinario: 0,
+            papeleria_extraordinario: 0
+        }
     };
 }
-
 // ===================================
 // RENDERIZADO DEL REPORTE
 // ===================================
