@@ -533,7 +533,7 @@ function renderizarSolicitudesSimples(solicitudes) {
 }
 
 
-
+/*
 async function guardarCambiosCompletos(solicitudId) {
     try {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
@@ -646,8 +646,131 @@ async function descontarInventario(solicitudId) {
         console.error('Error descontando inventario:', error);
         throw error;
     }
+}*/
+
+
+async function guardarCambiosCompletos(solicitudId) {
+    try {
+        const nuevoEstado = document.getElementById('nuevoEstado').value;
+
+        // Verificar estado actual del ticket
+        const { data: solicitudActual, error: checkError } = await supabaseAdmin
+            .from('solicitudes')
+            .select('estado')
+            .eq('id', solicitudId)
+            .single();
+
+        if (checkError) throw checkError;
+
+        const yaEstabaCerrado = solicitudActual.estado === 'cerrado';
+        const ahoraSeraCerrado = nuevoEstado === 'cerrado';
+
+        // 1. Siempre actualizar el estado (sin restricciones)
+        const updateData = {
+            estado: nuevoEstado,
+            admin_asignado: ahoraSeraCerrado ? currentAdmin.id : null
+        };
+
+        if (nuevoEstado === 'en_revision') {
+            updateData.fecha_revision = new Date().toISOString();
+        }
+        if (nuevoEstado === 'cerrado') {
+            updateData.fecha_cerrado = new Date().toISOString();
+        }
+
+        const { error: solicitudError } = await supabaseAdmin
+            .from('solicitudes')
+            .update(updateData)
+            .eq('id', solicitudId);
+
+        if (solicitudError) throw solicitudError;
+
+        // 2. Actualizar cantidades aprobadas (solo si no está deshabilitado)
+        const detalles = document.querySelectorAll('[id^="cantidad-"]');
+        for (const input of detalles) {
+            if (!input.disabled) {
+                const detalleId = input.id.replace('cantidad-', '');
+                const cantidadAprobada = parseInt(input.value) || 0;
+
+                const { error: detalleError } = await supabaseAdmin
+                    .from('solicitud_detalles')
+                    .update({ cantidad_aprobada: cantidadAprobada })
+                    .eq('id', detalleId);
+
+                if (detalleError) throw detalleError;
+            }
+        }
+
+        // 3. SOLO descontar inventario si: NO estaba cerrado antes Y ahora SÍ está cerrado
+        if (ahoraSeraCerrado && !yaEstabaCerrado) {
+            await descontarInventarioCompleto(solicitudId); // CAMBIO: Nueva función
+            showNotificationAdmin('Ticket cerrado e inventario actualizado', 'success');
+        } else {
+            showNotificationAdmin('Cambios guardados exitosamente', 'success');
+        }
+
+        cerrarModalRevision();
+        recargarSolicitudes();
+
+    } catch (error) {
+        console.error('Error guardando:', error);
+        showNotificationAdmin('Error al guardar cambios', 'error');
+    }
 }
 
+// NUEVA FUNCIÓN que maneja tanto insumos como papelería
+async function descontarInventarioCompleto(solicitudId) {
+    try {
+        // Obtener la solicitud con su tipo de recurso y detalles
+        const { data: solicitud, error } = await supabaseAdmin
+            .from('solicitudes')
+            .select(`
+                recurso_tipo,
+                solicitud_detalles(
+                    cantidad_aprobada,
+                    insumo_id,
+                    papeleria_id
+                )
+            `)
+            .eq('id', solicitudId)
+            .single();
+
+        if (error) throw error;
+
+        for (const detalle of solicitud.solicitud_detalles) {
+            const cantidadAprobada = detalle.cantidad_aprobada || 0;
+            
+            if (cantidadAprobada > 0) {
+                if (solicitud.recurso_tipo === 'papeleria' && detalle.papeleria_id) {
+                    // Descontar de papelería
+                    const { error: papeleriaError } = await supabaseAdmin
+                        .from('papeleria')
+                        .update({ 
+                            stock_actual: supabaseAdmin.sql`stock_actual - ${cantidadAprobada}` 
+                        })
+                        .eq('id', detalle.papeleria_id);
+                        
+                    if (papeleriaError) throw papeleriaError;
+                    
+                } else if (detalle.insumo_id) {
+                    // Descontar de insumos (tu lógica original)
+                    const { error: insumoError } = await supabaseAdmin
+                        .from('insumos')
+                        .update({ 
+                            stock_actual: supabaseAdmin.sql`stock_actual - ${cantidadAprobada}` 
+                        })
+                        .eq('id', detalle.insumo_id);
+                        
+                    if (insumoError) throw insumoError;
+                }
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error descontando inventario:', error);
+        throw error;
+    }
+}
 
 function validarStock(input, stockDisponible) {
     const cantidad = parseInt(input.value) || 0;
