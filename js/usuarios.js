@@ -201,53 +201,27 @@ function renderizarUsuarios(usuarios) {
         const tokenClass = usuario.token_disponible ? 'disponible' : 'usado';
         
         html += `
-            <div class="usuario-fila" data-usuario-id="${usuario.id}">
-                <div class="usuario-info">
-                    <div class="usuario-avatar">
-                        ${usuario.nombre.charAt(0).toUpperCase()}
+            <div class="usuario-acciones">
+                <button class="btn-accion-edit" onclick="editarUsuario('${usuario.id}')" title="Editar">
+                    ✏️
+                </button>
+                <button class="btn-accion-toggle" onclick="toggleUsuarioEstado('${usuario.id}')" title="${usuario.activo ? 'Desactivar' : 'Activar'}">
+                    ${usuario.activo ? '🔒' : '🔓'}
+                </button>
+                
+                <!-- Dropdown para tokens -->
+                <div class="token-dropdown">
+                    <button class="btn-accion-token dropdown-toggle" title="Resetear Tokens">
+                        🔄 ▼
+                    </button>
+                    <div class="dropdown-menu">
+                        <button onclick="resetearToken('${usuario.id}', 'todos')">🔄 Todos</button>
+                        <button onclick="resetearToken('${usuario.id}', 'insumo')">📦 Insumos</button>
+                        <button onclick="resetearToken('${usuario.id}', 'papeleria_ordinario')">📝 P. Ordinario</button>
+                        <button onclick="resetearToken('${usuario.id}', 'papeleria_extraordinario')">⚡ P. Extraordinario</button>
                     </div>
-                    <div class="usuario-datos">
-                        <strong>${usuario.nombre}</strong>
-                        <small>${usuario.username}</small>
-                    </div>
                 </div>
-                
-                <div class="usuario-departamento">
-                    ${usuario.departamento || 'No especificado'}
-                </div>
-                
-                <div class="usuario-rol">
-                    <span class="rol-badge rol-${rolNombre.toLowerCase().replace(' ', '-')}">${rolNombre}</span>
-                </div>
-                
-                <div class="usuario-estado">
-                    <span class="estado-badge estado-${estadoClass}">${estadoTexto}</span>
-                </div>
-                
-                <div class="usuario-token">
-                    <span class="token-badge token-${tokenClass}">${tokenTexto}</span>
-                </div>
-                
-                <div class="usuario-acciones">
-                    <button class="btn-accion-edit" onclick="editarUsuario('${usuario.id}')" title="Editar">
-                        ✏️
-                    </button>
-                    <button class="btn-accion-toggle" onclick="toggleUsuarioEstado('${usuario.id}')" title="${usuario.activo ? 'Desactivar' : 'Activar'}">
-                        ${usuario.activo ? '🔒' : '🔓'}
-                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'todos')" title="Resetear Todos">
-                        🔄
-                    </button>
-                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'insumo')" title="Resetear Insumos">
-                        📦
-                    </button>
-                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'papeleria_ordinario')" title="Resetear Papelería Ordinario">
-                        📝
-                    </button>
-                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'papeleria_extraordinario')" title="Resetear Papelería Extraordinario">
-                        ⚡
-                    </button>
-                </div>
-            </div>
+            </div>            
         `;
     });
     
