@@ -741,6 +741,52 @@ function agregarEstilosUsuarios() {
                 gap: 0.5rem;
             }
         }
+            /* CSS para dropdown de tokens */
+        .token-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 150px;
+            display: none;
+        }
+
+        .token-dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .dropdown-menu button:hover {
+            background: #f8f9fa;
+        }
     `;
     
     document.head.appendChild(estilos);
