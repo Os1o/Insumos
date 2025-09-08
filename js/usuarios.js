@@ -742,29 +742,52 @@ function agregarEstilosUsuarios() {
             }
         }
             /* CSS para dropdown de tokens */
-.dropdown-menu {
-    position: absolute;
-    bottom: 100%; /* Cambiar de top a bottom para que abra hacia arriba */
-    right: 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    z-index: 1000;
-    min-width: 150px;
-    display: none;
-    margin-bottom: 2px; /* Pequeño espacio entre el botón y el dropdown */
-}
+        .token-dropdown {
+            position: relative;
+            display: inline-block;
+        }
 
-/* Alternativa: dropdown que se adapta según el espacio disponible */
-.token-dropdown:last-child .dropdown-menu {
-    bottom: 100%; /* Para la última fila, abrir hacia arriba */
-}
+        .dropdown-toggle {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
 
-.token-dropdown:not(:last-child) .dropdown-menu {
-    top: 100%; /* Para otras filas, abrir hacia abajo */
-    bottom: auto;
-}
+        .dropdown-menu {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 150px;
+            display: none;
+            margin-bottom: 2px;
+        }
+
+        .token-dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .dropdown-menu button:hover {
+            background: #f8f9fa;
+        }
     `;
     
     document.head.appendChild(estilos);
