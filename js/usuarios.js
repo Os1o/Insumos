@@ -234,9 +234,17 @@ function renderizarUsuarios(usuarios) {
                     </button>
                     <button class="btn-accion-toggle" onclick="toggleUsuarioEstado('${usuario.id}')" title="${usuario.activo ? 'Desactivar' : 'Activar'}">
                         ${usuario.activo ? '🔒' : '🔓'}
-                    </button>
-                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}')" title="Resetear Token">
+                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'todos')" title="Resetear Todos">
                         🔄
+                    </button>
+                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'insumo')" title="Resetear Insumos">
+                        📦
+                    </button>
+                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'papeleria_ordinario')" title="Resetear Papelería Ordinario">
+                        📝
+                    </button>
+                    <button class="btn-accion-token" onclick="resetearToken('${usuario.id}', 'papeleria_extraordinario')" title="Resetear Papelería Extraordinario">
+                        ⚡
                     </button>
                 </div>
             </div>
@@ -320,7 +328,7 @@ async function toggleUsuarioEstado(usuarioId) {
 // ===================================
 // RESETEAR TOKEN DE USUARIO
 // ===================================
-async function resetearToken(usuarioId) {
+/*async function resetearToken(usuarioId) {
     try {
         const usuario = todosLosUsuarios.find(u => u.id === usuarioId);
         if (!usuario) return;
@@ -345,7 +353,7 @@ async function resetearToken(usuarioId) {
         console.error('Error reseteando token:', error);
         showNotificationUsuarios('Error al resetear token', 'error');
     }
-}
+}*/
 
 // ===================================
 // UTILIDADES
@@ -1114,29 +1122,48 @@ async function guardarUsuario(event) {
 // ===================================
 // RESETEAR TOKEN DE USUARIO
 // ===================================
-async function resetearToken(usuarioId) {
+async function resetearToken(usuarioId, tipoToken = 'todos') {
     try {
         const usuario = todosLosUsuarios.find(u => u.id === usuarioId);
         if (!usuario) return;
         
-        const confirmacion = confirm(
-            `¿Resetear token mensual de ${usuario.nombre}?\n\nEsto le permitirá hacer una nueva solicitud ordinaria.`
-        );
+        // Determinar qué tokens resetear
+        let mensaje = '';
+        let updateData = {};
         
+        if (tipoToken === 'todos') {
+            mensaje = `¿Resetear TODOS los tokens de ${usuario.nombre}?\n\nEsto incluye:\n- Token de insumos\n- Token papelería ordinario\n- Token papelería extraordinario`;
+            updateData = {
+                token_disponible: 1,
+                token_papeleria_ordinario: 1,
+                token_papeleria_extraordinario: 1
+            };
+        } else if (tipoToken === 'insumo') {
+            mensaje = `¿Resetear token de insumos de ${usuario.nombre}?`;
+            updateData = { token_disponible: 1 };
+        } else if (tipoToken === 'papeleria_ordinario') {
+            mensaje = `¿Resetear token papelería ordinario de ${usuario.nombre}?`;
+            updateData = { token_papeleria_ordinario: 1 };
+        } else if (tipoToken === 'papeleria_extraordinario') {
+            mensaje = `¿Resetear token papelería extraordinario de ${usuario.nombre}?`;
+            updateData = { token_papeleria_extraordinario: 1 };
+        }
+        
+        const confirmacion = confirm(mensaje);
         if (!confirmacion) return;
         
         const { error } = await supabaseUsuarios
             .from('usuarios')
-            .update({ token_disponible: true })
+            .update(updateData)
             .eq('id', usuarioId);
         
         if (error) throw error;
         
         // Actualizar localmente
-        usuario.token_disponible = 1; // Usar 1 en lugar de true
+        Object.assign(usuario, updateData);
         renderizarUsuarios(todosLosUsuarios);
         
-        showNotificationUsuarios(`Token reseteado para ${usuario.nombre}`, 'success');
+        showNotificationUsuarios(`Tokens reseteados para ${usuario.nombre}`, 'success');
         
     } catch (error) {
         console.error('Error reseteando token:', error);
