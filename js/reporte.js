@@ -972,27 +972,9 @@ function cambiarPeriodo() {
 }
 console.log('Sistema de reportes cargado correctamente');
 
-function debugFiltros() {
-    console.log('🔍 VERIFICANDO FILTROS DE REPORTES:');
-    console.log('- Período:', document.getElementById('tipoPeriodo')?.value);
-    console.log('- Mes:', document.getElementById('selectorMes')?.value);
-    console.log('- Año:', document.getElementById('selectorAno')?.value);
-    console.log('- Área:', document.getElementById('selectorArea')?.value);
-    console.log('- Recurso:', document.getElementById('selectorRecurso')?.value);
-    
-    // Verificar si el selector existe en el DOM
-    const selectorRecurso = document.getElementById('selectorRecurso');
-    if (!selectorRecurso) {
-        console.error('❌ PROBLEMA: El selector #selectorRecurso NO existe en el DOM');
-        console.log('👉 Agregar este HTML en el modal de reportes:');
-        console.log(`
-        <select id="selectorRecurso">
-            <option value="">Todos los recursos</option>
-            <option value="insumo">📦 Solo Insumos</option>
-            <option value="papeleria">📝 Solo Papelería</option>
-        </select>
-        `);
-    } else {
-        console.log('✅ Selector de recursos encontrado');
-    }
-}
+console.log('📊 DATOS DEL REPORTE:');
+console.log('Total solicitudes:', datosReporte.actual.total);
+console.log('Por recurso:', datosReporte.actual.porRecurso);
+console.log('Insumos solicitados:', datosReporte.actual.insumosSolicitados);
+console.log('Papelería solicitada:', datosReporte.actual.papeleriaSolicitada);
+console.log('Recursos combinados:', datosReporte.actual.recursosSolicitados);
