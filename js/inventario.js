@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.log('🔄 Inicializando sistema de inventario polimórfico...');
     
     await cargarHeaderAdmin();
+    await cargarFooter();
     try {
         // 1. Verificar permisos
         currentSuperAdmin = verificarPermisosSuperAdmin();
@@ -1333,10 +1334,70 @@ async function cargarHeaderAdmin() {
     }
 }
 
+
+
+
+async function cargarFooter() {
+    try {
+        const response = await fetch('includes/footerAdmin.html');
+        if (!response.ok) throw new Error('Error cargando footerAdmin.html');
+
+        const html = await response.text();
+        const footerContainer = document.getElementById('footer-container');
+
+        if (footerContainer) {
+            footerContainer.innerHTML = html;
+            console.log('✅ Footer cargado correctamente');
+            
+            // Actualizar año dinámicamente
+            const currentYearSpan = document.getElementById('currentYear');
+            if (currentYearSpan) {
+                currentYearSpan.textContent = new Date().getFullYear();
+            }
+
+            // Inicializar funciones del footer si existen
+            setTimeout(() => {
+                if (typeof inicializarFooter === 'function') {
+                    inicializarFooter();
+                }
+            }, 100);
+        }
+    } catch (error) {
+        console.error('❌ Error cargando footer:', error);
+        // Footer básico como fallback
+        const footerContainer = document.getElementById('footer-container');
+        if (footerContainer) {
+            footerContainer.innerHTML = `
+                <footer class="footer">
+                    <div class="container">
+                        <div class="footer-content">
+                            <div class="footer-info">
+                                <p>&copy; ${new Date().getFullYear()} Sistema de Insumos. Todos los derechos reservados.</p>
+                            </div>
+                            <div class="footer-links">
+                                <a href="index.html" class="footer-link">Inicio</a>
+                                <a href="historial.html" class="footer-link">Historial</a>
+                                <a href="#" class="footer-link">Ayuda</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            `;
+        }
+    }
+}
+
+
 // Llamar la función al cargar
 document.addEventListener('DOMContentLoaded', function() {
     cargarHeaderAdmin();
+    cargarFooter();
 });
+
+
+
+
+
 // Alias para mantener compatibilidad
 const editarInsumo = editarItem;
 const verHistorialInsumo = verHistorialItem;
