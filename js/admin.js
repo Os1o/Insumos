@@ -721,8 +721,14 @@ async function guardarCambiosCompletos(solicitudId) {
 
 
 // NUEVA FUNCIÓN que maneja tanto insumos como papelería
+// ===================================
+// FUNCIÓN CORREGIDA - DESCONTAR INVENTARIO COMPLETO
+// ===================================
+
 async function descontarInventarioCompleto(solicitudId) {
     try {
+        console.log('🔄 Descontando inventario para solicitud:', solicitudId);
+        
         // Obtener la solicitud con su tipo de recurso y detalles
         const { data: solicitud, error } = await supabaseAdmin
             .from('solicitudes')
@@ -739,11 +745,24 @@ async function descontarInventarioCompleto(solicitudId) {
 
         if (error) throw error;
 
+        // Obtener admin actual para los registros de movimiento
+        const session = sessionStorage.getItem('currentUser');
+        const currentAdmin = session ? JSON.parse(session) : null;
+        
+        if (!currentAdmin) {
+            throw new Error('No se pudo identificar al administrador actual');
+        }
+
         for (const detalle of solicitud.solicitud_detalles) {
             const cantidadAprobada = detalle.cantidad_aprobada || 0;
             
             if (cantidadAprobada > 0) {
+                
                 if (solicitud.recurso_tipo === 'papeleria' && detalle.papeleria_id) {
+                    // ===================================
+                    // PROCESAMIENTO DE PAPELERÍA
+                    // ===================================
+                    
                     // Obtener stock actual de papelería
                     const { data: papeleriaActual, error: getPapeleriaError } = await supabaseAdmin
                         .from('papeleria')
@@ -753,17 +772,48 @@ async function descontarInventarioCompleto(solicitudId) {
                     
                     if (getPapeleriaError) throw getPapeleriaError;
                     
-                    const nuevoStock = papeleriaActual.stock_actual - cantidadAprobada;
+                    const stockAnterior = papeleriaActual.stock_actual;
+                    const stockNuevo = stockAnterior - cantidadAprobada;
                     
                     // Actualizar stock de papelería
                     const { error: papeleriaError } = await supabaseAdmin
                         .from('papeleria')
-                        .update({ stock_actual: nuevoStock })
+                        .update({ 
+                            stock_actual: stockNuevo,
+                            updated_at: new Date().toISOString()
+                        })
                         .eq('id', detalle.papeleria_id);
                         
                     if (papeleriaError) throw papeleriaError;
                     
+                    // 🆕 REGISTRAR MOVIMIENTO EN inventario_movimientos
+                    const { error: movimientoPapeleriaError } = await supabaseAdmin
+                        .from('inventario_movimientos')
+                        .insert({
+                            papeleria_id: detalle.papeleria_id,
+                            insumo_id: null, // Asegurar que sea null para papelería
+                            tipo_movimiento: 'entrega',
+                            cantidad: -cantidadAprobada, // Negativo porque es una salida
+                            stock_anterior: stockAnterior,
+                            stock_nuevo: stockNuevo,
+                            motivo: `Entrega por solicitud cerrada`,
+                            referencia_id: solicitudId,
+                            admin_id: currentAdmin.id,
+                            fecha: new Date().toISOString()
+                        });
+                    
+                    if (movimientoPapeleriaError) {
+                        console.error('Error registrando movimiento papelería:', movimientoPapeleriaError);
+                        throw movimientoPapeleriaError;
+                    }
+                    
+                    console.log(`✅ Papelería ${detalle.papeleria_id}: ${stockAnterior} → ${stockNuevo} (-${cantidadAprobada})`);
+                    
                 } else if (detalle.insumo_id) {
+                    // ===================================
+                    // PROCESAMIENTO DE INSUMOS
+                    // ===================================
+                    
                     // Obtener stock actual de insumos
                     const { data: insumoActual, error: getInsumoError } = await supabaseAdmin
                         .from('insumos')
@@ -773,25 +823,53 @@ async function descontarInventarioCompleto(solicitudId) {
                     
                     if (getInsumoError) throw getInsumoError;
                     
-                    const nuevoStock = insumoActual.stock_actual - cantidadAprobada;
+                    const stockAnterior = insumoActual.stock_actual;
+                    const stockNuevo = stockAnterior - cantidadAprobada;
                     
                     // Actualizar stock de insumos
                     const { error: insumoError } = await supabaseAdmin
                         .from('insumos')
-                        .update({ stock_actual: nuevoStock })
+                        .update({ 
+                            stock_actual: stockNuevo,
+                            updated_at: new Date().toISOString()
+                        })
                         .eq('id', detalle.insumo_id);
                         
                     if (insumoError) throw insumoError;
+                    
+                    // 🆕 REGISTRAR MOVIMIENTO EN inventario_movimientos
+                    const { error: movimientoInsumoError } = await supabaseAdmin
+                        .from('inventario_movimientos')
+                        .insert({
+                            insumo_id: detalle.insumo_id,
+                            papeleria_id: null, // Asegurar que sea null para insumos
+                            tipo_movimiento: 'entrega',
+                            cantidad: -cantidadAprobada, // Negativo porque es una salida
+                            stock_anterior: stockAnterior,
+                            stock_nuevo: stockNuevo,
+                            motivo: `Entrega por solicitud cerrada`,
+                            referencia_id: solicitudId,
+                            admin_id: currentAdmin.id,
+                            fecha: new Date().toISOString()
+                        });
+                    
+                    if (movimientoInsumoError) {
+                        console.error('Error registrando movimiento insumo:', movimientoInsumoError);
+                        throw movimientoInsumoError;
+                    }
+                    
+                    console.log(`✅ Insumo ${detalle.insumo_id}: ${stockAnterior} → ${stockNuevo} (-${cantidadAprobada})`);
                 }
             }
         }
         
+        console.log('✅ Inventario descontado exitosamente y movimientos registrados');
+        
     } catch (error) {
-        console.error('Error descontando inventario:', error);
+        console.error('❌ Error descontando inventario:', error);
         throw error;
     }
 }
-
 
 function validarStock(input, stockDisponible) {
     const cantidad = parseInt(input.value) || 0;
