@@ -1477,6 +1477,16 @@ function cerrarSesion() {
     }
 }
 
+
+function abrirModalNuevoInsumo() {
+    // Cargar categorías en el select
+    cargarCategoriasEnSelect('categoriaInsumo');
+    
+    document.getElementById('nuevoInsumoModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+
 // ===================================
 // FUNCIÓN PARA VERIFICAR AUTENTICACIÓN
 // ===================================
