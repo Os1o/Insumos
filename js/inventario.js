@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     await cargarHeaderAdmin();
     await cargarFooter();
+
+
+    cargarFooter();
     try {
         // 1. Verificar permisos
         currentSuperAdmin = verificarPermisosSuperAdmin();
@@ -1470,62 +1473,6 @@ async function cargarFooter() {
         }
     }
 }
-
-// ===================================
-// INICIALIZACIÓN DEL ADMIN
-// ===================================
-
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. Verificar autenticación primero
-    const session = sessionStorage.getItem('currentUser');
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    try {
-        const user = JSON.parse(session);
-
-        // Verificar si es administrador
-        if (user.rol !== 'admin' && user.rol !== 'super_admin') {
-            showNotificationAdmin('No tienes permisos de administrador', 'error');
-            setTimeout(() => window.location.href = 'index.html', 2000);
-            return;
-        }
-
-        console.log('Usuario admin autenticado:', user.nombre);
-
-    } catch (error) {
-        console.error('Error verificando autenticación:', error);
-        window.location.href = 'login.html';
-        return;
-    }
-
-    // 2. Cargar header y footer
-    cargarHeaderAdmin();
-    cargarFooter();
-
-    // 3. Inicializar header después de que se cargue
-    // (esto se hace dentro de cargarHeaderAdmin con setTimeout)
-
-    // 4. Cargar las solicitudes y demás funcionalidad admin
-    setTimeout(() => {
-        // Esta función ya debe estar definida en tu admin.js
-        if (typeof cargarSolicitudesAdmin === 'function') {
-            cargarSolicitudesAdmin();
-        }
-        if (typeof actualizarEstadisticasAdmin === 'function') {
-            actualizarEstadisticasAdmin();
-        }
-        if (typeof verificarSuperAdmin === 'function') {
-            verificarSuperAdmin();
-        }
-    }, 800); // Un poco más de tiempo para que cargue el header
-});
-
-
-
-
 
 
 // Alias para mantener compatibilidad
