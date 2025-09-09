@@ -1298,6 +1298,10 @@ function configurarEventListeners() {
 // CARGAR HEADER ADMIN ESPECÍFICO
 // ===================================
 
+// ===================================
+// FUNCIÓN PARA CARGAR HEADER ADMIN CON USUARIO
+// ===================================
+
 async function cargarHeaderAdmin() {
     try {
         const response = await fetch('includes/headerAdmin.html');
@@ -1310,8 +1314,11 @@ async function cargarHeaderAdmin() {
             headerContainer.innerHTML = html;
             console.log('✅ HeaderAdmin.html cargado correctamente');
             
-            // Inicializar funciones del header si existen
+            // Actualizar información del usuario después de cargar el HTML
             setTimeout(() => {
+                actualizarInfoUsuarioHeader();
+                
+                // Inicializar funciones del header si existen
                 if (typeof inicializarHeaderAdmin === 'function') {
                     inicializarHeaderAdmin();
                 }
@@ -1319,20 +1326,183 @@ async function cargarHeaderAdmin() {
         }
     } catch (error) {
         console.error('❌ Error cargando headerAdmin.html:', error);
-        // Header básico como fallback
+        // Header básico como fallback con información de usuario
         const headerContainer = document.getElementById('header-container');
         if (headerContainer) {
+            const usuario = obtenerUsuarioActual();
             headerContainer.innerHTML = `
                 <header class="header">
                     <div class="container">
-                        <h1>📦 Gestión de Inventario</h1>
-                        <a href="admin.html">← Volver al Admin</a>
+                        <div class="header-content">
+                            <h1>📦 Gestión de Inventario</h1>
+                            <div class="user-info">
+                                <span class="user-name">${usuario ? usuario.nombre : 'Usuario'}</span>
+                                <span class="user-role">${usuario ? usuario.rol : 'Admin'}</span>
+                            </div>
+                            <a href="admin.html" class="back-link">← Volver al Admin</a>
+                        </div>
                     </div>
                 </header>
             `;
         }
     }
 }
+
+// ===================================
+// FUNCIÓN PARA OBTENER USUARIO ACTUAL
+// ===================================
+
+function obtenerUsuarioActual() {
+    try {
+        const session = sessionStorage.getItem('currentUser');
+        if (!session) {
+            console.warn('⚠️ No hay sesión de usuario activa');
+            return null;
+        }
+
+        const usuario = JSON.parse(session);
+        console.log('👤 Usuario actual:', usuario.nombre);
+        return usuario;
+
+    } catch (error) {
+        console.error('❌ Error obteniendo usuario actual:', error);
+        return null;
+    }
+}
+
+// ===================================
+// FUNCIÓN PARA ACTUALIZAR INFO EN HEADER
+// ===================================
+
+function actualizarInfoUsuarioHeader() {
+    const usuario = obtenerUsuarioActual();
+    if (!usuario) return;
+
+    // Actualizar nombre del usuario
+    const userNameElements = document.querySelectorAll('.user-name, #userName, [data-user-name]');
+    userNameElements.forEach(element => {
+        if (element) element.textContent = usuario.nombre;
+    });
+
+    // Actualizar rol/departamento
+    const userRoleElements = document.querySelectorAll('.user-role, #userRole, [data-user-role]');
+    userRoleElements.forEach(element => {
+        if (element) element.textContent = usuario.rol || usuario.departamento;
+    });
+
+    // Actualizar email
+    const userEmailElements = document.querySelectorAll('.user-email, #userEmail, [data-user-email]');
+    userEmailElements.forEach(element => {
+        if (element) element.textContent = usuario.username;
+    });
+
+    // Actualizar avatar/iniciales
+    const avatarElements = document.querySelectorAll('.user-avatar, #userAvatar, [data-user-avatar]');
+    avatarElements.forEach(element => {
+        if (element) {
+            const iniciales = usuario.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            element.textContent = iniciales;
+        }
+    });
+
+    // Mostrar/ocultar elementos según permisos
+    if (usuario.rol === 'super_admin') {
+        const superAdminElements = document.querySelectorAll('[data-super-admin-only]');
+        superAdminElements.forEach(element => {
+            element.style.display = 'block';
+        });
+    }
+
+    console.log('✅ Información de usuario actualizada en header');
+}
+
+// ===================================
+// FUNCIÓN PARA INICIALIZAR HEADER ADMIN
+// ===================================
+
+function inicializarHeaderAdmin() {
+    console.log('🔧 Inicializando funciones del header admin...');
+    
+    const usuario = obtenerUsuarioActual();
+    if (!usuario) return;
+
+    // Configurar menú de usuario si existe
+    const userMenuToggle = document.querySelector('.user-menu-toggle');
+    const userDropdown = document.querySelector('.user-dropdown');
+    
+    if (userMenuToggle && userDropdown) {
+        userMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+        });
+
+        // Cerrar menú al hacer click fuera
+        document.addEventListener('click', () => {
+            userDropdown.classList.remove('show');
+        });
+    }
+
+    // Configurar botón de logout
+    const logoutBtn = document.querySelector('.logout-btn, [data-logout]');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            cerrarSesion();
+        });
+    }
+
+    // Mostrar notificación de bienvenida
+    if (typeof showNotification === 'function') {
+        showNotification(`Bienvenido, ${usuario.nombre}`, 'success', 2000);
+    }
+
+    console.log('✅ Header admin inicializado correctamente');
+}
+
+// ===================================
+// FUNCIÓN PARA CERRAR SESIÓN
+// ===================================
+
+function cerrarSesion() {
+    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        console.log('🚪 Cerrando sesión...');
+        
+        // Limpiar datos de sesión
+        sessionStorage.removeItem('currentUser');
+        localStorage.removeItem('userSession');
+        localStorage.removeItem('rememberLogin');
+        
+        // Redirigir al login
+        window.location.href = 'login.html';
+    }
+}
+
+// ===================================
+// FUNCIÓN PARA VERIFICAR AUTENTICACIÓN
+// ===================================
+
+function verificarAutenticacionAdmin() {
+    const usuario = obtenerUsuarioActual();
+    
+    if (!usuario) {
+        console.log('❌ No hay usuario autenticado, redirigiendo al login');
+        window.location.href = 'login.html';
+        return false;
+    }
+
+    // Verificar si es admin
+    if (usuario.rol !== 'admin' && usuario.rol !== 'super_admin') {
+        console.log('❌ Usuario sin permisos de admin');
+        if (typeof showNotification === 'function') {
+            showNotification('No tienes permisos de administrador', 'error');
+        }
+        setTimeout(() => window.location.href = 'index.html', 2000);
+        return false;
+    }
+
+    return usuario;
+}
+
 
 
 
