@@ -85,7 +85,17 @@
                 <div class="controls-wrapper">
 
                     <!-- Filtros -->
-                    <div class="filtros-inventario">
+                    <!-- ✅ AGREGAR ESTA LÍNEA: Cambiar clase -->
+                    <div class="inventario-filtros">
+                        <!-- ✅ AGREGAR ESTE SELECTOR MANUALMENTE -->
+                        <div class="filtro-grupo">
+                            <label for="filtroTipoRecurso">Tipo de Recurso:</label>
+                            <select id="filtroTipoRecurso" onchange="cambiarTipoRecurso()">
+                                <option value="insumo">📦 Insumos</option>
+                                <option value="papeleria">📝 Papelería</option>
+                            </select>
+                        </div>
+
                         <select id="filtroCategoria" onchange="filtrarInventario()">
                             <option value="">📂 Todas las categorías</option>
                             <!-- Se cargan dinámicamente -->

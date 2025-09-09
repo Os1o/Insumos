@@ -1380,6 +1380,18 @@
     transform: none !important;
 }
 
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filtro-grupo label {
+    font-weight: 500;
+    color: #657153;
+    font-size: 0.9rem;
+}
+
 
 
 
