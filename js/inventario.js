@@ -10,6 +10,8 @@ let categoriasPapeleriaData = [];
 let movimientosData = [];
 let currentSuperAdmin = null;
 let tipoRecursoActual = 'insumo'; // 'insumo' o 'papeleria'
+let tipoItemActual = 'insumo'; // 'insumo' o 'papeleria'
+
 
 // Configuración Supabase - INICIALIZACIÓN INMEDIATA
 const supabaseInventario = window.supabase.createClient(
@@ -1293,26 +1295,94 @@ function configurarEventListeners() {
 }
 
 
-function abrirModalNuevoInsumo() {
-    // Cargar categorías en el select
-    cargarCategoriasEnSelect('categoriaInsumo');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ===================================
+// FUNCIÓN PARA ABRIR MODAL DINÁMICO
+// ===================================
+
+function abrirModalNuevoItem(tipo = 'insumo') {
+    tipoItemActual = tipo;
     
-    document.getElementById('nuevoInsumoModal').style.display = 'flex';
+    // Actualizar título y textos del modal según el tipo
+    actualizarTextoModal(tipo);
+    
+    // Cargar categorías según el tipo
+    if (tipo === 'papeleria') {
+        cargarCategoriasEnSelect('categoriaItem', 'categorias_papeleria');
+    } else {
+        cargarCategoriasEnSelect('categoriaItem', 'categorias_insumos');
+    }
+    
+    document.getElementById('nuevoItemModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
-function cerrarModalNuevoInsumo() {
-    document.getElementById('nuevoInsumoModal').style.display = 'none';
+function cerrarModalNuevoItem() {
+    document.getElementById('nuevoItemModal').style.display = 'none';
     document.body.style.overflow = '';
     
     // Limpiar formulario
-    document.getElementById('nuevoInsumoForm').reset();
+    document.getElementById('nuevoItemForm').reset();
+    tipoItemActual = 'insumo'; // Reset por defecto
 }
 
-async function cargarCategoriasEnSelect(selectId) {
+// ===================================
+// FUNCIÓN PARA ACTUALIZAR TEXTOS DEL MODAL
+// ===================================
+
+function actualizarTextoModal(tipo) {
+    const esPapeleria = tipo === 'papeleria';
+    
+    // Actualizar título del modal
+    const titulo = document.getElementById('tituloModalItem');
+    if (titulo) {
+        titulo.textContent = esPapeleria ? '📝 Nuevo Item de Papelería' : '📦 Nuevo Insumo';
+    }
+    
+    // Actualizar placeholder del nombre
+    const nombreInput = document.getElementById('nombreItem');
+    if (nombreInput) {
+        nombreInput.placeholder = esPapeleria ? 'Ej: Hojas Bond Carta' : 'Ej: Agua Bonafont 1.2L';
+    }
+    
+    // Actualizar label de categoría
+    const labelCategoria = document.querySelector('label[for="categoriaItem"]');
+    if (labelCategoria) {
+        labelCategoria.textContent = esPapeleria ? 'Categoría de Papelería:' : 'Categoría de Insumo:';
+    }
+    
+    // Actualizar texto del botón
+    const btnConfirmar = document.getElementById('btnConfirmarNuevoItem');
+    if (btnConfirmar) {
+        btnConfirmar.innerHTML = esPapeleria ? '📝 Crear Item de Papelería' : '📦 Crear Insumo';
+    }
+}
+
+// ===================================
+// FUNCIÓN ADAPTADA PARA CARGAR CATEGORÍAS
+// ===================================
+
+async function cargarCategoriasEnSelect(selectId, tablaCategoria = 'categorias_insumos') {
     try {
         const { data: categorias, error } = await supabaseInventario
-            .from('categorias_insumos')
+            .from(tablaCategoria)
             .select('id, nombre')
             .eq('activo', true)
             .order('nombre');
@@ -1325,7 +1395,8 @@ async function cargarCategoriasEnSelect(selectId) {
             return;
         }
         
-        let html = '<option value="">Seleccionar categoría...</option>';
+        const esPapeleria = tablaCategoria === 'categorias_papeleria';
+        let html = `<option value="">Seleccionar ${esPapeleria ? 'categoría de papelería' : 'categoría de insumo'}...</option>`;
         
         categorias.forEach(categoria => {
             html += `<option value="${categoria.id}">${categoria.nombre}</option>`;
@@ -1339,15 +1410,19 @@ async function cargarCategoriasEnSelect(selectId) {
     }
 }
 
-async function confirmarNuevoInsumo() {
+// ===================================
+// FUNCIÓN PRINCIPAL ADAPTADA
+// ===================================
+
+async function confirmarNuevoItem() {
     try {
-        const nombre = document.getElementById('nombreInsumo').value.trim();
-        const descripcion = document.getElementById('descripcionInsumo').value.trim();
-        const categoriaId = document.getElementById('categoriaInsumo').value;
-        const unidad = document.getElementById('unidadInsumo').value;
+        const nombre = document.getElementById('nombreItem').value.trim();
+        const descripcion = document.getElementById('descripcionItem').value.trim();
+        const categoriaId = document.getElementById('categoriaItem').value;
+        const unidad = document.getElementById('unidadItem').value;
         const stockInicial = parseInt(document.getElementById('stockInicial').value) || 0;
         const stockMinimo = parseInt(document.getElementById('stockMinimo').value);
-        const visibilidad = document.getElementById('visibilidadInsumo').value;
+        const visibilidad = document.getElementById('visibilidadItem').value;
         
         // Validaciones
         if (!nombre || !categoriaId || !unidad || !stockMinimo) {
@@ -1360,13 +1435,17 @@ async function confirmarNuevoInsumo() {
             return;
         }
         
-        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
+        const btnConfirmar = document.getElementById('btnConfirmarNuevoItem');
         btnConfirmar.disabled = true;
         btnConfirmar.innerHTML = '⏳ Creando...';
         
-        // Crear nuevo insumo
-        const { data: nuevoInsumo, error } = await supabaseInventario
-            .from('insumos')
+        // Determinar qué tabla usar
+        const tabla = tipoItemActual === 'papeleria' ? 'papeleria' : 'insumos';
+        const nombreTipo = tipoItemActual === 'papeleria' ? 'item de papelería' : 'insumo';
+        
+        // Crear nuevo item
+        const { data: nuevoItem, error } = await supabaseInventario
+            .from(tabla)
             .insert({
                 nombre: nombre,
                 descripcion: descripcion || null,
@@ -1385,32 +1464,185 @@ async function confirmarNuevoInsumo() {
         
         // Registrar movimiento inicial si hay stock
         if (stockInicial > 0) {
+            const movimientoData = {
+                tipo_movimiento: 'restock',
+                cantidad: stockInicial,
+                stock_anterior: 0,
+                stock_nuevo: stockInicial,
+                motivo: `Stock inicial al crear ${nombreTipo}`,
+                admin_id: currentSuperAdmin.id
+            };
+            
+            // Agregar el ID correcto según el tipo
+            if (tipoItemActual === 'papeleria') {
+                movimientoData.papeleria_id = nuevoItem.id;
+                movimientoData.insumo_id = null;
+            } else {
+                movimientoData.insumo_id = nuevoItem.id;
+                movimientoData.papeleria_id = null;
+            }
+            
             await supabaseInventario
                 .from('inventario_movimientos')
-                .insert({
-                    insumo_id: nuevoInsumo.id,
-                    tipo_movimiento: 'restock',
-                    cantidad: stockInicial,
-                    stock_anterior: 0,
-                    stock_nuevo: stockInicial,
-                    motivo: 'Stock inicial al crear insumo',
-                    admin_id: currentSuperAdmin.id
-                });
+                .insert(movimientoData);
         }
         
-        showNotificationInventario(`Insumo "${nombre}" creado exitosamente`, 'success');
-        cerrarModalNuevoInsumo();
+        showNotificationInventario(`${nombreTipo.charAt(0).toUpperCase() + nombreTipo.slice(1)} "${nombre}" creado exitosamente`, 'success');
+        cerrarModalNuevoItem();
         await cargarDatosInventario();
         
     } catch (error) {
-        console.error('Error creando insumo:', error);
-        showNotificationInventario('Error al crear el insumo', 'error');
+        console.error('Error creando item:', error);
+        showNotificationInventario(`Error al crear el ${tipoItemActual === 'papeleria' ? 'item de papelería' : 'insumo'}`, 'error');
         
-        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
+        const btnConfirmar = document.getElementById('btnConfirmarNuevoItem');
         btnConfirmar.disabled = false;
-        btnConfirmar.innerHTML = '🆕 Crear Insumo';
+        const esPapeleria = tipoItemActual === 'papeleria';
+        btnConfirmar.innerHTML = esPapeleria ? '📝 Crear Item de Papelería' : '📦 Crear Insumo';
     }
 }
+
+// ===================================
+// FUNCIÓN PARA CAMBIAR TIPO DE RECURSO
+// ===================================
+
+function cambiarTipoRecurso() {
+    const select = document.getElementById('filtroTipoRecurso');
+    const tipoSeleccionado = select.value;
+    
+    // Actualizar botón "Nuevo" dinámicamente
+    const btnNuevo = document.querySelector('.btn-admin-primary');
+    if (btnNuevo) {
+        if (tipoSeleccionado === 'papeleria') {
+            btnNuevo.innerHTML = '📝 Nueva Papelería';
+            btnNuevo.onclick = () => abrirModalNuevoItem('papeleria');
+        } else {
+            btnNuevo.innerHTML = '📦 Nuevo Insumo';
+            btnNuevo.onclick = () => abrirModalNuevoItem('insumo');
+        }
+    }
+    
+    // Recargar datos del inventario según el tipo
+    cargarDatosInventarioPorTipo(tipoSeleccionado);
+    
+    console.log('🔄 Tipo de recurso cambiado a:', tipoSeleccionado);
+}
+
+// ===================================
+// FUNCIÓN AUXILIAR PARA CARGAR DATOS POR TIPO
+// ===================================
+
+async function cargarDatosInventarioPorTipo(tipo = 'insumo') {
+    try {
+        mostrarLoadingInventario(true);
+        
+        if (tipo === 'papeleria') {
+            // Cargar papelería con sus categorías
+            const { data: inventario, error: invError } = await supabaseInventario
+                .from('papeleria')
+                .select(`
+                    *,
+                    categorias_papeleria(id, nombre, icono, color)
+                `)
+                .order('nombre');
+            
+            if (invError) throw invError;
+            
+            // Cargar categorías de papelería
+            const { data: categorias, error: catError } = await supabaseInventario
+                .from('categorias_papeleria')
+                .select('*')
+                .eq('activo', true)
+                .order('orden');
+            
+            if (catError) throw catError;
+            
+            inventarioData = inventario || [];
+            categoriasData = categorias || [];
+            
+        } else {
+            // Cargar insumos (código existente)
+            const { data: inventario, error: invError } = await supabaseInventario
+                .from('insumos')
+                .select(`
+                    *,
+                    categorias_insumos(id, nombre, icono, color)
+                `)
+                .order('nombre');
+            
+            if (invError) throw invError;
+            
+            const { data: categorias, error: catError } = await supabaseInventario
+                .from('categorias_insumos')
+                .select('*')
+                .eq('activo', true)
+                .order('orden');
+            
+            if (catError) throw catError;
+            
+            inventarioData = inventario || [];
+            categoriasData = categorias || [];
+        }
+        
+        console.log('✅ Datos cargados:', inventarioData.length, tipo);
+        
+        // Renderizar datos
+        await renderizarInventario();
+        await cargarMovimientosRecientes();
+        actualizarEstadisticasInventario();
+        cargarFiltrosCategorias();
+        
+        mostrarLoadingInventario(false);
+        
+    } catch (error) {
+        console.error('Error cargando inventario:', error);
+        mostrarError(`Error cargando datos de ${tipo}`);
+        mostrarLoadingInventario(false);
+    }
+}
+
+// ===================================
+// INICIALIZACIÓN
+// ===================================
+
+// Al cargar la página, configurar el filtro de tipo de recurso
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar el evento change del select si existe
+    const filtroTipoRecurso = document.getElementById('filtroTipoRecurso');
+    if (filtroTipoRecurso) {
+        filtroTipoRecurso.addEventListener('change', cambiarTipoRecurso);
+        
+        // Configurar estado inicial
+        cambiarTipoRecurso();
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
