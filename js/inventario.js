@@ -1400,6 +1400,7 @@ async function cargarCategoriasEnSelect(selectId, tablaCategoria = 'categorias_i
         const select = document.getElementById(selectId);
         if (!select) {
             console.error('❌ Select no encontrado:', selectId);
+            console.log('🔍 Elementos disponibles:', document.querySelectorAll('select'));
             return;
         }
 
