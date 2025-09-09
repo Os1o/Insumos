@@ -26,9 +26,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     await cargarHeaderAdmin();
     await cargarFooter();
-
-
-    cargarFooter();
     try {
         // 1. Verificar permisos
         currentSuperAdmin = verificarPermisosSuperAdmin();
@@ -1296,7 +1293,7 @@ function configurarEventListeners() {
 }
 
 
-/*
+
 // ===================================
 // CARGAR HEADER ADMIN ESPECÍFICO
 // ===================================
@@ -1395,84 +1392,10 @@ async function cargarFooter() {
 document.addEventListener('DOMContentLoaded', function() {
     cargarHeaderAdmin();
     cargarFooter();
-});*/
+});
 
 
-// ===================================
-// CARGA DEL HEADER DINÁMICO
-// ===================================
 
-// Función para cargar el header
-async function cargarHeaderAdmin() {
-    try {
-        const response = await fetch('includes/headerAdmin.html');
-        if (!response.ok) throw new Error('Error cargando header');
-
-        const html = await response.text();
-        const headerContainer = document.getElementById('header-container');
-
-        if (headerContainer) {
-            headerContainer.innerHTML = html;
-            console.log('Header administrativo cargado');
-
-            // Inicializar después de cargar el HTML
-            setTimeout(inicializarHeaderAdmin, 100);
-        }
-    } catch (error) {
-        console.error('Error cargando header administrativo:', error);
-        // Fallback básico
-        const headerContainer = document.getElementById('header-container');
-        if (headerContainer) {
-            headerContainer.innerHTML = `
-                <header class="header">
-                    <div class="container">
-                        <div class="header-content">
-                            <div class="logo-section">
-                                <h1>Panel de Administración</h1>
-                            </div>
-                            <div class="user-section">
-                                <span class="user-name">Usuario</span>
-                                <a href="login.html" style="margin-left: 1rem;">Cerrar Sesión</a>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-            `;
-        }
-    }
-}
-
-// ===================================
-// CARGA DEL FOOTER
-// ===================================
-
-async function cargarFooter() {
-    try {
-        const response = await fetch('includes/footerAdmin.html');
-        if (!response.ok) throw new Error('Error cargando footer');
-
-        const html = await response.text();
-        const footerContainer = document.getElementById('footer-container');
-
-        if (footerContainer) {
-            footerContainer.innerHTML = html;
-            console.log('Footer cargado correctamente');
-        }
-    } catch (error) {
-        console.error('Error cargando footer:', error);
-        // Footer básico si hay error
-        const footerContainer = document.getElementById('footer-container');
-        if (footerContainer) {
-            footerContainer.innerHTML = `
-                <footer>
-                    <div class="container">
-                        <p>&copy; ${new Date().getFullYear()} Sistema de Administración</p>
-                    </div>
-                </footer>
-            `;
-        }
-    }
-}
 
 
 // Alias para mantener compatibilidad
