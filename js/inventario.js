@@ -1,13 +1,15 @@
 /* ===================================
-   SISTEMA DE INVENTARIO COMPLETO - inventario.js
-   Gestión completa de stock, restock y reportes
+   SISTEMA DE INVENTARIO POLIMÓRFICO - inventario.js
+   Gestión completa de insumos y papelería
    =================================== */
 
-// Variables globales
+// Variables globales expandidas
 let inventarioData = [];
 let categoriasData = [];
+let categoriasPapeleriaData = [];
 let movimientosData = [];
 let currentSuperAdmin = null;
+let tipoRecursoActual = 'insumo'; // 'insumo' o 'papeleria'
 
 // Configuración Supabase - INICIALIZACIÓN INMEDIATA
 const supabaseInventario = window.supabase.createClient(
@@ -20,7 +22,7 @@ const supabaseInventario = window.supabase.createClient(
 // ===================================
 
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🔄 Inicializando sistema de inventario...');
+    console.log('🔄 Inicializando sistema de inventario polimórfico...');
     
     try {
         // 1. Verificar permisos
@@ -33,7 +35,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 3. Configurar event listeners
         configurarEventListeners();
         
-        console.log('✅ Sistema de inventario inicializado correctamente');
+        // 4. Agregar selector de tipo de recurso
+        agregarSelectorTipoRecurso();
+        
+        console.log('✅ Sistema de inventario polimórfico inicializado correctamente');
         
     } catch (error) {
         console.error('❌ Error inicializando inventario:', error);
@@ -63,39 +68,23 @@ function verificarPermisosSuperAdmin() {
 }
 
 // ===================================
-// CARGA DE DATOS (CORREGIDA)
+// CARGA DE DATOS POLIMÓRFICA
 // ===================================
 
 async function cargarDatosInventario() {
     try {
         mostrarLoadingInventario(true);
         
-        console.log('📦 Cargando datos de inventario...');
+        console.log(`📦 Cargando datos de ${tipoRecursoActual}...`);
         
-        // Cargar inventario con categorías
-        const { data: inventario, error: invError } = await supabaseInventario
-            .from('insumos')
-            .select(`
-                *,
-                categorias_insumos(id, nombre, icono, color)
-            `)
-            .order('nombre');
+        // Cargar ambos tipos de categorías
+        await Promise.all([
+            cargarCategoriasInsumos(),
+            cargarCategoriasPapeleria()
+        ]);
         
-        if (invError) throw invError;
-        
-        // Cargar categorías
-        const { data: categorias, error: catError } = await supabaseInventario
-            .from('categorias_insumos')
-            .select('*')
-            .eq('activo', true)
-            .order('orden');
-        
-        if (catError) throw catError;
-        
-        inventarioData = inventario || [];
-        categoriasData = categorias || [];
-        
-        console.log('✅ Datos cargados:', inventarioData.length, 'insumos');
+        // Cargar inventario según tipo actual
+        await cargarInventarioActual();
         
         // Renderizar datos
         await renderizarInventario();
@@ -111,8 +100,143 @@ async function cargarDatosInventario() {
         mostrarLoadingInventario(false);
     }
 }
+
+async function cargarCategoriasInsumos() {
+    try {
+        const { data: categorias, error } = await supabaseInventario
+            .from('categorias_insumos')
+            .select('*')
+            .eq('activo', true)
+            .order('orden');
+        
+        if (error) throw error;
+        categoriasData = categorias || [];
+        
+    } catch (error) {
+        console.error('Error cargando categorías de insumos:', error);
+    }
+}
+
+async function cargarCategoriasPapeleria() {
+    try {
+        const { data: categorias, error } = await supabaseInventario
+            .from('categorias_papeleria')
+            .select('*')
+            .eq('activo', true)
+            .order('orden');
+        
+        if (error) throw error;
+        categoriasPapeleriaData = categorias || [];
+        
+    } catch (error) {
+        console.error('Error cargando categorías de papelería:', error);
+    }
+}
+
+async function cargarInventarioActual() {
+    try {
+        let query, data, error;
+        
+        if (tipoRecursoActual === 'papeleria') {
+            // Consulta para papelería
+            ({ data, error } = await supabaseInventario
+                .from('papeleria')
+                .select(`
+                    *,
+                    categorias_papeleria(id, nombre, icono, color)
+                `)
+                .order('nombre'));
+        } else {
+            // Consulta para insumos
+            ({ data, error } = await supabaseInventario
+                .from('insumos')
+                .select(`
+                    *,
+                    categorias_insumos(id, nombre, icono, color)
+                `)
+                .order('nombre'));
+        }
+        
+        if (error) throw error;
+        
+        inventarioData = data || [];
+        console.log(`✅ Datos cargados: ${inventarioData.length} items de ${tipoRecursoActual}`);
+        
+    } catch (error) {
+        console.error('Error cargando inventario actual:', error);
+        throw error;
+    }
+}
+
 // ===================================
-// RENDERIZADO DE INVENTARIO
+// SELECTOR DE TIPO DE RECURSO
+// ===================================
+
+function agregarSelectorTipoRecurso() {
+    // Buscar el contenedor de filtros existente
+    const filtrosContainer = document.querySelector('.inventario-filtros');
+    if (!filtrosContainer) return;
+    
+    // Verificar si ya existe el selector
+    if (document.getElementById('filtroTipoRecurso')) return;
+    
+    // Crear selector de tipo de recurso
+    const selectorContainer = document.createElement('div');
+    selectorContainer.className = 'filtro-grupo';
+    selectorContainer.innerHTML = `
+        <label for="filtroTipoRecurso">Tipo de Recurso:</label>
+        <select id="filtroTipoRecurso" onchange="cambiarTipoRecurso()">
+            <option value="insumo">📦 Insumos</option>
+            <option value="papeleria">📝 Papelería</option>
+        </select>
+    `;
+    
+    // Insertar al inicio de los filtros
+    filtrosContainer.insertBefore(selectorContainer, filtrosContainer.firstChild);
+}
+
+async function cambiarTipoRecurso() {
+    const selector = document.getElementById('filtroTipoRecurso');
+    if (!selector) return;
+    
+    tipoRecursoActual = selector.value;
+    
+    console.log(`🔄 Cambiando a tipo de recurso: ${tipoRecursoActual}`);
+    
+    // Limpiar filtros
+    limpiarFiltros();
+    
+    // Actualizar título de la página
+    actualizarTituloSeccion();
+    
+    // Recargar datos
+    await cargarInventarioActual();
+    await renderizarInventario();
+    actualizarEstadisticasInventario();
+    
+    // Actualizar filtro de categorías
+    cargarFiltrosCategorias();
+}
+
+function actualizarTituloSeccion() {
+    const titulo = document.querySelector('.inventario-header h2');
+    if (titulo) {
+        titulo.textContent = tipoRecursoActual === 'papeleria' 
+            ? '📝 Gestión de Inventario - Papelería' 
+            : '📦 Gestión de Inventario - Insumos';
+    }
+}
+
+function limpiarFiltros() {
+    const filtros = ['filtroCategoria', 'filtroEstadoStock', 'filtroVisibilidad'];
+    filtros.forEach(filtroId => {
+        const filtro = document.getElementById(filtroId);
+        if (filtro) filtro.value = '';
+    });
+}
+
+// ===================================
+// RENDERIZADO POLIMÓRFICO
 // ===================================
 
 async function renderizarInventario() {
@@ -124,47 +248,51 @@ async function renderizarInventario() {
     let html = '';
     let alertas = [];
     
-    inventarioData.forEach(insumo => {
-        const categoria = insumo.categorias_insumos;
-        const stockStatus = getStockStatus(insumo.stock_actual, insumo.cantidad_warning);
+    inventarioData.forEach(item => {
+        // Manejar categoría polimórfica
+        const categoria = tipoRecursoActual === 'papeleria' 
+            ? item.categorias_papeleria 
+            : item.categorias_insumos;
+            
+        const stockStatus = getStockStatus(item.stock_actual, item.cantidad_warning);
         const estadoClass = getStockStatusClass(stockStatus);
-        const accesoTipo = insumo.acceso_tipo || 'todos';
+        const accesoTipo = item.acceso_tipo || 'todos';
         
-        // Verificar alertas de stock crítico (solo insumos activos)
-        if (stockStatus === 'critico' && insumo.activo) {
+        // Verificar alertas de stock crítico (solo items activos)
+        if (stockStatus === 'critico' && item.activo) {
             alertas.push({
-                id: insumo.id,
-                nombre: insumo.nombre,
-                stock: insumo.stock_actual,
-                minimo: insumo.cantidad_warning
+                id: item.id,
+                nombre: item.nombre,
+                stock: item.stock_actual,
+                minimo: item.cantidad_warning
             });
         }
         
         // Aplicar clase de inactivo si corresponde
-        const trClass = !insumo.activo ? 'insumo-inactivo' : '';
+        const trClass = !item.activo ? 'insumo-inactivo' : '';
         
         html += `
-            <tr data-insumo="${insumo.id}" class="${trClass}">
+            <tr data-item="${item.id}" data-tipo="${tipoRecursoActual}" class="${trClass}">
                 <td>
                     <div class="insumo-info">
-                        <strong>${insumo.nombre}</strong>
-                        ${insumo.descripcion ? `<br><small>${insumo.descripcion}</small>` : ''}
-                        ${!insumo.activo ? `<br><small style="color: #e74c3c;">❌ INACTIVO</small>` : ''}
+                        <strong>${item.nombre}</strong>
+                        ${item.descripcion ? `<br><small>${item.descripcion}</small>` : ''}
+                        ${!item.activo ? `<br><small style="color: #e74c3c;">❌ INACTIVO</small>` : ''}
                     </div>
                 </td>
                 <td>
                     <div class="categoria-badge" style="background: ${categoria?.color || '#657153'}20; color: ${categoria?.color || '#657153'}">
-                        ${categoria?.icono || '📦'} ${categoria?.nombre || 'Sin categoría'}
+                        ${categoria?.icono || (tipoRecursoActual === 'papeleria' ? '📝' : '📦')} ${categoria?.nombre || 'Sin categoría'}
                     </div>
                 </td>
                 <td class="text-center">
-                    <span class="stock-numero ${insumo.stock_actual <= insumo.cantidad_warning ? 'stock-bajo' : ''}">${insumo.stock_actual}</span>
+                    <span class="stock-numero ${item.stock_actual <= item.cantidad_warning ? 'stock-bajo' : ''}">${item.stock_actual}</span>
                 </td>
-                <td class="text-center">${insumo.cantidad_warning}</td>
+                <td class="text-center">${item.cantidad_warning}</td>
                 <td class="text-center">
                     <span class="stock-status ${estadoClass}">${stockStatus.toUpperCase()}</span>
                 </td>
-                <td class="text-center">${insumo.unidad_medida}</td>
+                <td class="text-center">${item.unidad_medida}</td>
                 <td class="text-center">
                     <span class="visibilidad-badge ${getVisibilidadClass(accesoTipo)}">
                         ${getVisibilidadLabel(accesoTipo)}
@@ -172,13 +300,13 @@ async function renderizarInventario() {
                 </td>
                 <td class="text-center">
                     <div class="acciones-inventario">
-                        <button class="btn-inventario-action" onclick="abrirModalRestock('${insumo.id}')" title="Agregar Stock" ${!insumo.activo ? 'disabled style="opacity: 0.5;"' : ''}>
+                        <button class="btn-inventario-action" onclick="abrirModalRestock('${item.id}')" title="Agregar Stock" ${!item.activo ? 'disabled style="opacity: 0.5;"' : ''}>
                             ➕
                         </button>
-                        <button class="btn-inventario-action" onclick="verHistorialInsumo('${insumo.id}')" title="Ver Historial">
+                        <button class="btn-inventario-action" onclick="verHistorialItem('${item.id}')" title="Ver Historial">
                             📊
                         </button>
-                        <button class="btn-inventario-action" onclick="editarInsumo('${insumo.id}')" title="Editar">
+                        <button class="btn-inventario-action" onclick="editarItem('${item.id}')" title="Editar">
                             ✏️
                         </button>
                     </div>
@@ -193,42 +321,20 @@ async function renderizarInventario() {
     const alertasSection = document.getElementById('alertasInventario');
     if (alertas.length > 0) {
         mostrarAlertas(alertas);
-        alertasSection.style.display = 'block';
+        if (alertasSection) alertasSection.style.display = 'block';
     } else {
-        alertasSection.style.display = 'none';
+        if (alertasSection) alertasSection.style.display = 'none';
     }
     
     document.getElementById('tablaInventario').style.display = 'block';
 }
 
 // ===================================
-// FUNCIONES DE VISIBILIDAD
-// ===================================
-
-function getVisibilidadLabel(accesoTipo) {
-    const labels = {
-        'todos': '👥 Todos',
-        'solo_direccion': '🏢 Solo Dirección',
-        'ninguno': '🚫 Ninguno'
-    };
-    return labels[accesoTipo] || accesoTipo || 'todos';
-}
-
-function getVisibilidadClass(accesoTipo) {
-    const classes = {
-        'todos': 'visibilidad-todos',
-        'solo_direccion': 'visibilidad-solo_direccion', 
-        'ninguno': 'visibilidad-ninguno'
-    };
-    return classes[accesoTipo] || 'visibilidad-todos';
-}
-
-// ===================================
-// ESTADÍSTICAS
+// ESTADÍSTICAS POLIMÓRFICAS
 // ===================================
 
 function actualizarEstadisticasInventario() {
-    const totalInsumos = inventarioData.length;
+    const totalItems = inventarioData.length;
     const stockCritico = inventarioData.filter(item => 
         getStockStatus(item.stock_actual, item.cantidad_warning) === 'critico' && item.activo
     ).length;
@@ -241,21 +347,25 @@ function actualizarEstadisticasInventario() {
         if (element) element.textContent = value;
     };
 
-    updateElement('totalInsumos', totalInsumos);
+    updateElement('totalInsumos', totalItems);
     updateElement('stockCritico', stockCritico);
     updateElement('totalActivos', totalActivos);
 }
 
 // ===================================
-// FILTROS Y BÚSQUEDAS
+// FILTROS POLIMÓRFICOS
 // ===================================
 
 function cargarFiltrosCategorias() {
     const select = document.getElementById('filtroCategoria');
     if (!select) return;
     
+    const categorias = tipoRecursoActual === 'papeleria' 
+        ? categoriasPapeleriaData 
+        : categoriasData;
+    
     let html = '<option value="">📂 Todas las categorías</option>';
-    categoriasData.forEach(categoria => {
+    categorias.forEach(categoria => {
         html += `<option value="${categoria.id}">${categoria.icono} ${categoria.nombre}</option>`;
     });
     
@@ -295,7 +405,8 @@ function filtrarInventario() {
         });
     }
     
-    console.log('📊 Resultados del filtro:', inventarioFiltrado.length, 'insumos');
+    const tipoTexto = tipoRecursoActual === 'papeleria' ? 'papelería' : 'insumos';
+    console.log(`📊 Resultados del filtro: ${inventarioFiltrado.length} items de ${tipoTexto}`);
     renderizarInventarioFiltrado(inventarioFiltrado);
 }
 
@@ -304,38 +415,43 @@ function renderizarInventarioFiltrado(items) {
     if (!tableBody) return;
     
     if (items.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No se encontraron insumos</td></tr>';
+        const tipoTexto = tipoRecursoActual === 'papeleria' ? 'papelería' : 'insumos';
+        tableBody.innerHTML = `<tr><td colspan="8" class="text-center">No se encontraron items de ${tipoTexto}</td></tr>`;
         return;
     }
     
     let html = '';
-    items.forEach(insumo => {
-        const categoria = insumo.categorias_insumos;
-        const stockStatus = getStockStatus(insumo.stock_actual, insumo.cantidad_warning);
+    items.forEach(item => {
+        // Manejar categoría polimórfica
+        const categoria = tipoRecursoActual === 'papeleria' 
+            ? item.categorias_papeleria 
+            : item.categorias_insumos;
+            
+        const stockStatus = getStockStatus(item.stock_actual, item.cantidad_warning);
         const estadoClass = getStockStatusClass(stockStatus);
-        const accesoTipo = insumo.acceso_tipo || 'todos';
+        const accesoTipo = item.acceso_tipo || 'todos';
         
         html += `
-            <tr data-insumo="${insumo.id}">
+            <tr data-item="${item.id}" data-tipo="${tipoRecursoActual}">
                 <td>
                     <div class="insumo-info">
-                        <strong>${insumo.nombre}</strong>
-                        ${insumo.descripcion ? `<br><small>${insumo.descripcion}</small>` : ''}
+                        <strong>${item.nombre}</strong>
+                        ${item.descripcion ? `<br><small>${item.descripcion}</small>` : ''}
                     </div>
                 </td>
                 <td>
                     <div class="categoria-badge" style="background: ${categoria?.color || '#657153'}20; color: ${categoria?.color || '#657153'}">
-                        ${categoria?.icono || '📦'} ${categoria?.nombre || 'Sin categoría'}
+                        ${categoria?.icono || (tipoRecursoActual === 'papeleria' ? '📝' : '📦')} ${categoria?.nombre || 'Sin categoría'}
                     </div>
                 </td>
                 <td class="text-center">
-                    <span class="stock-numero ${insumo.stock_actual <= insumo.cantidad_warning ? 'stock-bajo' : ''}">${insumo.stock_actual}</span>
+                    <span class="stock-numero ${item.stock_actual <= item.cantidad_warning ? 'stock-bajo' : ''}">${item.stock_actual}</span>
                 </td>
-                <td class="text-center">${insumo.cantidad_warning}</td>
+                <td class="text-center">${item.cantidad_warning}</td>
                 <td class="text-center">
                     <span class="stock-status ${estadoClass}">${stockStatus.toUpperCase()}</span>
                 </td>
-                <td class="text-center">${insumo.unidad_medida}</td>
+                <td class="text-center">${item.unidad_medida}</td>
                 <td class="text-center">
                     <span class="visibilidad-badge ${getVisibilidadClass(accesoTipo)}">
                         ${getVisibilidadLabel(accesoTipo)}
@@ -343,13 +459,13 @@ function renderizarInventarioFiltrado(items) {
                 </td>
                 <td class="text-center">
                     <div class="acciones-inventario">
-                        <button class="btn-inventario-action" onclick="abrirModalRestock('${insumo.id}')" title="Agregar Stock">
+                        <button class="btn-inventario-action" onclick="abrirModalRestock('${item.id}')" title="Agregar Stock">
                             ➕
                         </button>
-                        <button class="btn-inventario-action" onclick="verHistorialInsumo('${insumo.id}')" title="Ver Historial">
+                        <button class="btn-inventario-action" onclick="verHistorialItem('${item.id}')" title="Ver Historial">
                             📊
                         </button>
-                        <button class="btn-inventario-action" onclick="editarInsumo('${insumo.id}')" title="Editar">
+                        <button class="btn-inventario-action" onclick="editarItem('${item.id}')" title="Editar">
                             ✏️
                         </button>
                     </div>
@@ -362,20 +478,20 @@ function renderizarInventarioFiltrado(items) {
 }
 
 // ===================================
-// MODAL DE RESTOCK
+// MODAL DE RESTOCK POLIMÓRFICO
 // ===================================
 
-function abrirModalRestock(insumoId) {
-    const insumo = inventarioData.find(i => i.id == insumoId);
-    if (!insumo) return;
+function abrirModalRestock(itemId) {
+    const item = inventarioData.find(i => i.id == itemId);
+    if (!item) return;
     
-    // Cargar opciones de insumos en el select
-    cargarInsumosEnSelect();
+    // Cargar opciones de items en el select
+    cargarItemsEnSelect();
     
-    // Pre-seleccionar el insumo si viene de un botón específico
-    if (insumoId) {
+    // Pre-seleccionar el item si viene de un botón específico
+    if (itemId) {
         setTimeout(() => {
-            document.getElementById('insumoSelect').value = insumoId;
+            document.getElementById('insumoSelect').value = itemId;
             actualizarInfoInsumo();
         }, 100);
     }
@@ -384,75 +500,33 @@ function abrirModalRestock(insumoId) {
     document.body.style.overflow = 'hidden';
 }
 
-function cargarInsumosEnSelect() {
+function cargarItemsEnSelect() {
     const select = document.getElementById('insumoSelect');
     if (!select) return;
     
-    let html = '<option value="">Seleccionar insumo...</option>';
-    inventarioData.forEach(insumo => {
-        const stockStatus = getStockStatus(insumo.stock_actual, insumo.cantidad_warning);
+    const tipoTexto = tipoRecursoActual === 'papeleria' ? 'papelería' : 'insumo';
+    let html = `<option value="">Seleccionar ${tipoTexto}...</option>`;
+    
+    inventarioData.forEach(item => {
+        const stockStatus = getStockStatus(item.stock_actual, item.cantidad_warning);
         const indicador = stockStatus === 'critico' ? '🔴' : stockStatus === 'bajo' ? '🟡' : '🟢';
         
-        html += `<option value="${insumo.id}">${indicador} ${insumo.nombre} (Stock: ${insumo.stock_actual})</option>`;
+        html += `<option value="${item.id}">${indicador} ${item.nombre} (Stock: ${item.stock_actual})</option>`;
     });
     
     select.innerHTML = html;
 }
 
-function actualizarInfoInsumo() {
-    const selectInsumo = document.getElementById('insumoSelect');
-    const insumoId = selectInsumo.value;
-    
-    if (!insumoId) {
-        document.getElementById('insumoInfoCard').style.display = 'none';
-        return;
-    }
-    
-    const insumo = inventarioData.find(i => i.id == insumoId);
-    if (!insumo) return;
-    
-    const accesoTipo = insumo.acceso_tipo || 'todos';
-    
-    document.getElementById('stockActual').textContent = insumo.stock_actual;
-    document.getElementById('stockMinimo').textContent = insumo.cantidad_warning;
-    document.getElementById('unidadMedida').textContent = insumo.unidad_medida;
-    document.getElementById('visibilidadActual').textContent = getVisibilidadLabel(accesoTipo);
-    document.getElementById('insumoInfoCard').style.display = 'block';
-    
-    // Limpiar campos
-    document.getElementById('cantidadAgregar').value = '';
-    document.getElementById('nuevoStockPreview').style.display = 'none';
-}
-
-function calcularNuevoStock() {
-    const selectInsumo = document.getElementById('insumoSelect');
-    const cantidadInput = document.getElementById('cantidadAgregar');
-    const insumoId = selectInsumo.value;
-    const cantidad = parseInt(cantidadInput.value) || 0;
-    
-    if (!insumoId || cantidad === 0) {
-        document.getElementById('nuevoStockPreview').style.display = 'none';
-        return;
-    }
-    
-    const insumo = inventarioData.find(i => i.id == insumoId);
-    if (!insumo) return;
-    
-    const nuevoStock = insumo.stock_actual + cantidad;
-    document.getElementById('nuevoStockCalculado').textContent = nuevoStock;
-    document.getElementById('nuevoStockPreview').style.display = 'block';
-}
-
 async function confirmarRestock() {
     try {
-        const insumoId = document.getElementById('insumoSelect').value;
+        const itemId = document.getElementById('insumoSelect').value;
         const cantidad = parseInt(document.getElementById('cantidadAgregar').value) || 0;
         const tipoMovimiento = document.getElementById('tipoMovimiento').value;
         const motivo = document.getElementById('motivoRestock').value.trim();
         
         // Validaciones
-        if (!insumoId) {
-            showNotificationInventario('Selecciona un insumo', 'warning');
+        if (!itemId) {
+            showNotificationInventario(`Selecciona un ${tipoRecursoActual === 'papeleria' ? 'item de papelería' : 'insumo'}`, 'warning');
             return;
         }
         
@@ -466,10 +540,10 @@ async function confirmarRestock() {
             return;
         }
         
-        const insumo = inventarioData.find(i => i.id == insumoId);
-        if (!insumo) throw new Error('Insumo no encontrado');
+        const item = inventarioData.find(i => i.id == itemId);
+        if (!item) throw new Error('Item no encontrado');
         
-        const stockAnterior = insumo.stock_actual;
+        const stockAnterior = item.stock_actual;
         const stockNuevo = stockAnterior + cantidad;
         
         // Deshabilitar botón
@@ -477,36 +551,47 @@ async function confirmarRestock() {
         btnConfirmar.disabled = true;
         btnConfirmar.innerHTML = '⏳ Procesando...';
         
-        // 1. Actualizar stock en insumos
+        // 1. Actualizar stock en la tabla correspondiente
+        const tabla = tipoRecursoActual === 'papeleria' ? 'papeleria' : 'insumos';
         const { error: stockError } = await supabaseInventario
-            .from('insumos')
+            .from(tabla)
             .update({ 
                 stock_actual: stockNuevo,
                 updated_at: new Date().toISOString()
             })
-            .eq('id', insumoId);
+            .eq('id', itemId);
         
         if (stockError) throw stockError;
         
-        // 2. Registrar movimiento
+        // 2. Registrar movimiento polimórfico
+        const movimientoData = {
+            tipo_movimiento: tipoMovimiento,
+            cantidad: cantidad,
+            stock_anterior: stockAnterior,
+            stock_nuevo: stockNuevo,
+            motivo: motivo,
+            admin_id: currentSuperAdmin.id
+        };
+        
+        // Agregar referencia polimórfica
+        if (tipoRecursoActual === 'papeleria') {
+            movimientoData.papeleria_id = itemId;
+            movimientoData.insumo_id = null;
+        } else {
+            movimientoData.insumo_id = itemId;
+            movimientoData.papeleria_id = null;
+        }
+        
         const { error: movError } = await supabaseInventario
             .from('inventario_movimientos')
-            .insert({
-                insumo_id: insumoId,
-                tipo_movimiento: tipoMovimiento,
-                cantidad: cantidad,
-                stock_anterior: stockAnterior,
-                stock_nuevo: stockNuevo,
-                motivo: motivo,
-                admin_id: currentSuperAdmin.id
-            });
+            .insert(movimientoData);
         
         if (movError) throw movError;
         
         // 3. Actualizar datos locales
-        const insumoIndex = inventarioData.findIndex(i => i.id == insumoId);
-        if (insumoIndex !== -1) {
-            inventarioData[insumoIndex].stock_actual = stockNuevo;
+        const itemIndex = inventarioData.findIndex(i => i.id == itemId);
+        if (itemIndex !== -1) {
+            inventarioData[itemIndex].stock_actual = stockNuevo;
         }
         
         // 4. Actualizar UI
@@ -514,7 +599,7 @@ async function confirmarRestock() {
         actualizarEstadisticasInventario();
         await cargarMovimientosRecientes();
         
-        showNotificationInventario(`Stock actualizado: ${insumo.nombre} (+${cantidad} ${insumo.unidad_medida})`, 'success');
+        showNotificationInventario(`Stock actualizado: ${item.nombre} (+${cantidad} ${item.unidad_medida})`, 'success');
         cerrarModalRestock();
         
     } catch (error) {
@@ -528,43 +613,51 @@ async function confirmarRestock() {
     }
 }
 
-function cerrarModalRestock() {
-    document.getElementById('restockModal').style.display = 'none';
-    document.body.style.overflow = '';
-    
-    // Limpiar formulario
-    document.getElementById('insumoSelect').value = '';
-    document.getElementById('cantidadAgregar').value = '';
-    document.getElementById('tipoMovimiento').value = '';
-    document.getElementById('motivoRestock').value = '';
-    document.getElementById('insumoInfoCard').style.display = 'none';
-    document.getElementById('nuevoStockPreview').style.display = 'none';
-}
-
 // ===================================
-// NUEVO INSUMO
+// EDICIÓN POLIMÓRFICA
 // ===================================
 
-function abrirModalNuevoInsumo() {
-    // Cargar categorías en el select
-    cargarCategoriasEnSelect('categoriaInsumo');
-    
-    document.getElementById('nuevoInsumoModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-function cerrarModalNuevoInsumo() {
-    document.getElementById('nuevoInsumoModal').style.display = 'none';
-    document.body.style.overflow = '';
-    
-    // Limpiar formulario
-    document.getElementById('nuevoInsumoForm').reset();
-}
-
-async function cargarCategoriasEnSelect(selectId) {
+async function editarItem(itemId) {
     try {
+        console.log(`🔄 Intentando editar ${tipoRecursoActual} ID:`, itemId);
+        
+        const item = inventarioData.find(i => i.id == itemId);
+        
+        if (!item) {
+            console.error('❌ Item no encontrado. ID buscado:', itemId);
+            showNotificationInventario('Item no encontrado en los datos cargados', 'error');
+            return;
+        }
+        
+        console.log('✅ Item encontrado:', item.nombre);
+        
+        // Cargar categorías correspondientes en el select
+        await cargarCategoriasEnSelectPorTipo('editarCategoria');
+        
+        // Llenar formulario con datos actuales
+        document.getElementById('editarInsumoId').value = item.id;
+        document.getElementById('editarNombre').value = item.nombre;
+        document.getElementById('editarDescripcion').value = item.descripcion || '';
+        document.getElementById('editarCategoria').value = item.categoria_id;
+        document.getElementById('editarUnidad').value = item.unidad_medida;
+        document.getElementById('editarStockMinimo').value = item.cantidad_warning;
+        document.getElementById('editarVisibilidad').value = item.acceso_tipo || 'todos';
+        document.getElementById('editarActivo').value = item.activo.toString();
+        
+        document.getElementById('editarInsumoModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        console.error('Error preparando edición:', error);
+        showNotificationInventario('Error al cargar datos del item', 'error');
+    }
+}
+
+async function cargarCategoriasEnSelectPorTipo(selectId) {
+    try {
+        const tabla = tipoRecursoActual === 'papeleria' ? 'categorias_papeleria' : 'categorias_insumos';
         const { data: categorias, error } = await supabaseInventario
-            .from('categorias_insumos')
+            .from(tabla)
             .select('id, nombre')
             .eq('activo', true)
             .order('nombre');
@@ -591,140 +684,14 @@ async function cargarCategoriasEnSelect(selectId) {
     }
 }
 
-async function confirmarNuevoInsumo() {
-    try {
-        const nombre = document.getElementById('nombreInsumo').value.trim();
-        const descripcion = document.getElementById('descripcionInsumo').value.trim();
-        const categoriaId = document.getElementById('categoriaInsumo').value;
-        const unidad = document.getElementById('unidadInsumo').value;
-        const stockInicial = parseInt(document.getElementById('stockInicial').value) || 0;
-        const stockMinimo = parseInt(document.getElementById('stockMinimo').value);
-        const visibilidad = document.getElementById('visibilidadInsumo').value;
-        
-        // Validaciones
-        if (!nombre || !categoriaId || !unidad || !stockMinimo) {
-            showNotificationInventario('Completa todos los campos obligatorios', 'warning');
-            return;
-        }
-        
-        if (stockMinimo < 1) {
-            showNotificationInventario('El stock mínimo debe ser al menos 1', 'warning');
-            return;
-        }
-        
-        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
-        btnConfirmar.disabled = true;
-        btnConfirmar.innerHTML = '⏳ Creando...';
-        
-        // Crear nuevo insumo
-        const { data: nuevoInsumo, error } = await supabaseInventario
-            .from('insumos')
-            .insert({
-                nombre: nombre,
-                descripcion: descripcion || null,
-                categoria_id: categoriaId,
-                unidad_medida: unidad,
-                stock_actual: stockInicial,
-                cantidad_warning: stockMinimo,
-                acceso_tipo: visibilidad,
-                activo: true,
-                creado_por: currentSuperAdmin.id
-            })
-            .select()
-            .single();
-        
-        if (error) throw error;
-        
-        // Registrar movimiento inicial si hay stock
-        if (stockInicial > 0) {
-            await supabaseInventario
-                .from('inventario_movimientos')
-                .insert({
-                    insumo_id: nuevoInsumo.id,
-                    tipo_movimiento: 'restock',
-                    cantidad: stockInicial,
-                    stock_anterior: 0,
-                    stock_nuevo: stockInicial,
-                    motivo: 'Stock inicial al crear insumo',
-                    admin_id: currentSuperAdmin.id
-                });
-        }
-        
-        showNotificationInventario(`Insumo "${nombre}" creado exitosamente`, 'success');
-        cerrarModalNuevoInsumo();
-        await cargarDatosInventario();
-        
-    } catch (error) {
-        console.error('Error creando insumo:', error);
-        showNotificationInventario('Error al crear el insumo', 'error');
-        
-        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
-        btnConfirmar.disabled = false;
-        btnConfirmar.innerHTML = '🆕 Crear Insumo';
-    }
-}
-
-// ===================================
-// EDITAR INSUMO
-// ===================================
-
-async function editarInsumo(insumoId) {
-    try {
-        console.log('🔄 Intentando editar insumo ID:', insumoId);
-        console.log('📊 Total de insumos cargados:', inventarioData.length);
-        
-        // Mostrar todos los IDs para debug
-        console.log('📋 IDs de insumos disponibles:', inventarioData.map(i => i.id));
-        
-        // Buscar el insumo - asegurar comparación correcta
-        const insumo = inventarioData.find(i => i.id == insumoId); // == en lugar de ===
-        
-        if (!insumo) {
-            console.error('❌ Insumo no encontrado. ID buscado:', insumoId);
-            console.error('💡 Tip: Verificar que el insumo esté en inventarioData');
-            showNotificationInventario('Insumo no encontrado en los datos cargados', 'error');
-            return;
-        }
-        
-        console.log('✅ Insumo encontrado:', insumo.nombre);
-        
-        // Cargar categorías en el select
-        await cargarCategoriasEnSelect('editarCategoria');
-        
-        // Llenar formulario con datos actuales
-        document.getElementById('editarInsumoId').value = insumo.id;
-        document.getElementById('editarNombre').value = insumo.nombre;
-        document.getElementById('editarDescripcion').value = insumo.descripcion || '';
-        document.getElementById('editarCategoria').value = insumo.categoria_id;
-        document.getElementById('editarUnidad').value = insumo.unidad_medida;
-        document.getElementById('editarStockMinimo').value = insumo.cantidad_warning;
-        document.getElementById('editarVisibilidad').value = insumo.acceso_tipo || 'todos';
-        document.getElementById('editarActivo').value = insumo.activo.toString();
-        
-        document.getElementById('editarInsumoModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-    } catch (error) {
-        console.error('Error preparando edición:', error);
-        showNotificationInventario('Error al cargar datos del insumo', 'error');
-    }
-}
-
-function cerrarModalEditarInsumo() {
-    document.getElementById('editarInsumoModal').style.display = 'none';
-    document.body.style.overflow = '';
-}
-
 async function confirmarEdicionInsumo() {
     const btnConfirmar = document.getElementById('btnConfirmarEdicion');
     
     try {
-        // OBTENER EL ID DEL FORMULARIO - ESTO FALTA
-        const insumoId = document.getElementById('editarInsumoId').value;
+        const itemId = document.getElementById('editarInsumoId').value;
         
-        // Validar que tengamos un ID
-        if (!insumoId) {
-            showNotificationInventario('Error: ID de insumo no encontrado', 'error');
+        if (!itemId) {
+            showNotificationInventario('Error: ID de item no encontrado', 'error');
             return;
         }
 
@@ -750,9 +717,10 @@ async function confirmarEdicionInsumo() {
         btnConfirmar.disabled = true;
         btnConfirmar.innerHTML = '⏳ Guardando...';
         
-        // Actualizar insumo
+        // Actualizar en la tabla correspondiente
+        const tabla = tipoRecursoActual === 'papeleria' ? 'papeleria' : 'insumos';
         const { error } = await supabaseInventario
-            .from('insumos')
+            .from(tabla)
             .update({
                 nombre: nombre,
                 descripcion: descripcion || null,
@@ -763,15 +731,16 @@ async function confirmarEdicionInsumo() {
                 activo: activo,
                 updated_at: new Date().toISOString()
             })
-            .eq('id', insumoId);
+            .eq('id', itemId);
         
         if (error) throw error;
         
-        showNotificationInventario(`Insumo "${nombre}" actualizado exitosamente`, 'success');
+        showNotificationInventario(`${tipoRecursoActual === 'papeleria' ? 'Item de papelería' : 'Insumo'} "${nombre}" actualizado exitosamente`, 'success');
         cerrarModalEditarInsumo();
         
-        // 🔄 ACTUALIZACIÓN: Recargar datos y re-aplicar filtros
-        await cargarDatosInventario();
+        // Recargar datos y re-aplicar filtros
+        await cargarInventarioActual();
+        await renderizarInventario();
         
         const filtroCategoria = document.getElementById('filtroCategoria')?.value || '';
         const filtroEstadoStock = document.getElementById('filtroEstadoStock')?.value || '';
@@ -782,17 +751,16 @@ async function confirmarEdicionInsumo() {
         }
         
     } catch (error) {
-        console.error('Error editando insumo:', error);
-        showNotificationInventario('Error al actualizar el insumo', 'error');
+        console.error('Error editando item:', error);
+        showNotificationInventario('Error al actualizar el item', 'error');
     } finally {
-        // ⚠️ ESTA LÍNEA ES CRÍTICA - Reactivar el botón SIEMPRE
         btnConfirmar.disabled = false;
         btnConfirmar.innerHTML = '💾 Guardar Cambios';
     }
 }
 
 // ===================================
-// REPORTES Y MOVIMIENTOS
+// MOVIMIENTOS POLIMÓRFICOS
 // ===================================
 
 async function cargarMovimientosRecientes() {
@@ -802,6 +770,7 @@ async function cargarMovimientosRecientes() {
             .select(`
                 *,
                 insumos(nombre, unidad_medida),
+                papeleria(nombre, unidad_medida),
                 usuarios:admin_id(nombre)
             `)
             .order('fecha', { ascending: false })
@@ -832,18 +801,22 @@ function renderizarMovimientosRecientes() {
         const cantidad = mov.tipo_movimiento === 'entrega' ? mov.cantidad : Math.abs(mov.cantidad);
         const signo = mov.cantidad > 0 ? '+' : '';
         
+        // Determinar nombre del item (polimórfico)
+        const nombreItem = mov.insumos?.nombre || mov.papeleria?.nombre || 'Item eliminado';
+        const unidadMedida = mov.insumos?.unidad_medida || mov.papeleria?.unidad_medida || '';
+        
         html += `
             <div class="movimiento-item ${mov.tipo_movimiento}">
                 <div class="movimiento-icon">${tipoIcon}</div>
                 <div class="movimiento-info">
                     <div class="movimiento-header">
-                        <strong>${mov.insumos?.nombre || 'Insumo eliminado'}</strong>
+                        <strong>${nombreItem}</strong>
                         <span class="movimiento-fecha">${new Date(mov.fecha).toLocaleDateString()}</span>
                     </div>
                     <div class="movimiento-detalles">
                         <span class="movimiento-tipo">${getTipoMovimientoLabel(mov.tipo_movimiento)}</span>
                         <span class="movimiento-cantidad ${mov.cantidad > 0 ? 'positivo' : 'negativo'}">
-                            ${signo}${cantidad} ${mov.insumos?.unidad_medida || ''}
+                            ${signo}${cantidad} ${unidadMedida}
                         </span>
                     </div>
                     <div class="movimiento-stock">
@@ -859,40 +832,52 @@ function renderizarMovimientosRecientes() {
     });
     
     html += '</div>';
-    
     container.innerHTML = html;
 }
 
-function getTipoMovimientoIcon(tipo) {
-    const icons = {
-        'entrega': '📤',
-        'restock': '📦',
-        'ajuste': '⚙️',
-        'perdida': '⚠️',
-        'donacion': '🎁'
-    };
-    return icons[tipo] || '📊';
-}
-
-function getTipoMovimientoLabel(tipo) {
-    const labels = {
-        'entrega': 'Entrega',
-        'restock': 'Restock',
-        'ajuste': 'Ajuste',
-        'perdida': 'Pérdida',
-        'donacion': 'Donación'
-    };
-    return labels[tipo] || tipo;
-}
-
 // ===================================
-// HISTORIAL COMPLETO
+// HISTORIAL POLIMÓRFICO
 // ===================================
 
-function verHistorialCompleto() {
-    cargarHistorialCompleto();
+function verHistorialItem(itemId) {
+    const item = inventarioData.find(i => i.id == itemId);
+    if (!item) return;
+    
+    cargarHistorialItem(itemId);
     document.getElementById('historialModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
+}
+
+async function cargarHistorialItem(itemId) {
+    try {
+        let query = supabaseInventario
+            .from('inventario_movimientos')
+            .select(`
+                *,
+                insumos(nombre, unidad_medida),
+                papeleria(nombre, unidad_medida),
+                usuarios:admin_id(nombre)
+            `)
+            .order('fecha', { ascending: false })
+            .limit(50);
+        
+        // Filtrar por el tipo correcto de item
+        if (tipoRecursoActual === 'papeleria') {
+            query = query.eq('papeleria_id', itemId);
+        } else {
+            query = query.eq('insumo_id', itemId);
+        }
+        
+        const { data: movimientos, error } = await query;
+        
+        if (error) throw error;
+        
+        renderizarHistorialCompleto(movimientos || []);
+        
+    } catch (error) {
+        console.error('Error cargando historial del item:', error);
+        showNotificationInventario('Error cargando historial del item', 'error');
+    }
 }
 
 async function cargarHistorialCompleto() {
@@ -906,6 +891,7 @@ async function cargarHistorialCompleto() {
             .select(`
                 *,
                 insumos(nombre, unidad_medida),
+                papeleria(nombre, unidad_medida),
                 usuarios:admin_id(nombre)
             `)
             .order('fecha', { ascending: false });
@@ -934,51 +920,6 @@ async function cargarHistorialCompleto() {
     }
 }
 
-/*function renderizarHistorialCompleto(movimientos) {
-    const container = document.getElementById('historialCompleto');
-    if (!container) return;
-    
-    if (movimientos.length === 0) {
-        container.innerHTML = '<p class="text-center">No se encontraron movimientos con los filtros aplicados</p>';
-        return;
-    }
-    
-    let html = '<div class="historial-tabla">';
-    html += `
-        <div class="historial-header">
-            <div>Fecha</div>
-            <div>Insumo</div>
-            <div>Tipo</div>
-            <div>Cantidad</div>
-            <div>Stock</div>
-            <div>Admin</div>
-        </div>
-    `;
-    
-    movimientos.forEach(mov => {
-        const tipoIcon = getTipoMovimientoIcon(mov.tipo_movimiento);
-        const cantidad = mov.tipo_movimiento === 'entrega' ? mov.cantidad : Math.abs(mov.cantidad);
-        const signo = mov.cantidad > 0 ? '+' : '';
-        
-        html += `
-            <div class="historial-row">
-                <div class="historial-fecha">${new Date(mov.fecha).toLocaleDateString()}</div>
-                <div class="historial-insumo">${mov.insumos?.nombre || 'N/A'}</div>
-                <div class="historial-tipo">${tipoIcon} ${getTipoMovimientoLabel(mov.tipo_movimiento)}</div>
-                <div class="historial-cantidad ${mov.cantidad > 0 ? 'positivo' : 'negativo'}">
-                    ${signo}${cantidad}
-                </div>
-                <div class="historial-stock">${mov.stock_anterior} → ${mov.stock_nuevo}</div>
-                <div class="historial-admin">${mov.usuarios?.nombre || 'Sistema'}</div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    container.innerHTML = html;
-}*/
-
-
 function renderizarHistorialCompleto(movimientos) {
     const container = document.getElementById('historialCompleto');
     if (!container) return;
@@ -990,11 +931,10 @@ function renderizarHistorialCompleto(movimientos) {
 
     let html = '<div class="historial-tabla">';
 
-    // Header con la clase compartida
     html += `
         <div class="historial-header-row historial-grid">
             <div>Fecha</div>
-            <div>Insumo</div>
+            <div>Item</div>
             <div>Tipo</div>
             <div>Cantidad</div>
             <div>Stock</div>
@@ -1002,16 +942,18 @@ function renderizarHistorialCompleto(movimientos) {
         </div>
     `;
 
-    // Filas con la misma grilla
     movimientos.forEach(mov => {
         const tipoIcon = getTipoMovimientoIcon(mov.tipo_movimiento);
         const cantidad = mov.tipo_movimiento === 'entrega' ? mov.cantidad : Math.abs(mov.cantidad);
         const signo = mov.cantidad > 0 ? '+' : '';
+        
+        // Nombre polimórfico
+        const nombreItem = mov.insumos?.nombre || mov.papeleria?.nombre || 'N/A';
 
         html += `
             <div class="historial-row historial-grid">
                 <div class="historial-fecha">${new Date(mov.fecha).toLocaleDateString()}</div>
-                <div class="historial-insumo">${mov.insumos?.nombre || 'N/A'}</div>
+                <div class="historial-insumo">${nombreItem}</div>
                 <div class="historial-tipo">${tipoIcon} ${getTipoMovimientoLabel(mov.tipo_movimiento)}</div>
                 <div class="historial-cantidad ${mov.cantidad > 0 ? 'positivo' : 'negativo'}">
                     ${signo}${cantidad}
@@ -1026,15 +968,49 @@ function renderizarHistorialCompleto(movimientos) {
     container.innerHTML = html;
 }
 
+// ===================================
+// FUNCIONES AUXILIARES
+// ===================================
 
-function cerrarHistorialModal() {
-    document.getElementById('historialModal').style.display = 'none';
-    document.body.style.overflow = '';
+function getVisibilidadLabel(accesoTipo) {
+    const labels = {
+        'todos': '👥 Todos',
+        'solo_direccion': '🏢 Solo Dirección',
+        'ninguno': '🚫 Ninguno'
+    };
+    return labels[accesoTipo] || accesoTipo || 'todos';
 }
 
-// ===================================
-// UTILIDADES Y HELPERS
-// ===================================
+function getVisibilidadClass(accesoTipo) {
+    const classes = {
+        'todos': 'visibilidad-todos',
+        'solo_direccion': 'visibilidad-solo_direccion', 
+        'ninguno': 'visibilidad-ninguno'
+    };
+    return classes[accesoTipo] || 'visibilidad-todos';
+}
+
+function getTipoMovimientoIcon(tipo) {
+    const icons = {
+        'entrega': '📤',
+        'restock': '📦',
+        'ajuste': '⚙️',
+        'perdida': '⚠️',
+        'donacion': '🎁'
+    };
+    return icons[tipo] || '📊';
+}
+
+function getTipoMovimientoLabel(tipo) {
+    const labels = {
+        'entrega': 'Entrega',
+        'restock': 'Restock',
+        'ajuste': 'Ajuste',
+        'perdida': 'Pérdida',
+        'donacion': 'Donación'
+    };
+    return labels[tipo] || tipo;
+}
 
 function getStockStatus(stockActual, stockMinimo) {
     if (stockActual === 0) return 'critico';
@@ -1053,50 +1029,125 @@ function getStockStatusClass(status) {
     return classes[status] || 'status-normal';
 }
 
+// ===================================
+// FUNCIONES EXISTENTES MANTENIDAS
+// ===================================
+
+function actualizarInfoInsumo() {
+    const selectInsumo = document.getElementById('insumoSelect');
+    const itemId = selectInsumo.value;
+    
+    if (!itemId) {
+        document.getElementById('insumoInfoCard').style.display = 'none';
+        return;
+    }
+    
+    const item = inventarioData.find(i => i.id == itemId);
+    if (!item) return;
+    
+    const accesoTipo = item.acceso_tipo || 'todos';
+    
+    document.getElementById('stockActual').textContent = item.stock_actual;
+    document.getElementById('stockMinimo').textContent = item.cantidad_warning;
+    document.getElementById('unidadMedida').textContent = item.unidad_medida;
+    document.getElementById('visibilidadActual').textContent = getVisibilidadLabel(accesoTipo);
+    document.getElementById('insumoInfoCard').style.display = 'block';
+    
+    document.getElementById('cantidadAgregar').value = '';
+    document.getElementById('nuevoStockPreview').style.display = 'none';
+}
+
+function calcularNuevoStock() {
+    const selectInsumo = document.getElementById('insumoSelect');
+    const cantidadInput = document.getElementById('cantidadAgregar');
+    const itemId = selectInsumo.value;
+    const cantidad = parseInt(cantidadInput.value) || 0;
+    
+    if (!itemId || cantidad === 0) {
+        document.getElementById('nuevoStockPreview').style.display = 'none';
+        return;
+    }
+    
+    const item = inventarioData.find(i => i.id == itemId);
+    if (!item) return;
+    
+    const nuevoStock = item.stock_actual + cantidad;
+    document.getElementById('nuevoStockCalculado').textContent = nuevoStock;
+    document.getElementById('nuevoStockPreview').style.display = 'block';
+}
+
+function cerrarModalRestock() {
+    document.getElementById('restockModal').style.display = 'none';
+    document.body.style.overflow = '';
+    
+    document.getElementById('insumoSelect').value = '';
+    document.getElementById('cantidadAgregar').value = '';
+    document.getElementById('tipoMovimiento').value = '';
+    document.getElementById('motivoRestock').value = '';
+    document.getElementById('insumoInfoCard').style.display = 'none';
+    document.getElementById('nuevoStockPreview').style.display = 'none';
+}
+
+function cerrarModalEditarInsumo() {
+    document.getElementById('editarInsumoModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function verHistorialCompleto() {
+    cargarHistorialCompleto();
+    document.getElementById('historialModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarHistorialModal() {
+    document.getElementById('historialModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
 function actualizarInventario() {
     cargarDatosInventario();
 }
 
-
 function exportarInventario() {
-    // Preparar datos para exportación
-    const data = inventarioData.map(item => ({
-        'Insumo': item.nombre,
-        'Categoría': item.categorias_insumos?.nombre || 'Sin categoría',
-        'Stock Actual': item.stock_actual,
-        'Stock Mínimo': item.cantidad_warning,
-        'Unidad': item.unidad_medida,
-        'Visibilidad': getVisibilidadLabel(item.acceso_tipo),
-        'Estado': getStockStatus(item.stock_actual, item.cantidad_warning),
-        'Activo': item.activo ? 'Sí' : 'No'
-    }));
+    const tipoTexto = tipoRecursoActual === 'papeleria' ? 'papeleria' : 'insumos';
     
-    // Convertir a CSV
+    const data = inventarioData.map(item => {
+        const categoria = tipoRecursoActual === 'papeleria' 
+            ? item.categorias_papeleria 
+            : item.categorias_insumos;
+            
+        return {
+            'Item': item.nombre,
+            'Categoría': categoria?.nombre || 'Sin categoría',
+            'Stock Actual': item.stock_actual,
+            'Stock Mínimo': item.cantidad_warning,
+            'Unidad': item.unidad_medida,
+            'Visibilidad': getVisibilidadLabel(item.acceso_tipo),
+            'Estado': getStockStatus(item.stock_actual, item.cantidad_warning),
+            'Activo': item.activo ? 'Sí' : 'No'
+        };
+    });
+    
     const csvContent = convertirACSV(data);
-    
-    // Agregar BOM (Byte Order Mark) para UTF-8 - ¡ESTO ES CLAVE!
     const BOM = '\uFEFF';
     const contentWithBOM = BOM + csvContent;
     
-    // Usar tipo MIME específico para CSV UTF-8
     const blob = new Blob([contentWithBOM], { 
         type: 'text/csv;charset=utf-8;' 
     });
     
-    // Descargar como CSV (Excel lo abre perfectamente)
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `inventario_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `${tipoTexto}_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    // Liberar memoria
     setTimeout(() => URL.revokeObjectURL(url), 100);
     
-    showNotificationInventario('Inventario exportado exitosamente', 'success');
+    showNotificationInventario(`${tipoTexto === 'papeleria' ? 'Papelería' : 'Inventario'} exportado exitosamente`, 'success');
 }
 
 function convertirACSV(data) {
@@ -1112,19 +1163,14 @@ function convertirACSV(data) {
             }
             
             const stringValue = value.toString();
-            // Escapar comillas y caracteres problemáticos
             if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n') || stringValue.includes('\r')) {
                 return `"${stringValue.replace(/"/g, '""')}"`;
             }
             return stringValue;
         }).join(','))
-    ].join('\r\n'); // \r\n para compatibilidad con Windows/Excel
+    ].join('\r\n');
     
     return csvContent;
-}
-
-function ocultarAlertas() {
-    document.getElementById('alertasInventario').style.display = 'none';
 }
 
 function mostrarLoadingInventario(show) {
@@ -1199,45 +1245,7 @@ function showNotificationInventario(message, type = 'info', duration = 3000) {
     }
 }
 
-// ===================================
-// FUNCIONES ADICIONALES
-// ===================================
-
-function verHistorialInsumo(insumoId) {
-    const insumo = inventarioData.find(i => i.id == insumoId);
-    if (!insumo) return;
-    
-    // Mostrar modal de historial filtrado por este insumo específico
-    cargarHistorialInsumo(insumoId);
-    document.getElementById('historialModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-async function cargarHistorialInsumo(insumoId) {
-    try {
-        const { data: movimientos, error } = await supabaseInventario
-            .from('inventario_movimientos')
-            .select(`
-                *,
-                insumos(nombre, unidad_medida),
-                usuarios:admin_id(nombre)
-            `)
-            .eq('insumo_id', insumoId)
-            .order('fecha', { ascending: false })
-            .limit(50);
-        
-        if (error) throw error;
-        
-        renderizarHistorialCompleto(movimientos || []);
-        
-    } catch (error) {
-        console.error('Error cargando historial del insumo:', error);
-        showNotificationInventario('Error cargando historial del insumo', 'error');
-    }
-}
-
 function configurarEventListeners() {
-    // Filtros
     const filtroCategoria = document.getElementById('filtroCategoria');
     const filtroEstadoStock = document.getElementById('filtroEstadoStock');
     const filtroVisibilidad = document.getElementById('filtroVisibilidad');
@@ -1254,7 +1262,6 @@ function configurarEventListeners() {
         filtroVisibilidad.addEventListener('change', filtrarInventario);
     }
     
-    // Campos del modal de restock
     const insumoSelect = document.getElementById('insumoSelect');
     const cantidadAgregar = document.getElementById('cantidadAgregar');
     
@@ -1266,7 +1273,6 @@ function configurarEventListeners() {
         cantidadAgregar.addEventListener('input', calcularNuevoStock);
     }
     
-    // Filtros de historial
     const filtroTipoMovimiento = document.getElementById('filtroTipoMovimiento');
     const filtroFechaDesde = document.getElementById('filtroFechaDesde');
     const filtroFechaHasta = document.getElementById('filtroFechaHasta');
@@ -1284,208 +1290,8 @@ function configurarEventListeners() {
     }
 }
 
+// Alias para mantener compatibilidad
+const editarInsumo = editarItem;
+const verHistorialInsumo = verHistorialItem;
 
-
-// ===================================
-// FUNCIONES DEL HEADER ADMINISTRATIVO
-// ===================================
-
-// Toggle del menú de usuario
-function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-        const isVisible = dropdown.style.display !== 'none';
-        dropdown.style.display = isVisible ? 'none' : 'block';
-    }
-}
-
-// Cerrar sesión
-function logout() {
-    sessionStorage.clear();
-    window.location.href = 'login.html';
-}
-
-// Inicializar el header después de cargarse
-function inicializarHeaderAdmin() {
-    const session = sessionStorage.getItem('currentUser');
-    if (session) {
-        try {
-            const user = JSON.parse(session);
-
-            // Actualizar nombre de usuario
-            const userNameElement = document.getElementById('userName');
-            if (userNameElement) {
-                userNameElement.textContent = user.nombre;
-            }
-
-            // Solo super_admin ve inventario
-            if (user.rol !== 'super_admin') {
-                const inventarioLink = document.getElementById('inventarioLink');
-                if (inventarioLink) {
-                    inventarioLink.style.display = 'none';
-                }
-            }
-
-            console.log('Header administrativo inicializado para:', user.nombre);
-
-        } catch (error) {
-            console.error('Error inicializando header admin:', error);
-        }
-    }
-}
-
-// Cerrar dropdown al hacer click fuera
-document.addEventListener('click', function (e) {
-    if (!e.target.closest('.user-menu') && !e.target.closest('.user-dropdown')) {
-        const dropdown = document.getElementById('userDropdown');
-        if (dropdown) {
-            dropdown.style.display = 'none';
-        }
-    }
-});
-
-// ===================================
-// CARGA DEL HEADER DINÁMICO
-// ===================================
-
-// Función para cargar el header
-async function cargarHeaderAdmin() {
-    try {
-        const response = await fetch('includes/headerAdmin.html');
-        if (!response.ok) throw new Error('Error cargando header');
-
-        const html = await response.text();
-        const headerContainer = document.getElementById('header-contain');
-
-        if (headerContainer) {
-            headerContainer.innerHTML = html;
-            console.log('Header administrativo cargado');
-
-            // Inicializar después de cargar el HTML
-            setTimeout(inicializarHeaderAdmin, 100);
-        }
-    } catch (error) {
-        console.error('Error cargando header administrativo:', error);
-        // Fallback básico
-        const headerContainer = document.getElementById('header-contain');
-        if (headerContainer) {
-            headerContainer.innerHTML = `
-                <header class="header">
-                    <div class="container">
-                        <div class="header-content">
-                            <div class="logo-section">
-                                <h1>Panel de Administración</h1>
-                            </div>
-                            <div class="user-section">
-                                <span class="user-name">Usuario</span>
-                                <a href="login.html" style="margin-left: 1rem;">Cerrar Sesión</a>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-            `;
-        }
-    }
-}
-
-// ===================================
-// CARGA DEL FOOTER
-// ===================================
-
-async function cargarFooter() {
-    try {
-        const response = await fetch('includes/footerAdmin.html');
-        if (!response.ok) throw new Error('Error cargando footer');
-        
-        const html = await response.text();
-        const footerContainer = document.getElementById('footer-container');
-        
-        if (footerContainer) {
-            footerContainer.innerHTML = html;
-            console.log('Footer cargado correctamente');
-        }
-    } catch (error) {
-        console.error('Error cargando footer:', error);
-        // Footer básico si hay error
-        const footerContainer = document.getElementById('footer-container');
-        if (footerContainer) {
-            footerContainer.innerHTML = `
-                <footer>
-                    <div class="container">
-                        <p>&copy; ${new Date().getFullYear()} Sistema de Administración</p>
-                    </div>
-                </footer>
-            `;
-        }
-    }
-}
-
-// ===================================
-// INICIALIZACIÓN DEL ADMIN
-// ===================================
-
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. Verificar autenticación primero
-    const session = sessionStorage.getItem('currentUser');
-    if (!session) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    try {
-        const user = JSON.parse(session);
-        
-        // Verificar si es administrador
-        if (user.rol !== 'admin' && user.rol !== 'super_admin') {
-            showNotificationAdmin('No tienes permisos de administrador', 'error');
-            setTimeout(() => window.location.href = 'index.html', 2000);
-            return;
-        }
-        
-        console.log('Usuario admin autenticado:', user.nombre);
-
-    } catch (error) {
-        console.error('Error verificando autenticación:', error);
-        window.location.href = 'login.html';
-        return;
-    }
-
-    // 2. Cargar header y footer
-    cargarHeaderAdmin();
-    cargarFooter(); 
-
-    // 3. Inicializar header después de que se cargue
-    // (esto se hace dentro de cargarHeaderAdmin con setTimeout)
-
-    // 4. Cargar las solicitudes y demás funcionalidad admin
-    setTimeout(() => {
-        // Esta función ya debe estar definida en tu admin.js
-        if (typeof cargarSolicitudesAdmin === 'function') {
-            cargarSolicitudesAdmin();
-        }
-        if (typeof actualizarEstadisticasAdmin === 'function') {
-            actualizarEstadisticasAdmin();
-        }
-        if (typeof verificarSuperAdmin === 'function') {
-            verificarSuperAdmin();
-        }
-    }, 800); // Un poco más de tiempo para que cargue el header
-});
-
-
-
-// ===================================
-// MANEJO DE ERRORES GLOBALES
-// ===================================
-
-window.addEventListener('error', function(e) {
-    console.error('Error en inventario:', e.error);
-    showNotificationInventario('Error inesperado en el sistema de inventario', 'error');
-});
-
-window.addEventListener('unhandledrejection', function(e) {
-    console.error('Promise rechazada en inventario:', e.reason);
-    showNotificationInventario('Error de conexión con la base de datos', 'error');
-});
-
-console.log('📦 Inventario.js cargado completamente');
+console.log('📦 Inventario polimórfico.js cargado completamente');
