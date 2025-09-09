@@ -1293,6 +1293,126 @@ function configurarEventListeners() {
 }
 
 
+function abrirModalNuevoInsumo() {
+    // Cargar categorías en el select
+    cargarCategoriasEnSelect('categoriaInsumo');
+    
+    document.getElementById('nuevoInsumoModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalNuevoInsumo() {
+    document.getElementById('nuevoInsumoModal').style.display = 'none';
+    document.body.style.overflow = '';
+    
+    // Limpiar formulario
+    document.getElementById('nuevoInsumoForm').reset();
+}
+
+async function cargarCategoriasEnSelect(selectId) {
+    try {
+        const { data: categorias, error } = await supabaseInventario
+            .from('categorias_insumos')
+            .select('id, nombre')
+            .eq('activo', true)
+            .order('nombre');
+        
+        if (error) throw error;
+        
+        const select = document.getElementById(selectId);
+        if (!select) {
+            console.error('❌ Select no encontrado:', selectId);
+            return;
+        }
+        
+        let html = '<option value="">Seleccionar categoría...</option>';
+        
+        categorias.forEach(categoria => {
+            html += `<option value="${categoria.id}">${categoria.nombre}</option>`;
+        });
+        
+        select.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error cargando categorías:', error);
+        showNotificationInventario('Error cargando categorías', 'error');
+    }
+}
+
+async function confirmarNuevoInsumo() {
+    try {
+        const nombre = document.getElementById('nombreInsumo').value.trim();
+        const descripcion = document.getElementById('descripcionInsumo').value.trim();
+        const categoriaId = document.getElementById('categoriaInsumo').value;
+        const unidad = document.getElementById('unidadInsumo').value;
+        const stockInicial = parseInt(document.getElementById('stockInicial').value) || 0;
+        const stockMinimo = parseInt(document.getElementById('stockMinimo').value);
+        const visibilidad = document.getElementById('visibilidadInsumo').value;
+        
+        // Validaciones
+        if (!nombre || !categoriaId || !unidad || !stockMinimo) {
+            showNotificationInventario('Completa todos los campos obligatorios', 'warning');
+            return;
+        }
+        
+        if (stockMinimo < 1) {
+            showNotificationInventario('El stock mínimo debe ser al menos 1', 'warning');
+            return;
+        }
+        
+        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
+        btnConfirmar.disabled = true;
+        btnConfirmar.innerHTML = '⏳ Creando...';
+        
+        // Crear nuevo insumo
+        const { data: nuevoInsumo, error } = await supabaseInventario
+            .from('insumos')
+            .insert({
+                nombre: nombre,
+                descripcion: descripcion || null,
+                categoria_id: categoriaId,
+                unidad_medida: unidad,
+                stock_actual: stockInicial,
+                cantidad_warning: stockMinimo,
+                acceso_tipo: visibilidad,
+                activo: true,
+                creado_por: currentSuperAdmin.id
+            })
+            .select()
+            .single();
+        
+        if (error) throw error;
+        
+        // Registrar movimiento inicial si hay stock
+        if (stockInicial > 0) {
+            await supabaseInventario
+                .from('inventario_movimientos')
+                .insert({
+                    insumo_id: nuevoInsumo.id,
+                    tipo_movimiento: 'restock',
+                    cantidad: stockInicial,
+                    stock_anterior: 0,
+                    stock_nuevo: stockInicial,
+                    motivo: 'Stock inicial al crear insumo',
+                    admin_id: currentSuperAdmin.id
+                });
+        }
+        
+        showNotificationInventario(`Insumo "${nombre}" creado exitosamente`, 'success');
+        cerrarModalNuevoInsumo();
+        await cargarDatosInventario();
+        
+    } catch (error) {
+        console.error('Error creando insumo:', error);
+        showNotificationInventario('Error al crear el insumo', 'error');
+        
+        const btnConfirmar = document.getElementById('btnConfirmarNuevoInsumo');
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerHTML = '🆕 Crear Insumo';
+    }
+}
+
+
 
 // ===================================
 // CARGAR HEADER ADMIN ESPECÍFICO
@@ -1476,16 +1596,6 @@ function cerrarSesion() {
         window.location.href = 'login.html';
     }
 }
-
-
-function abrirModalNuevoInsumo() {
-    // Cargar categorías en el select
-    cargarCategoriasEnSelect('categoriaInsumo');
-    
-    document.getElementById('nuevoInsumoModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
 
 // ===================================
 // FUNCIÓN PARA VERIFICAR AUTENTICACIÓN
