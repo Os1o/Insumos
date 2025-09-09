@@ -24,6 +24,7 @@ const supabaseInventario = window.supabase.createClient(
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🔄 Inicializando sistema de inventario polimórfico...');
     
+    await cargarHeaderAdmin();
     try {
         // 1. Verificar permisos
         currentSuperAdmin = verificarPermisosSuperAdmin();
@@ -1290,21 +1291,34 @@ function configurarEventListeners() {
     }
 }
 
-// Alias para mantener compatibilidad
-const editarInsumo = editarItem;
-const verHistorialInsumo = verHistorialItem;
-
-console.log('📦 Inventario polimórfico.js cargado completamente');
 
 
-// DEPURACIÓN TEMPORAL
-setTimeout(() => {
-    console.log('🔍 Verificando header:');
-    console.log('- Container existe?', !!document.getElementById('header-container'));
-    console.log('- Header visible?', !!document.querySelector('.header'));
-    
-    // Si no hay header, agregar uno básico
-    if (!document.querySelector('.header')) {
+// ===================================
+// CARGAR HEADER ADMIN ESPECÍFICO
+// ===================================
+
+async function cargarHeaderAdmin() {
+    try {
+        const response = await fetch('includes/headerAdmin.html');
+        if (!response.ok) throw new Error('Error cargando headerAdmin.html');
+
+        const html = await response.text();
+        const headerContainer = document.getElementById('header-container');
+
+        if (headerContainer) {
+            headerContainer.innerHTML = html;
+            console.log('✅ HeaderAdmin.html cargado correctamente');
+            
+            // Inicializar funciones del header si existen
+            setTimeout(() => {
+                if (typeof inicializarHeaderAdmin === 'function') {
+                    inicializarHeaderAdmin();
+                }
+            }, 100);
+        }
+    } catch (error) {
+        console.error('❌ Error cargando headerAdmin.html:', error);
+        // Header básico como fallback
         const headerContainer = document.getElementById('header-container');
         if (headerContainer) {
             headerContainer.innerHTML = `
@@ -1317,4 +1331,16 @@ setTimeout(() => {
             `;
         }
     }
-}, 1000);
+}
+
+// Llamar la función al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    cargarHeaderAdmin();
+});
+// Alias para mantener compatibilidad
+const editarInsumo = editarItem;
+const verHistorialInsumo = verHistorialItem;
+
+console.log('📦 Inventario polimórfico.js cargado completamente');
+
+
