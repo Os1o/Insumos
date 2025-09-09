@@ -466,11 +466,14 @@ function renderizarReporte() {
     const nombreMes = obtenerNombreMes(datosReporte.periodo.mes);
     const tituloArea = datosReporte.periodo.area ? ` - ${datosReporte.periodo.area}` : '';
     
+    // ✅ DETERMINAR TIPO DE RECURSO FILTRADO
+    const recursoFiltrado = datosReporte.periodo.recurso;
+    
     let html = `
         <!-- Header del reporte -->
         <div class="reporte-titulo">
             <h3>${obtenerTituloReporte()}${tituloArea}</h3>
-            <p>Comparación con mes anterior</p>
+            <p>Comparación con período anterior</p>
         </div>
         
         <!-- Estadísticas principales -->
@@ -495,15 +498,15 @@ function renderizarReporte() {
         </div>
         ` : ''}
         
-        <!-- Insumos más solicitados -->
+        <!-- ✅ SECCIÓN DINÁMICA DE RECURSOS -->
         <div class="seccion-reporte">
-            <h4>Insumos Más Solicitados</h4>
+            <h4>${obtenerTituloRecursos(recursoFiltrado)}</h4>
             <div class="contenido-mixto">
                 <div class="tabla-datos">
-                    ${crearTablaInsumos()}
+                    ${crearTablaRecursos(recursoFiltrado)}
                 </div>
                 <div class="grafico-container">
-                    <canvas id="graficoInsumos"></canvas>
+                    <canvas id="graficoRecursos"></canvas>
                 </div>
             </div>
         </div>
@@ -521,6 +524,86 @@ function renderizarReporte() {
     
     container.innerHTML = html;
 }
+
+
+function obtenerTituloRecursos(recursoFiltrado) {
+    if (recursoFiltrado === 'insumo') {
+        return '📦 Insumos Más Solicitados';
+    } else if (recursoFiltrado === 'papeleria') {
+        return '📝 Papelería Más Solicitada';
+    } else {
+        return '📊 Recursos Más Solicitados';
+    }
+}
+
+
+function crearTablaRecursos(recursoFiltrado) {
+    let datos = {};
+    
+    // ✅ SELECCIONAR DATOS SEGÚN EL FILTRO
+    if (recursoFiltrado === 'insumo') {
+        datos = datosReporte.actual.insumosSolicitados;
+    } else if (recursoFiltrado === 'papeleria') {
+        datos = datosReporte.actual.papeleriaSolicitada;
+    } else {
+        // Mostrar recursos combinados si no hay filtro específico
+        datos = datosReporte.actual.recursosSolicitados;
+    }
+    
+    // Verificar si hay datos
+    if (!datos || Object.keys(datos).length === 0) {
+        const tipoRecurso = recursoFiltrado === 'insumo' ? 'insumos' : 
+                           recursoFiltrado === 'papeleria' ? 'papelería' : 'recursos';
+        return `<p class="no-datos">No hay datos de ${tipoRecurso} para este período</p>`;
+    }
+    
+    // Ordenar por cantidad (descendente) y tomar top 10
+    const recursosOrdenados = Object.entries(datos)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    
+    let html = `
+        <table class="tabla-reporte">
+            <thead>
+                <tr>
+                    <th>Recurso</th>
+                    <th>Cantidad</th>
+                    <th>Cambio</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    recursosOrdenados.forEach(([recurso, cantidad]) => {
+        // Obtener cantidad anterior para comparación
+        let cantidadAnterior = 0;
+        if (recursoFiltrado === 'insumo') {
+            cantidadAnterior = datosReporte.anterior.insumosSolicitados[recurso] || 0;
+        } else if (recursoFiltrado === 'papeleria') {
+            cantidadAnterior = datosReporte.anterior.papeleriaSolicitada[recurso] || 0;
+        } else {
+            cantidadAnterior = datosReporte.anterior.recursosSolicitados[recurso] || 0;
+        }
+        
+        const cambio = calcularCambioSeguro(cantidad, cantidadAnterior);
+        
+        html += `
+            <tr>
+                <td>${recurso}</td>
+                <td><strong>${cantidad}</strong></td>
+                <td class="cambio">${cambio}</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+            </tbody>
+        </table>
+    `;
+    
+    return html;
+}
+
 
 function crearTarjetaEstadistica(titulo, actual, anterior) {
     const cambio = calcularCambioSeguro(actual, anterior);
@@ -604,38 +687,8 @@ function crearTablaPorAreas() {
 }
 
 function crearTablaInsumos() {
-    const insumosOrdenados = Object.entries(datosReporte.actual.insumosSolicitados)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10); // Top 10 insumos
-    
-    let tbody = '';
-    insumosOrdenados.forEach(([insumo, cantidad]) => {
-        const anterior = datosReporte.anterior.insumosSolicitados[insumo] || 0;
-        const cambio = calcularCambioSeguro(cantidad, anterior);
-        
-        tbody += `
-            <tr>
-                <td class="insumo-nombre">${insumo}</td>
-                <td class="insumo-cantidad">${cantidad}</td>
-                <td class="insumo-cambio">${cambio}</td>
-            </tr>
-        `;
-    });
-    
-    return `
-        <table class="tabla-reporte">
-            <thead>
-                <tr>
-                    <th>Insumo</th>
-                    <th>Cantidad</th>
-                    <th>Cambio</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${tbody}
-            </tbody>
-        </table>
-    `;
+    // Mantener esta función para compatibilidad con código existente
+    return crearTablaRecursos('insumo');
 }
 
 // ===================================
@@ -643,10 +696,72 @@ function crearTablaInsumos() {
 // ===================================
 
 function crearGraficos() {
+    // Gráfico por área (si aplica)
     if (!datosReporte.periodo.area) {
         crearGraficoAreas();
     }
-    crearGraficoInsumos();
+    
+    // Gráfico de recursos (dinámico)
+    crearGraficoRecursos();
+}
+
+
+function crearGraficoRecursos() {
+    const canvas = document.getElementById('graficoRecursos');
+    if (!canvas) return;
+    
+    const recursoFiltrado = datosReporte.periodo.recurso;
+    let datos = {};
+    
+    // Seleccionar datos según el filtro
+    if (recursoFiltrado === 'insumo') {
+        datos = datosReporte.actual.insumosSolicitados;
+    } else if (recursoFiltrado === 'papeleria') {
+        datos = datosReporte.actual.papeleriaSolicitada;
+    } else {
+        datos = datosReporte.actual.recursosSolicitados;
+    }
+    
+    if (!datos || Object.keys(datos).length === 0) {
+        canvas.style.display = 'none';
+        return;
+    }
+    
+    // Top 8 para el gráfico
+    const recursosTop = Object.entries(datos)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+    
+    new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+            labels: recursosTop.map(([recurso]) => 
+                recurso.length > 25 ? recurso.substring(0, 22) + '...' : recurso
+            ),
+            datasets: [{
+                data: recursosTop.map(([, cantidad]) => cantidad),
+                backgroundColor: [
+                    '#657153', '#8aaa79', '#b7b6c2', '#837569',
+                    '#2c3e50', '#34495e', '#16a085', '#f39c12'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: obtenerTituloRecursos(recursoFiltrado)
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
 }
 
 
