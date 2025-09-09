@@ -968,6 +968,151 @@ function renderizarHistorialCompleto(movimientos) {
     container.innerHTML = html;
 }
 
+
+
+
+
+
+
+// ===================================
+// CARGA DEL HEADER DINÁMICO
+// ===================================
+
+// Función para cargar el header
+async function cargarHeaderAdmin() {
+    try {
+        const response = await fetch('includes/headerAdmin.html');
+        if (!response.ok) throw new Error('Error cargando header');
+
+        const html = await response.text();
+        const headerContainer = document.getElementById('header-container');
+
+        if (headerContainer) {
+            headerContainer.innerHTML = html;
+            console.log('Header administrativo cargado');
+
+            // Inicializar después de cargar el HTML
+            setTimeout(inicializarHeaderAdmin, 100);
+        }
+    } catch (error) {
+        console.error('Error cargando header administrativo:', error);
+        // Fallback básico
+        const headerContainer = document.getElementById('header-container');
+        if (headerContainer) {
+            headerContainer.innerHTML = `
+                <header class="header">
+                    <div class="container">
+                        <div class="header-content">
+                            <div class="logo-section">
+                                <h1>Panel de Administración</h1>
+                            </div>
+                            <div class="user-section">
+                                <span class="user-name">Usuario</span>
+                                <a href="login.html" style="margin-left: 1rem;">Cerrar Sesión</a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            `;
+        }
+    }
+}
+
+// ===================================
+// CARGA DEL FOOTER
+// ===================================
+
+async function cargarFooter() {
+    try {
+        const response = await fetch('includes/footerAdmin.html');
+        if (!response.ok) throw new Error('Error cargando footer');
+
+        const html = await response.text();
+        const footerContainer = document.getElementById('footer-container');
+
+        if (footerContainer) {
+            footerContainer.innerHTML = html;
+            console.log('Footer cargado correctamente');
+        }
+    } catch (error) {
+        console.error('Error cargando footer:', error);
+        // Footer básico si hay error
+        const footerContainer = document.getElementById('footer-container');
+        if (footerContainer) {
+            footerContainer.innerHTML = `
+                <footer>
+                    <div class="container">
+                        <p>&copy; ${new Date().getFullYear()} Sistema de Administración</p>
+                    </div>
+                </footer>
+            `;
+        }
+    }
+}
+
+// ===================================
+// INICIALIZACIÓN DEL ADMIN
+// ===================================
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Verificar autenticación primero
+    const session = sessionStorage.getItem('currentUser');
+    if (!session) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    try {
+        const user = JSON.parse(session);
+
+        // Verificar si es administrador
+        if (user.rol !== 'admin' && user.rol !== 'super_admin') {
+            showNotificationAdmin('No tienes permisos de administrador', 'error');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+
+        console.log('Usuario admin autenticado:', user.nombre);
+
+    } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 2. Cargar header y footer
+    cargarHeaderAdmin();
+    cargarFooter();
+
+    // 3. Inicializar header después de que se cargue
+    // (esto se hace dentro de cargarHeaderAdmin con setTimeout)
+
+    // 4. Cargar las solicitudes y demás funcionalidad admin
+    setTimeout(() => {
+        // Esta función ya debe estar definida en tu admin.js
+        if (typeof cargarSolicitudesAdmin === 'function') {
+            cargarSolicitudesAdmin();
+        }
+        if (typeof actualizarEstadisticasAdmin === 'function') {
+            actualizarEstadisticasAdmin();
+        }
+        if (typeof verificarSuperAdmin === 'function') {
+            verificarSuperAdmin();
+        }
+    }, 800); // Un poco más de tiempo para que cargue el header
+});
+
+
+
+
+
+
+
+
+
+
+
+
 // ===================================
 // FUNCIONES AUXILIARES
 // ===================================
