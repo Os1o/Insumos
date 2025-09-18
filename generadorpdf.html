@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Solicitud de Papelería</title>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -20,7 +21,7 @@
             border-radius: 8px;
             padding: 2rem;
             margin: 2rem 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .documento-header {
@@ -164,7 +165,7 @@
             padding: 1.5rem;
             border-radius: 8px;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .controls h3 {
@@ -206,7 +207,8 @@
             font-weight: 500;
         }
 
-        .form-group input, .form-group select {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid #ddd;
@@ -239,10 +241,11 @@
         }
     </style>
 </head>
+
 <body>
     <div class="controls">
         <h3>📄 Generador de Solicitud de Papelería</h3>
-        
+
         <div class="grid-2">
             <div class="form-group">
                 <label>Nombre del Solicitante:</label>
@@ -279,11 +282,11 @@
                 <button type="button" class="btn btn-small" onclick="eliminarItem(this)">🗑️</button>
             </div>
         </div>
-        
+
         <button type="button" class="btn btn-secondary btn-small" onclick="agregarItem()">➕ Agregar Item</button>
-        
+
         <hr style="margin: 1.5rem 0;">
-        
+
         <button type="button" class="btn" onclick="actualizarPreview()">👁️ Vista Previa</button>
         <button type="button" class="btn" onclick="generarPDF()">📄 Generar PDF</button>
     </div>
@@ -360,7 +363,7 @@
     <script>
         // Inicializar fecha actual
         document.getElementById('fechaSolicitud').value = new Date().toISOString().split('T')[0];
-        
+
         function agregarItem() {
             const container = document.getElementById('itemsContainer');
             const itemRow = document.createElement('div');
@@ -384,16 +387,16 @@
 
         function actualizarPreview() {
             // Actualizar información básica
-            document.getElementById('preview-departamento').textContent = 
+            document.getElementById('preview-departamento').textContent =
                 document.getElementById('departamento').value || 'Coordinación Administrativa';
-            
-            document.getElementById('preview-cargo').textContent = 
+
+            document.getElementById('preview-cargo').textContent =
                 document.getElementById('cargoA').value || 'Partida CEPS';
-            
-            document.getElementById('preview-numero').textContent = 
+
+            document.getElementById('preview-numero').textContent =
                 document.getElementById('numeroSalida').value || '666';
-            
-            document.getElementById('preview-nombre').textContent = 
+
+            document.getElementById('preview-nombre').textContent =
                 document.getElementById('nombreSolicitante').value || 'Barbara Arceli Romero Mejia';
 
             // Formatear fecha
@@ -440,34 +443,34 @@
         function generarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Configuración
             const pageWidth = doc.internal.pageSize.getWidth();
             const margin = 20;
             const contentWidth = pageWidth - (margin * 2);
-            
+
             let y = margin;
-            
+
             // Header
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text('Dirección Jurídica', pageWidth / 2, y, { align: 'center' });
             y += 7;
-            
+
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
             const departamento = document.getElementById('departamento').value || 'Coordinación Administrativa';
             doc.text(departamento, pageWidth / 2, y, { align: 'center' });
             y += 7;
-            
+
             doc.setFont('helvetica', 'bold');
             doc.text('Solicitud de Papelería y Artículos de Oficina', pageWidth / 2, y, { align: 'center' });
             y += 15;
-            
+
             // Línea separadora
             doc.line(margin, y, pageWidth - margin, y);
             y += 10;
-            
+
             // Con Cargo a y Salida
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
@@ -475,18 +478,18 @@
             doc.setFont('helvetica', 'normal');
             const cargoA = document.getElementById('cargoA').value || 'Partida CEPS';
             doc.text(cargoA, margin + 25, y);
-            
+
             // Cuadro de salida (derecha)
             const cuadroX = pageWidth - margin - 50;
             doc.rect(cuadroX, y - 8, 50, 25);
             doc.setFont('helvetica', 'bold');
             doc.text('Salida de', cuadroX + 25, y - 3, { align: 'center' });
             doc.text('Almacén N°', cuadroX + 25, y + 2, { align: 'center' });
-            
+
             const numeroSalida = document.getElementById('numeroSalida').value || '666';
             doc.setFontSize(16);
             doc.text(numeroSalida, cuadroX + 25, y + 10, { align: 'center' });
-            
+
             doc.setFontSize(8);
             const fecha = document.getElementById('fechaSolicitud').value;
             if (fecha) {
@@ -494,14 +497,14 @@
                 const fechaFormateada = fechaObj.toLocaleDateString('es-MX');
                 doc.text('Fecha: ' + fechaFormateada, cuadroX + 25, y + 16, { align: 'center' });
             }
-            
+
             y += 30;
-            
+
             // Tabla de items
             doc.setFontSize(10);
             const tableHeaders = ['Descripción', 'Unidad', 'Cantidad'];
             const colWidths = [contentWidth * 0.7, contentWidth * 0.15, contentWidth * 0.15];
-            
+
             // Headers de tabla
             doc.setFont('helvetica', 'bold');
             let currentX = margin;
@@ -511,39 +514,39 @@
                 currentX += colWidths[index];
             });
             y += 8;
-            
+
             // Items de la tabla
             doc.setFont('helvetica', 'normal');
             const itemRows = document.querySelectorAll('.item-row');
             let hasItems = false;
-            
+
             itemRows.forEach(row => {
                 const descripcion = row.querySelector('.item-descripcion').value;
                 const unidad = row.querySelector('.item-unidad').value;
                 const cantidad = row.querySelector('.item-cantidad').value;
-                
+
                 if (descripcion && unidad && cantidad) {
                     hasItems = true;
                     currentX = margin;
-                    
+
                     // Calcular altura necesaria para la descripción
                     const descripcionLines = doc.splitTextToSize(descripcion, colWidths[0] - 4);
                     const rowHeight = Math.max(6, descripcionLines.length * 4);
-                    
+
                     // Dibujar celdas
                     doc.rect(currentX, y, colWidths[0], rowHeight);
                     doc.rect(currentX + colWidths[0], y, colWidths[1], rowHeight);
                     doc.rect(currentX + colWidths[0] + colWidths[1], y, colWidths[2], rowHeight);
-                    
+
                     // Contenido
                     doc.text(descripcionLines, currentX + 2, y + 4);
                     doc.text(unidad, currentX + colWidths[0] + colWidths[1] / 2, y + rowHeight / 2, { align: 'center' });
                     doc.text(cantidad.toString(), currentX + colWidths[0] + colWidths[1] + colWidths[2] / 2, y + rowHeight / 2, { align: 'center' });
-                    
+
                     y += rowHeight;
                 }
             });
-            
+
             // Si no hay items, agregar filas vacías
             if (!hasItems) {
                 for (let i = 0; i < 10; i++) {
@@ -554,61 +557,62 @@
                     y += 6;
                 }
             }
-            
+
             y += 15;
-            
+
             // Sección de autorización
             const boxWidth = (contentWidth - 10) / 2;
             const boxHeight = 40;
-            
+
             // Cuadro "Autorizó"
             doc.rect(margin, y, boxWidth, boxHeight);
             doc.setFont('helvetica', 'bold');
             doc.text('Autorizó', margin + boxWidth / 2, y + 8, { align: 'center' });
-            
+
             // Líneas de firma
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
             doc.line(margin + 5, y + 18, margin + boxWidth / 2 - 5, y + 18);
             doc.text('Fecha', margin + boxWidth / 4, y + 22, { align: 'center' });
-            
+
             doc.line(margin + boxWidth / 2 + 5, y + 18, margin + boxWidth - 5, y + 18);
             doc.text('Matrícula', margin + boxWidth * 3 / 4, y + 22, { align: 'center' });
-            
+
             // Línea del nombre
             doc.line(margin + 5, y + 32, margin + boxWidth - 5, y + 32);
             const nombreSolicitante = document.getElementById('nombreSolicitante').value || 'Barbara Arceli Romero Mejia';
             doc.text(nombreSolicitante, margin + boxWidth / 2, y + 36, { align: 'center' });
             doc.text('Firma', margin + boxWidth - 10, y + 38, { align: 'right' });
-            
+
             // Cuadro "Oficio"
             const oficioDY = y;
             doc.rect(margin + boxWidth + 10, oficioDY, boxWidth, boxHeight);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(10);
             doc.text('Oficio', margin + boxWidth + 10 + boxWidth / 2, oficioDY + 8, { align: 'center' });
-            
+
             // Líneas del oficio
             doc.line(margin + boxWidth + 15, oficioDY + 25, margin + boxWidth + 10 + boxWidth - 5, oficioDY + 25);
             doc.setFont('helvetica', 'bold');
             doc.text('Fecha', margin + boxWidth + 10 + boxWidth / 2, oficioDY + 35, { align: 'center' });
             doc.line(margin + boxWidth + 15, oficioDY + 38, margin + boxWidth + 10 + boxWidth - 5, oficioDY + 38);
-            
+
             // Generar nombre del archivo
             const fechaArchivo = new Date().toISOString().split('T')[0];
             const nombreArchivo = `Solicitud_Papeleria_${fechaArchivo}.pdf`;
-            
+
             // Descargar
             doc.save(nombreArchivo);
         }
 
         // Actualizar preview al cargar
         document.addEventListener('DOMContentLoaded', actualizarPreview);
-        
+
         // Auto-actualizar preview cuando cambien los campos
         document.querySelectorAll('input, select').forEach(input => {
             input.addEventListener('input', actualizarPreview);
         });
     </script>
 </body>
+
 </html>
