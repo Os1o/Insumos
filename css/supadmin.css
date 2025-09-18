@@ -1712,28 +1712,6 @@
     color: white;
     border: 1px solid #c0392b;
 }
-
-
-.btn-admin-secondary {
-    background: #6c757d;
-    color: white;
-    border: 1px solid #6c757d;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-}
-
-.btn-admin-secondary:hover {
-    background: #5a6268;
-    border-color: #545b62;
-    transform: translateY(-1px);
-}
-
-.btn-admin-secondary:active {
-    transform: translateY(0);
-}
 /* ===================================
    FIN DEL ARCHIVO CSS ADMIN
    =================================== */
