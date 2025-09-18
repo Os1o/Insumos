@@ -990,7 +990,25 @@ async function descargarSolicitudPDF(solicitudId) {
 
 // 4. FUNCIÓN PARA GENERAR EL PDF
 function generarPDFSolicitud(solicitud) {
-    const { jsPDF } = window.jspdf;
+    // Verificar si jsPDF está disponible
+    if (typeof window.jsPDF === 'undefined' && typeof window.jspdf === 'undefined') {
+        console.error('jsPDF no está disponible');
+        showNotificationAdmin('Error: Librería PDF no cargada. Recarga la página.', 'error');
+        return;
+    }
+
+    // Intentar diferentes formas de acceder a jsPDF
+    let jsPDF;
+    if (window.jsPDF) {
+        jsPDF = window.jsPDF;
+    } else if (window.jspdf && window.jspdf.jsPDF) {
+        jsPDF = window.jspdf.jsPDF;
+    } else {
+        console.error('No se puede acceder a jsPDF');
+        showNotificationAdmin('Error: No se puede acceder a jsPDF', 'error');
+        return;
+    }
+
     const doc = new jsPDF();
     
     // Configuración
